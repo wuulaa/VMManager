@@ -3,46 +3,61 @@ from __future__ import annotations
 import sys
 import json
 
+SUCCESS_CODE: int = 0
+
 
 class APIResponse(object):
 
-    def __init__(self, result: any = None,
-                 success: bool = True, desc: str = None):
-        self.result = result
-        self.is_success = success
-        self.description = desc
+    def __init__(self,
+                 code: int = SUCCESS_CODE,
+                 data: any = None,
+                 msg: str = None):
+        self.data = data
+        self.code = code
+        self.msg = msg
 
     @classmethod
-    def success(cls, result: any = None, desc: str = None) -> APIResponse:
+    def success(cls, data: any = None, msg: str = None) -> APIResponse:
         # Display the successfully executed API
-        if (desc is None):
+        if (msg is None):
             API = sys._getframe(1).f_code.co_name
-            desc = f'API \'{API}\' has operated successfully.'
-        return cls(result, desc=desc)
+            msg = f'API \'{API}\' has operated successfully.'
+        return cls(code=SUCCESS_CODE, data=data, msg=msg)
 
     @classmethod
-    def error(cls, result: any = None, desc: str = None) -> APIResponse:
+    def error(cls, code: int = None, msg: str = None) -> APIResponse:
+        if (code is None):
+            raise Exception('error code cannot be None.')
         # Display the failed executed APIs
-        if (desc is None):
+        if (msg is None):
             API = sys._getframe(1).f_code.co_name
-            desc = f'An unexpected error occurred within the API \'{API}\'.'
-        return cls(result, success=False, desc=desc)
+            msg = f'An unexpected error occurred when calling the API \'{API}\'.'
+        return cls(code, msg=msg)
 
-    def get_description(self):
-        return self.description
+    def is_success(self) -> bool:
+        return True if (self._code == 0) else False
 
-    def set_description(self, desc: str = None):
-        self.description = desc
+    def get_code(self) -> int:
+        return self.code
 
-    _description = property(get_description, set_description)
+    def set_code(self, code: int):
+        self.code = code
 
-    def get_success(self):
-        return self.is_success
+    def get_data(self):
+        return self.data
 
-    def set_success(self, success: bool):
-        self.is_success = success
+    def set_data(self, data: int):
+        self.data = data
 
-    _success = property(get_success, set_success)
+    def get_msg(self):
+        return self.msg
+
+    def set_msg(self, msg: str = None):
+        self.msg = msg
+
+    _code = property(get_code, set_code)
+    _data = property(get_data, set_data)
+    _msg = property(get_msg, set_msg)
 
     def json(self) -> str:
         return json.dumps(self.__dict__, cls=MyEncoder, indent=4)
@@ -57,24 +72,24 @@ class MyEncoder(json.JSONEncoder):
 
 # Controller 中使用
 def example():
-    # 1. 创建空 Response，自行补充属性值
-    print('------------------------- 创建空 Response，自行补充属性值 --------------------------')
+    # 1. 创建空 response，自行补充属性值
+    print('------------------------- 创建空 response，自行补充属性值 --------------------------')
     response = APIResponse()
-    response.description = 'Empty APIResponse'
-    response.set_success(True)
+    response.set_msg('Empty APIResponse')
+    response.set_code(SUCCESS_CODE)
     print(response.json())
     print()
 
-    # 2. 创建包含 result 的 Response，success 默认为 True
-    print('----------------- 创建包含 result 的 Response，success 默认为 True -----------------')
-    result = APIResponse([1234, 2234, 'aaa', [333333, 2222222, 3333333, 444444]])
-    result.description = 'Creating APIResponse with result,' \
-                         ' is_success defaults to True'
-    print(result.json())
+    # 2. 创建包含 data 的 response, code 默认为 0
+    print('----------------- 创建包含 data 的 response, code 默认为 0 -----------------')
+    data_res = APIResponse(
+        [1234, 2234, 'aaa', [333333, 2222222, 3333333, 444444]])
+    data_res.set_msg('Creating APIResponse with data, code defaults to 0')
+    print(data_res.json())
     print()
 
-    # 3. 创建包含 result 的 successful response
-    print('----------------------- 创建包含 result 的 successful response --------------------')
+    # 3. 创建包含 data 的 successful response
+    print('----------------------- 创建包含 data 的 successful response --------------------')
     success_res = APIResponse.success(dict(str='a1',
                                            dict={'bool': True,
                                                  'int': 123,
@@ -82,8 +97,8 @@ def example():
     print(success_res.json())
     print()
 
-    # 4. 创建包含 result 的 failed response
-    print('---------------------- 创建包含 result 的 failed response -------------------------')
+    # 4. 创建包含 msg 的 failed response
+    print('---------------------- 创建包含 msg 的 failed response -------------------------')
     error_res = APIResponse.error('invocation: error')
     print(error_res.json())
     print('----------------------------------------------------------------------------------')
