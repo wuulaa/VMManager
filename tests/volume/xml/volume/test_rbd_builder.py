@@ -1,5 +1,5 @@
 import pytest
-from src.Volume.xml.volume.rbd_builder import RbdVolumeXMLBuilder
+from src.volume.xml.volume.rbd_builder import RbdVolumeXMLBuilder
 
 
 rbd_list = {

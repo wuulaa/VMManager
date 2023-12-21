@@ -2,11 +2,11 @@ import pytest
 import datetime
 from importlib import reload
 from unittest import mock
-from src.DomainXML.Device.disk import DeviceDisk
-from src.Utils.response import APIResponse
-from src.Volume.db.models import Pool
-from src.Volume.service import volume as volume_service
-from src.Volume.service.volume import VolumeService
+from src.domain_xml.device.disk import DeviceDisk
+from src.utils.response import APIResponse
+from src.volume.db.models import Pool
+from src.volume.service import volume as volume_service
+from src.volume.service.volume import VolumeService
 
 
 volume_list = {

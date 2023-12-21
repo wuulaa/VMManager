@@ -1,5 +1,5 @@
 import pytest
-from src.Volume.xml.secret.ceph_builder import CephSecretXMLBuilder
+from src.volume.xml.secret.ceph_builder import CephSecretXMLBuilder
 
 
 @pytest.mark.parametrize('secret_uuid',

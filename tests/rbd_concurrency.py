@@ -1,23 +1,23 @@
 import pdb
-from src.Utils.XMLBuilder.xml_builder import XMLBuilder, XMLProperty, XMLChildBuilder
-from src.DomainXML.Domain.domainOs import DomainOs, BootDevice
-from src.DomainXML.Domain.features import DomainFeatures
-from src.DomainXML.Domain.cpu import DomainCpu
-from src.DomainXML.Domain.clock import DomainClock
-from src.DomainXML.Domain.pm import DomainPm
-from src.DomainXML.Device.device import Device
-from src.DomainXML.Device.disk import DeviceDisk, create_cdrom_builder, create_disk_builder
-from src.DomainXML.Device.cdrom import DeviceCdrom
-from src.DomainXML.Device.controller import DeviceController
-from src.DomainXML.Device.interface import create_direct_ovs_interface, create_interface_builder, DeviceInterface
-from src.DomainXML.Device.char import DeviceSerial, DeviceConsole, CharSource, DeviceChannel
-from src.DomainXML.Domain.guest import Guest, DomainDevices
-from src.Volume.service.volume import VolumeService
-from src.Image.Snapshot.snapshot import SnapShot
+from src.utils.xml_builder.xml_builder import XMLBuilder, XMLProperty, XMLChildBuilder
+from src.domain_xml.domain.domainOs import DomainOs, BootDevice
+from src.domain_xml.domain.features import DomainFeatures
+from src.domain_xml.domain.cpu import DomainCpu
+from src.domain_xml.domain.clock import DomainClock
+from src.domain_xml.domain.pm import DomainPm
+from src.domain_xml.device.device import Device
+from src.domain_xml.device.disk import DeviceDisk, create_cdrom_builder, create_disk_builder
+from src.domain_xml.device.cdrom import DeviceCdrom
+from src.domain_xml.device.controller import DeviceController
+from src.domain_xml.device.interface import create_direct_ovs_interface, create_interface_builder, DeviceInterface
+from src.domain_xml.device.char import DeviceSerial, DeviceConsole, CharSource, DeviceChannel
+from src.domain_xml.domain.guest import Guest, DomainDevices
+from src.volume.service.volume import VolumeService
+from src.image.snapshot.snapshot import SnapShot
 
-from src.Network.idl.ovs_lib import OVSDBHelper, OVSBridge, BaseOVS
-from src.DomainManager import guest
-from src.Volume.xml.volume.rbd_builder import RbdVolumeXMLBuilder
+from src.network.idl.ovs_lib import OVSDBHelper, OVSBridge, BaseOVS
+from src.domain_manager import guest
+from src.volume.xml.volume.rbd_builder import RbdVolumeXMLBuilder
 import libvirt
 import datetime
 
@@ -192,7 +192,7 @@ for i in range(1, COUNT):
         raise SystemExit("Failed to open connection to qemu:///system")
 
     snap = SnapShot("libvirt-pool", "rbd-with-net")
-    snap.clone_snap("rbd3-network", "libvirt-pool", "concurrency"+str(i))
+    snap.clone("rbd3-network", "libvirt-pool", "concurrency"+str(i))
     rbdXML = RbdVolumeXMLBuilder()
     device = rbdXML.construct("concurrency"+str(i))
     guest:Guest = create_domain("concurrency"+str(i))

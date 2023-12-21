@@ -2,7 +2,7 @@ import rados
 from src.storage.storage_api import *
 import rbd
 from src.utils.response import APIResponse
-from src.image.image_api import *
+from src.image.ISO.ISOApi import ISOApi
 
 # cluster = rados.Rados(conffile='/etc/ceph/ceph.conf')
 
@@ -11,9 +11,13 @@ from src.image.image_api import *
 # response = create_pool("images")
 # print(response.json())
 
-response = query_pool() 
-print(response.json())
+# response = query_pool() 
+# print(response.result)
 
+# ISOAPI = ISOApi()
+
+# response = ISOApi.query_images()
+# print(response.result)
 # response = write_rbd("test", "image1", b"hello world!")
 # print(response.json())
 
@@ -46,4 +50,11 @@ print(response.json())
 # read_image("test_image2")
 
 # cluster.shutdown()
+
+cluster = Cluster(CEPH_PATH)
+pool = Pool(cluster)
+ioctx = pool.get_ioctx_by_name("libvirt-pool")
+rbd = RbdManager(ioctx)
+print(rbd.list_rbd())
+rbd.delete_test("test-net")
 
