@@ -4,6 +4,12 @@ from src.storage.entity.rbd_manager import RbdManager
 from src.utils.response import APIResponse
 from src.storage.entity.path import CEPH_PATH
 
+respose_info = {
+    1:"pool isn't exist.",
+    2:"rbd isn't exist.",
+    3:"rbd already exist.",
+    4:"unknown exception"
+}
 
 cluster = Cluster(CEPH_PATH)
 pool = Pool(cluster)
@@ -13,25 +19,19 @@ def query_rbd(pool_name: str):
         query rbds in chosen pool
         pool_name: chosen pool name
     '''
-    response = APIResponse()
+
     if(pool.exists_pool(pool_name) == False):
-        response.is_success = False
-        response.description = "Pool " + pool_name + " isn't exist." 
-        return response
+        return APIResponse.error(code=1,msg=respose_info[1])
     ioctx = pool.get_ioctx_by_name(pool_name)
     try:
         rbd = RbdManager(ioctx)
         objects = rbd.list_rbd()
-        response.result = objects
-        response.is_success = True
-        response.description = "query successfully."
+        return APIResponse.success(objects)
     except Exception as err:
-        response.result = None
-        response.is_success = False
-        response.description = "Fail to query. " + str(err)
+        return APIResponse.error(code=4,msg=str(err))
     finally:
         ioctx.close()
-    return response
+
 
 def exist_rbd(pool_name:str ,rbd_name:str):
     '''
@@ -40,7 +40,7 @@ def exist_rbd(pool_name:str ,rbd_name:str):
         rbd_name: rbd name
     '''
     response = query_rbd(pool_name)
-    list_rbd = response.result
+    list_rbd = response.data
     for name in list_rbd:
         if(name == rbd_name):
             return True
@@ -51,43 +51,34 @@ def create_pool(pool_name: str):
         create pool named pool_name
         pool_name: pool name
     '''
-    response = APIResponse()
-    response.description = pool.create_pool(pool_name)
-    if(response.description == "success"):
-        response.is_success = True
+    description = pool.create_pool(pool_name)
+    if(description == "success"):
+        return APIResponse.success()
     else:
-        response.is_success = False
-    return response
+        return APIResponse.error(code=4, msg=description)
 
 def query_pool():
     '''query pool'''
-    response =APIResponse()
+
     try:
-        response.result = pool.list_pools()
-        response.is_success = True
+        result = pool.list_pools()
+        return APIResponse.success(data=result)
     except Exception as err:
-        response.description = str(err)
-        response.is_success = False
-    return response
+        return APIResponse.error(code=4, msg=str(err))
 
 def delete_pool(pool_name: str):
     '''
         delete pool named pool_name
         pool_name: pool name
     '''
-    response = APIResponse()
+
     if(pool.exists_pool(pool_name) == False):
-        response.is_success = False
-        response.description = "Pool " + pool_name + " isn't exist." 
-        return response
-    try:
-        pool.delete_pool(pool_name)
-        response.is_success = True
-        response.description = "delete "+pool_name+" successfully."
-    except Exception as err:
-        response.is_success = False
-        response.description = str(err)
-    return response
+        return APIResponse.error(code=1, msg=respose_info[1])
+    description = pool.delete_pool(pool_name)
+    if(description == "success"):
+        return APIResponse.success()
+    else:
+        return APIResponse.error(code=4, msg=description)
 
 def write_full_rbd(pool_name: str, rbd_name: str, object_name: str, data: bytes):
     '''
@@ -98,85 +89,66 @@ def write_full_rbd(pool_name: str, rbd_name: str, object_name: str, data: bytes)
         Be carefully!!! This writed data will cover original data in the rbd.
         If you just want to write data without covering data, please call function append_rbd()
     '''
-    response = APIResponse()
+
     if(pool.exists_pool(pool_name) == False):
-        response.is_success = False
-        response.description = "Pool " + pool_name + " isn't exist." 
-        return response
+        return APIResponse.error(code=1, msg=respose_info[1])
     if(exist_rbd(pool_name, rbd_name) == False):
-        response.is_success = False
-        response.description = "Rbd " + rbd_name + " isn't exist. Please call function create_rbd(pool_name, rbd_name, size:int) to create rbd." 
-        return response
+        return APIResponse.error(code=2, msg=respose_info[2])
     ioctx = pool.get_ioctx_by_name(pool_name)
     try:
         rbd = RbdManager(ioctx)
         rbd.write_full_rbd(object_name, data)
-        response.is_success = True
-        response.description = "write successfully."
+        return APIResponse.success()
     except Exception as err:
-        response.is_success = False
-        response.description = str(err)
+        return APIResponse.error(code=4, msg=str(err))
     finally:
         ioctx.close()
-    return response
+
 
 def append_rbd(pool_name: str, rbd_name: str, data: bytes):
     '''
-        appen data to rbd
+        append data to rbd
         pool_name: pool name 
         rbd_name: rbd name
         data: the data will be appened
     '''
-    response = APIResponse()
+
     if(pool.exists_pool(pool_name) == False):
-        response.is_success = False
-        response.description = "Pool " + pool_name + " isn't exist." 
-        return response
+        return APIResponse.error(code=1, msg=respose_info[1])
     if(exist_rbd(pool_name, rbd_name) == False):
-        response.is_success = False
-        response.description = "Rbd " + rbd_name + " isn't exist." 
-        return response
+        return APIResponse.error(code=2, msg=respose_info[2])
     ioctx = pool.get_ioctx_by_name(pool_name)
     try:
         rbd = RbdManager(ioctx)
         err = rbd.append_rbd(rbd_name, data)
-        response.is_success = True
-        response.description = "append successfully."+ str(err)
+        return APIResponse.success()
     except Exception as err:
-        response.is_success = False
-        response.description = str(err)
+        return APIResponse.error(code=4, msg=str(err))
     finally:
         ioctx.close()
-    return response
 
-def read_rbd(pool_name: str, rbd_name: str):
+
+def read_rbd(pool_name: str, rbd_name: str, offset=0, length=8192):
     '''
         read rbd
         pool_name: pool name
         rbd_name: rbd name
     '''
-    response = APIResponse()
+
     if(pool.exists_pool(pool_name) == False):
-        response.is_success = False
-        response.description = "Pool " + pool_name + " isn't exist." 
-        return response
+        return APIResponse.error(code=1, msg=respose_info[1])
     if(exist_rbd(pool_name, rbd_name) == False):
-        response.is_success = False
-        response.description = "Rbd " + rbd_name + " isn't exist." 
-        return response
+        return APIResponse.error(code=2, msg=respose_info[2])
     ioctx = pool.get_ioctx_by_name(pool_name)
     try:
         rbd = RbdManager(ioctx)
-        response.result = rbd.read_rbd(rbd_name)
-        response.description = "read "+rbd_name+" successfully."
-        response.is_success = True
+        result = rbd.read_rbd(rbd_name, offset, length)
+        return APIResponse.success(result)
     except Exception as err:
-        response.is_success = False
-        response.description = str(err)
-        response.result = None
+        return APIResponse.error(code=4, msg=str(err))
     finally: 
         ioctx.close()
-    return response
+
 
 def delete_rbd(pool_name: str, rbd_name: str):
     '''
@@ -185,27 +157,21 @@ def delete_rbd(pool_name: str, rbd_name: str):
         rbd_name: rbd name
         This method will delete rbd permanently.
     '''
-    response = APIResponse()
+
     if(pool.exists_pool(pool_name) == False):
-        response.is_success = False
-        response.description = "Pool " + pool_name + " isn't exist." 
-        return response
+        return APIResponse.error(code=1, msg=respose_info[1])
     if(exist_rbd(pool_name, rbd_name) == False):
-        response.is_success = False
-        response.description = "Rbd " + rbd_name + " isn't exist." 
-        return response
+        return APIResponse.error(code=2, msg=respose_info[2])
     ioctx = pool.get_ioctx_by_name(pool_name)
     try:
         rbd = RbdManager(ioctx)
         rbd.remove_rbd(rbd_name)
-        response.description = "delete successfully."
-        response.is_success = True
+        return APIResponse.success()
     except Exception as err:
-        response.is_success = False
-        response.description = str(err)
+        return APIResponse.error(code=4, msg=str(err))
     finally:
         ioctx.close()
-    return response
+
 
 def create_rbd(pool_name: str, rbd_name: str, size: int):
     '''
@@ -214,63 +180,17 @@ def create_rbd(pool_name: str, rbd_name: str, size: int):
         rbd_name: rbd name
         size: rbd size. For example size=1024, rbd = 1024(Bytes).
     '''
-    response = APIResponse()
     if(pool.exists_pool(pool_name) == False):
-        response.is_success = False
-        response.description = "Pool " + pool_name + " isn't exist." 
-        return response
+        return APIResponse.error(code=1, msg=respose_info[1])
     if(exist_rbd(pool_name, rbd_name) == True):
-        response.is_success = False
-        response.description = "Rbd " + rbd_name + " is exist." 
-        return response
+        return APIResponse.error(code=3, msg=respose_info[3])
+    ioctx = pool.get_ioctx_by_name(pool_name)
     try:
-        ioctx = pool.get_ioctx_by_name(pool_name)
-        try:
-            rbd = RbdManager(pool)
-            result = rbd.create_rbd(ioctx, rbd_name, size)
-            if(result == None):
-                response.is_success = True
-                response.description = "create rbd successfully."
-            else:
-                response.description = "failt to create rbd " + str(result)
-                response.is_success = False
-        finally:
-            ioctx.close()
-    except Exception as err:
-        response.description = "failt to create rbd " + str(err)
-        response.is_success = False
-    return response
-
-def get_rbd_info(pool_name: str, rbd_name: str):
-    '''
-        get rbd detail info
-        pool_name: pool name
-        rbd_name: rbd name
-    '''
-    response = APIResponse()
-    if(pool.exists_pool(pool_name) == False):
-        response.is_success = False
-        response.description = "Pool " + pool_name + " isn't exist." 
-        return response
-    if(exist_rbd(pool_name, rbd_name) == True):
-        response.is_success = False
-        response.description = "Rbd " + rbd_name + " is exist." 
-        return response
-    try:
-        ioctx = pool.get_ioctx_by_name(pool_name)
-        try:
-            rbd = RbdManager(pool)
-            
-            result = rbd.create_rbd(ioctx, rbd_name, size)
-            if(result == None):
-                response.is_success = True
-                response.description = "create rbd successfully."
-            else:
-                response.description = "failt to create rbd " + str(result)
-                response.is_success = False
-        finally:
-            ioctx.close()
-    except Exception as err:
-        response.description = "failt to create rbd " + str(err)
-        response.is_success = False
-    return response
+        rbd = RbdManager(pool)
+        description = rbd.create_rbd(ioctx, rbd_name, size)
+        if(description == "success"):
+            return APIResponse.success()
+        else:
+            return APIResponse.error(code=4, msg=description)
+    finally:
+        ioctx.close()

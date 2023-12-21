@@ -1,5 +1,6 @@
 import src.storage.storage_api as storage_api
 from src.storage.entity.rbd_manager import RbdManager
+from utils.response import APIResponse
 
 cluster = storage_api.cluster
 pool = storage_api.pool
@@ -36,10 +37,10 @@ class SnapShot():
                 except StopIteration:
                     break
                 except Exception as err:
-                    raise Exception("get snap list error")
-                return snaps
+                    return APIResponse.error(code=4, msg=str(err))
+            return APIResponse.success(snaps)
         except Exception as err:
-            raise Exception("get snap list failed")
+            return APIResponse.error(code=-4, msg=str(err))
         finally:
             image.close()
     

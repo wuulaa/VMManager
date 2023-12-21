@@ -64,6 +64,7 @@ class Pool(object):
         '''delete pool'''
         try:
             self.cluster.delete_pool(pool_name)
+            return "success"
         except Exception as err:
             return str(err)
         

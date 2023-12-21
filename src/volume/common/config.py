@@ -1,7 +1,7 @@
 from oslo_config import cfg
 
 CONF = cfg.CONF
-CONF(default_config_files=['src/Volume/common/volume.conf'])
+CONF(default_config_files=['src/volume/common/volume.conf'])
 
 # 定义配置项
 provider_opts = [
@@ -11,13 +11,13 @@ provider_opts = [
 
 rbd_options = [
     cfg.StrOpt('pool_driver',
-               default='src.Volume.driver.pool.rbd_pool.RbdPool',
+               default='src.volume.driver.pool.rbd_pool.RbdPool',
                help='Specify the pool driver'),
     cfg.StrOpt('volume_driver',
-               default='src.Volume.driver.volume.rbd_volume.RbdVolume',
+               default='src.volume.driver.volume.rbd_volume.RbdVolume',
                help='Specify the volume driver'),
     cfg.StrOpt('xml_builder',
-               default='src.Volume.xml.volume.rbd_builder.RbdVolumeXMLBuilder',
+               default='src.volume.xml.volume.rbd_builder.RbdVolumeXMLBuilder',
                help='Specify the xml builder'),
     cfg.StrOpt('pool_name',
                default='volume-pool',
@@ -37,13 +37,13 @@ rbd_options = [
 ]
 libvirt_options = [
     cfg.StrOpt('pool_driver',
-               default='src.Volume.driver.pool.libvirt_pool.LibvirtPool',
+               default='src.volume.driver.pool.libvirt_pool.LibvirtPool',
                help='Specify the pool driver'),
     cfg.StrOpt('volume_driver',
-               default='src.Volume.driver.volume.libvirt_volume.LibvirtVolume',
+               default='src.volume.driver.volume.libvirt_volume.LibvirtVolume',
                help='Specify the volume driver'),
     cfg.StrOpt('xml_builder',
-               default='src.Volume.xml.volume.libvirt_builder.LibvirtVolumeXMLBuilder',
+               default='src.volume.xml.volume.libvirt_builder.LibvirtVolumeXMLBuilder',
                help='Specify the xml builder')
 ]
 

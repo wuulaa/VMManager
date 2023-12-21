@@ -1,12 +1,10 @@
 import sys
 import os
-sys.path.append(os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '../..')))
-from src.manage.domain_manage import *
+from src.domain_manager.guest import *
 from src.utils.connect import *
 
-conn = get_connected(User="root@172.16.2.83")
-
+# conn = get_connected(User="root@172.16.2.83")
+conn = libvirt.open("qemu:///system")
 testXML = '''
 <domain type='kvm'>
   <name>''' + "zyq_test" + '''</name> 
@@ -52,67 +50,81 @@ testXML = '''
 '''
 
 
-def test_creat_domain(conn, testXML):
-    result = create_domain(conn, testXML)
-    assert result["is_success"] == True
+# def test_creat_domain(conn, testXML):
+#     result = create_persistent_domain(conn, testXML)
+#     assert result["is_success"] == True
 
 
-def test_delete_domain(conn: libvirt.virConnect, domain_flag):
-    result = delete_domain(conn, domain_flag)
-    assert result["is_success"] == True
+# def test_delete_domain(conn: libvirt.virConnect, domain_flag):
+#     result = delete_domain(conn, domain_flag)
+#     assert result["is_success"] == True
 
 
-def test_destroy_domain(conn: libvirt.virConnect, domain_flag):
-    result = destroy_domain(conn, domain_flag)
-    assert result["is_success"] == True
+# def test_destroy_domain(conn: libvirt.virConnect, domain_name):
+#     uuid = get_uuid_by_name(conn, domain_name)
+#     result = destroy_domain(conn, uuid)
+#     assert result["is_success"] == True
+
+# def test_suspend_domain(conn: libvirt.virConnect, domain_flag):
+#     result = suspend_domain(conn, domain_flag)
+#     assert result["is_success"] == True
 
 
-def test_suspend_domain(conn: libvirt.virConnect, domain_flag):
-    result = suspend_domain(conn, domain_flag)
-    assert result["is_success"] == True
+# def test_reboot_domain(conn: libvirt.virConnect, domain_flag):
+#     result = reboot_domain(conn, domain_flag)
+#     assert result["is_success"] == True
 
 
-def test_reboot_domain(conn: libvirt.virConnect, domain_flag):
-    result = reboot_domain(conn, domain_flag)
-    assert result["is_success"] == True
+# def test_resume_domain(conn: libvirt.virConnect, domain_flag):
+#     result = resume_domain(conn, domain_flag)
+#     assert result["is_success"] == True
 
 
-def test_resume_domain(conn: libvirt.virConnect, domain_flag):
-    result = resume_domain(conn, domain_flag)
-    assert result["is_success"] == True
+# def test_set_auto_start(conn: libvirt.virConnect, domain_flag):
+#     result = set_auto_start(conn, domain_flag)
+#     assert result["is_success"] == True
 
 
-def test_set_auto_start(conn: libvirt.virConnect, domain_flag):
-    result = set_auto_start(conn, domain_flag)
-    assert result["is_success"] == True
+# def test_shutdown_domain(conn: libvirt.virConnect, domain_flag):
+#     result = shutdown_domain(conn, domain_flag)
+#     assert result["is_success"] == True
 
 
-def test_shutdown_domain(conn: libvirt.virConnect, domain_flag):
-    result = shutdown_domain(conn, domain_flag)
-    assert result["is_success"] == True
+# def test_start_domain(conn: libvirt.virConnect, domain_flag):
+#     result = start_domain(conn, domain_flag)
+#     assert result["is_success"] == True
 
 
-def test_start_domain(conn: libvirt.virConnect, domain_flag):
-    result = start_domain(conn, domain_flag)
-    assert result["is_success"] == True
+# def test_status_domains(conn: libvirt.virConnect, domain_flag):
+#     result = status_domain(conn, domain_flag)
+#     assert result["is_success"] == True
 
 
-def test_status_domains(conn: libvirt.virConnect, domain_flag):
-    result = status_domain(conn, domain_flag)
-    assert result["is_success"] == True
+# def test_batch_start_domains(conn: libvirt.virConnect, domain_flag):
+#     result = batch_start_domains(conn, domain_flag)
 
 
-def test_batch_start_domains(conn: libvirt.virConnect, domain_flag):
-    result = batch_start_domains(conn, domain_flag)
+# def test_batch_suspend_domains(conn: libvirt.virConnect, domain_flag):
+#     result = batch_suspend_domains(conn, domain_flag)
 
 
-def test_batch_suspend_domains(conn: libvirt.virConnect, domain_flag):
-    result = batch_suspend_domains(conn, domain_flag)
+# def test_batch_del_domains(conn: libvirt.virConnect, domain_flag):
+#     result = batch_del_domains(conn, domain_flag)
 
 
-def test_batch_del_domains(conn: libvirt.virConnect, domain_flag):
-    result = batch_del_domains(conn, domain_flag)
+# def test_batch_restart_domains(conn: libvirt.virConnect, domain_flag):
+#     result = batch_restart_domains(conn, domain_flag)
 
+# def test_get_domains_info():
+#     domains = status_domain(conn)
+#     return domains
+# domains = test_get_domains_info()
+# print("domain ID                " + "domain name")
+# for domain in domains:
+#     print(str(domain)+"             "+str(domains[domain]))
 
-def test_batch_restart_domains(conn: libvirt.virConnect, domain_flag):
-    result = batch_restart_domains(conn, domain_flag)
+def test_get_domains_info():
+    return get_domain_detail_info(conn, get_uuid_by_name(conn, "rbd4"))
+
+info = test_get_domains_info()
+print(info)

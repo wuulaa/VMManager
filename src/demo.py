@@ -201,7 +201,7 @@ rbdXML = RbdVolumeXMLBuilder()
 device = rbdXML.construct(domain_name)
 guest:Guest = create_domain(domain_name)
 guest.devices.disk.append(device)
-guest_manager.create_domain(conn, guest.get_xml_string())
+guest_manager.create_persistent_domain(conn, guest.get_xml_string())
 domain_uuid = guest_manager.get_uuid_by_name(conn, guest.domain_name)
 guest_manager.start_domain(conn, domain_uuid)
 

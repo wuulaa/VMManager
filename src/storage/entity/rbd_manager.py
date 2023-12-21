@@ -40,7 +40,7 @@ class RbdManager(object):
         except Exception as err:
             return str(err)
 
-    def read_rbd(self, rbd_name: str, length=8192, offset=0):
+    def read_rbd(self, rbd_name: str, offset, length):
         '''
             Read data from an object synchronously
 
@@ -49,7 +49,8 @@ class RbdManager(object):
             :param offset: byte offset in the object to begin reading at
         '''
         try:
-            return self.ioctx.read(rbd_name, length, offset)
+            image = self.get_image_inst(rbd_name)
+            return image.read(offset, length)
         except Exception as err:
             return str(err)
 
@@ -100,7 +101,8 @@ class RbdManager(object):
         '''create RBD'''
         rbd_inst = rbd.RBD()
         try:
-            return rbd_inst.create(ioctx, volume_name, size)
+            rbd_inst.create(ioctx, volume_name, size)
+            return "success"
         except Exception as err:
             return str(err)
         

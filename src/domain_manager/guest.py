@@ -1,7 +1,18 @@
 import libvirt
 
-def create_domain(conn: libvirt.virConnect, confingXML):
-    '''create domain '''
+states = {
+    0:"nostate",
+    1:"running",
+    2:"blocked",
+    3:"paused",
+    4:"shutdown",
+    5:"shutoff",
+    6:"crashed",
+    7:"pmsuspended"
+}
+
+def create_persistent_domain(conn: libvirt.virConnect, confingXML):
+    '''create a persistent domain '''
 
     try:
         domain = conn.defineXML(confingXML)
@@ -17,9 +28,35 @@ def create_domain(conn: libvirt.virConnect, confingXML):
             "domain_name": domain.name, "domain_ID": domain.ID
         }
 
+def create_unpersistent_domain(conn: libvirt.virConnect, confingXML):
+    '''create a unpersistent domain '''
+
+    try:
+        domain = conn.createXML(confingXML)
+    except libvirt.libvirtError as err:
+        return {
+            "is_success": False,
+            "description": "error: Failed to creat domain."
+            + str(err), "domain": None
+        }
+    else:
+        return {
+            "is_success": True,
+            "domain_name": domain.name, "domain_ID": domain.ID
+        }
+
 
 def delete_domain(conn: libvirt.virConnect, domain_uuid, flags=4):
-    '''undefine domain'''
+    '''
+        undefine domain
+        flags:1 Also remove any managed save
+        flags:2 If last use of domain, then also remove any snapshot metadata
+        flags:4 Also remove any nvram file
+        flags:8 Keep nvram file
+        flags:16 If last use of domain, then also remove any checkpoint metadata
+        flags:32 Also remove any TPM state
+        flags:64 Keep TPM state Future undefine control flags should come here.
+    '''
 
     try:
         domain = conn.lookupByUUIDString(domain_uuid)
@@ -187,14 +224,21 @@ def start_domain(conn: libvirt.virConnect, domain_uuid):
                     + domain_uuid+"state is error. "}
 
 
-def status_domain(conn: libvirt.virConnect):
-    '''get domains state info'''
+def get_domains_list(conn: libvirt.virConnect):
+    '''
+        get domains state info
+        return:{domain_name,domain_state}
+    '''
     result = dict()
     domains = conn.listAllDomains()
     for domain in domains:
-        state = domain.state()
-        result[domain.name()] = state()[0]
-    return {"result": result}
+        result[domain.name()] = states[domain.state()[0]]
+    return result
+
+
+def get_domain_detail_info(conn: libvirt.virConnect, domain_uuid):
+    domain: libvirt.virDomain = conn.lookupByUUIDString(domain_uuid)
+    return domain.info()
 
 
 def get_uuid_by_name(conn: libvirt.virConnect, name: str):
