@@ -170,6 +170,10 @@ class SnapShot():
         finally:
             image.close()
 
+    def batch_create_snaps(self, snap_name_list: list):
+        for name in snap_name_list:
+            self.create_snap(name)
+
     def clone(self, snap_name, dest_pool_name, dest_rbd_name):
         try:
             if not self.is_snap_exits(snap_name):
