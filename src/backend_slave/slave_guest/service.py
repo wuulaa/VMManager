@@ -1,5 +1,5 @@
 from domain_manager import guest
-from domain_manager import connect
+from utils import connect
 
 
 def add_domain(config_xml: str):

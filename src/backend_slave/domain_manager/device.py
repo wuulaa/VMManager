@@ -1,5 +1,5 @@
 import libvirt
-import src.domain_manager.conf.conf as device_constrains
+import domain_manager.conf.conf as device_constrains
 
 
 def set_domain_name(domain: libvirt.virDomain, name: str) -> dict:
