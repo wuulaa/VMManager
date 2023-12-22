@@ -28,7 +28,7 @@ class ISOApi():
 
     #获取镜像列表
     def query_images():
-        return storage_api.query_rbd("images")
+        return storage_api.query_rbds("images")
 
     #镜像详情
     def image_info(image_name: str):

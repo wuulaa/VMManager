@@ -2,7 +2,8 @@ from src.image.snapshot.snapshot import SnapShot
 
 snap = SnapShot("libvirt-pool", "test-net")
 # print(snap.get_image())
-print(snap.query_snaps())
+print(snap.query_snaps().data)
+# print(snap.rename_snap("snap1", "snap_rename").data)
 # print(snap.is_snap_exits("rbd-with-net"))
 # print(snap.create_snap("snap1"))
 # print(snap.is_snap_protected("image1_snap1"))

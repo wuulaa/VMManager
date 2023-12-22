@@ -4,31 +4,31 @@ from src.storage.entity.rbd_manager import RbdManager
 from src.utils.response import APIResponse
 from src.storage.entity.path import CEPH_PATH
 
-respose_info = {
+error_info = {
     1:"pool isn't exist.",
     2:"rbd isn't exist.",
     3:"rbd already exist.",
-    4:"unknown exception"
+    400:"unknown exception"
 }
 
 cluster = Cluster(CEPH_PATH)
 pool = Pool(cluster)
 
-def query_rbd(pool_name: str):
+def query_rbds(pool_name: str):
     '''
         query rbds in chosen pool
         pool_name: chosen pool name
     '''
 
     if(pool.exists_pool(pool_name) == False):
-        return APIResponse.error(code=1,msg=respose_info[1])
+        return APIResponse.error(code=1,msg=error_info[1])
     ioctx = pool.get_ioctx_by_name(pool_name)
     try:
         rbd = RbdManager(ioctx)
         objects = rbd.list_rbd()
         return APIResponse.success(objects)
     except Exception as err:
-        return APIResponse.error(code=4,msg=str(err))
+        return APIResponse.error(code=400,msg=str(err))
     finally:
         ioctx.close()
 
@@ -39,7 +39,7 @@ def exist_rbd(pool_name:str ,rbd_name:str):
         pool_name: pool name
         rbd_name: rbd name
     '''
-    response = query_rbd(pool_name)
+    response = query_rbds(pool_name)
     list_rbd = response.data
     for name in list_rbd:
         if(name == rbd_name):
@@ -55,16 +55,16 @@ def create_pool(pool_name: str):
     if(description == "success"):
         return APIResponse.success()
     else:
-        return APIResponse.error(code=4, msg=description)
+        return APIResponse.error(code=400, msg=description)
 
-def query_pool():
+def query_pools():
     '''query pool'''
 
     try:
         result = pool.list_pools()
         return APIResponse.success(data=result)
     except Exception as err:
-        return APIResponse.error(code=4, msg=str(err))
+        return APIResponse.error(code=400, msg=str(err))
 
 def delete_pool(pool_name: str):
     '''
@@ -73,12 +73,12 @@ def delete_pool(pool_name: str):
     '''
 
     if(pool.exists_pool(pool_name) == False):
-        return APIResponse.error(code=1, msg=respose_info[1])
+        return APIResponse.error(code=1, msg=error_info[1])
     description = pool.delete_pool(pool_name)
     if(description == "success"):
         return APIResponse.success()
     else:
-        return APIResponse.error(code=4, msg=description)
+        return APIResponse.error(code=400, msg=description)
 
 def write_full_rbd(pool_name: str, rbd_name: str, object_name: str, data: bytes):
     '''
@@ -91,16 +91,16 @@ def write_full_rbd(pool_name: str, rbd_name: str, object_name: str, data: bytes)
     '''
 
     if(pool.exists_pool(pool_name) == False):
-        return APIResponse.error(code=1, msg=respose_info[1])
+        return APIResponse.error(code=1, msg=error_info[1])
     if(exist_rbd(pool_name, rbd_name) == False):
-        return APIResponse.error(code=2, msg=respose_info[2])
+        return APIResponse.error(code=2, msg=error_info[2])
     ioctx = pool.get_ioctx_by_name(pool_name)
     try:
         rbd = RbdManager(ioctx)
         rbd.write_full_rbd(object_name, data)
         return APIResponse.success()
     except Exception as err:
-        return APIResponse.error(code=4, msg=str(err))
+        return APIResponse.error(code=400, msg=str(err))
     finally:
         ioctx.close()
 
@@ -114,16 +114,16 @@ def append_rbd(pool_name: str, rbd_name: str, data: bytes):
     '''
 
     if(pool.exists_pool(pool_name) == False):
-        return APIResponse.error(code=1, msg=respose_info[1])
+        return APIResponse.error(code=1, msg=error_info[1])
     if(exist_rbd(pool_name, rbd_name) == False):
-        return APIResponse.error(code=2, msg=respose_info[2])
+        return APIResponse.error(code=2, msg=error_info[2])
     ioctx = pool.get_ioctx_by_name(pool_name)
     try:
         rbd = RbdManager(ioctx)
         err = rbd.append_rbd(rbd_name, data)
         return APIResponse.success()
     except Exception as err:
-        return APIResponse.error(code=4, msg=str(err))
+        return APIResponse.error(code=400, msg=str(err))
     finally:
         ioctx.close()
 
@@ -136,16 +136,16 @@ def read_rbd(pool_name: str, rbd_name: str, offset=0, length=8192):
     '''
 
     if(pool.exists_pool(pool_name) == False):
-        return APIResponse.error(code=1, msg=respose_info[1])
+        return APIResponse.error(code=1, msg=error_info[1])
     if(exist_rbd(pool_name, rbd_name) == False):
-        return APIResponse.error(code=2, msg=respose_info[2])
+        return APIResponse.error(code=2, msg=error_info[2])
     ioctx = pool.get_ioctx_by_name(pool_name)
     try:
         rbd = RbdManager(ioctx)
         result = rbd.read_rbd(rbd_name, offset, length)
         return APIResponse.success(result)
     except Exception as err:
-        return APIResponse.error(code=4, msg=str(err))
+        return APIResponse.error(code=400, msg=str(err))
     finally: 
         ioctx.close()
 
@@ -159,16 +159,16 @@ def delete_rbd(pool_name: str, rbd_name: str):
     '''
 
     if(pool.exists_pool(pool_name) == False):
-        return APIResponse.error(code=1, msg=respose_info[1])
+        return APIResponse.error(code=1, msg=error_info[1])
     if(exist_rbd(pool_name, rbd_name) == False):
-        return APIResponse.error(code=2, msg=respose_info[2])
+        return APIResponse.error(code=2, msg=error_info[2])
     ioctx = pool.get_ioctx_by_name(pool_name)
     try:
         rbd = RbdManager(ioctx)
         rbd.remove_rbd(rbd_name)
         return APIResponse.success()
     except Exception as err:
-        return APIResponse.error(code=4, msg=str(err))
+        return APIResponse.error(code=400, msg=str(err))
     finally:
         ioctx.close()
 
@@ -181,9 +181,9 @@ def create_rbd(pool_name: str, rbd_name: str, size: int):
         size: rbd size. For example size=1024, rbd = 1024(Bytes).
     '''
     if(pool.exists_pool(pool_name) == False):
-        return APIResponse.error(code=1, msg=respose_info[1])
+        return APIResponse.error(code=1, msg=error_info[1])
     if(exist_rbd(pool_name, rbd_name) == True):
-        return APIResponse.error(code=3, msg=respose_info[3])
+        return APIResponse.error(code=3, msg=error_info[3])
     ioctx = pool.get_ioctx_by_name(pool_name)
     try:
         rbd = RbdManager(pool)
@@ -191,6 +191,6 @@ def create_rbd(pool_name: str, rbd_name: str, size: int):
         if(description == "success"):
             return APIResponse.success()
         else:
-            return APIResponse.error(code=4, msg=description)
+            return APIResponse.error(code=400, msg=description)
     finally:
         ioctx.close()

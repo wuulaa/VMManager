@@ -1,4 +1,5 @@
 import libvirt
+from utils.response import APIResponse
 
 states = {
     0:"nostate",
@@ -11,22 +12,21 @@ states = {
     7:"pmsuspended"
 }
 
+error_info = {
+    0:"Unkown exception.",
+    1:"VM state is error."
+}
+
 def create_persistent_domain(conn: libvirt.virConnect, confingXML):
     '''create a persistent domain '''
 
     try:
         domain = conn.defineXML(confingXML)
     except libvirt.libvirtError as err:
-        return {
-            "is_success": False,
-            "description": "error: Failed to creat domain."
-            + str(err), "domain": None
-        }
+        return APIResponse.error(code=0, mag=str(err))
     else:
-        return {
-            "is_success": True,
-            "domain_name": domain.name, "domain_ID": domain.ID
-        }
+        return APIResponse.success(data={"domain_name":domain.name})
+    
 
 def create_unpersistent_domain(conn: libvirt.virConnect, confingXML):
     '''create a unpersistent domain '''
@@ -34,16 +34,9 @@ def create_unpersistent_domain(conn: libvirt.virConnect, confingXML):
     try:
         domain = conn.createXML(confingXML)
     except libvirt.libvirtError as err:
-        return {
-            "is_success": False,
-            "description": "error: Failed to creat domain."
-            + str(err), "domain": None
-        }
+        return APIResponse.error(code=0, mag=str(err))
     else:
-        return {
-            "is_success": True,
-            "domain_name": domain.name, "domain_ID": domain.ID
-        }
+        return APIResponse.success(data={"domain_name":domain.name})
 
 
 def delete_domain(conn: libvirt.virConnect, domain_uuid, flags=4):
@@ -61,20 +54,17 @@ def delete_domain(conn: libvirt.virConnect, domain_uuid, flags=4):
     try:
         domain = conn.lookupByUUIDString(domain_uuid)
     except libvirt.libvirtError as err:
-        return {"is_success": False,
-                "description": "error: Failed to undefine domain."
-                + str(err)}
+        return APIResponse.error(code=0,msg=str(err))
     else:
         if domain is None:
-            return {"is_success": False,
-                    "description": "error: Domain is none."}
+            return APIResponse.error(code=0,msg="domain is none.")
         elif domain.state()[0] is libvirt.VIR_DOMAIN_SHUTOFF:
             domain.undefineFlags(flags)
-            return {"is_success": True}
+            return APIResponse.success()
         else:
-            return {"is_success": False,
-                    "description":  "error: Failed to undefine domain. Domain"
-                    + domain_uuid+"isn't shutoff."}
+            return APIResponse.error(code=1,mas="error: Failed to undefine domain. Domain"
+                    + domain_uuid+"isn't shutoff.")
+        
 
 
 def destroy_domain(conn: libvirt.virConnect, domain_uuid):
@@ -82,45 +72,36 @@ def destroy_domain(conn: libvirt.virConnect, domain_uuid):
 
     try:
         domain = conn.lookupByUUIDString(domain_uuid)
-        state = domain.state()[0]
     except libvirt.libvirtError as err:
-        return {"is_success": False,
-                "description": "error: Failed to destroy domain. "
-                + str(err)}
+        return APIResponse.error(code=0,msg=str(err))
     else:
         if domain is None:
-            return {"is_success": False,
-                    "description": "error: Domain is none."}
-        elif (state is libvirt.VIR_DOMAIN_RUNNING
-              or state is libvirt.VIR_DOMAIN_CRASHED):
+            return APIResponse.error(code=0,msg="domain is none.")
+        elif (domain.state()[0] is libvirt.VIR_DOMAIN_RUNNING
+              or domain.state()[0]  is libvirt.VIR_DOMAIN_CRASHED):
             domain.destroy()
-            return {"is_success": True}
+            return APIResponse.success()
         else:
-            return {"is_success": False,
-                    "description": "error: Failed to destroy domain. Domain" +
-                    domain_uuid+"state is error. "}
+            return APIResponse.error(code=1, msg="error: Failed to destroy domain. Domain" +
+                    domain_uuid+"state is error. ")
 
 
-def suspend_domain(conn: libvirt.virConnect, domain_uuid):
+def pause_domain(conn: libvirt.virConnect, domain_uuid):
     '''suspend domain'''
 
     try:
         domain = conn.lookupByUUIDString(domain_uuid)
     except libvirt.libvirtError as err:
-        return {"is_success": False,
-                "description": "error: Failed to suspend domain. "
-                + str(err)}
+        return APIResponse.error(code=0, msg=str(err))
     else:
         if domain is None:
-            return {"is_success": False,
-                    "description": "error: Domain is none. "}
+            return APIResponse.error(code=0, msg="error: Domain is none.")
         elif domain.state()[0] is libvirt.VIR_DOMAIN_RUNNING:
             domain.suspend()
-            return {"is_success": True}
+            return APIResponse.success()
         else:
-            return {"is_success": False,
-                    "description": "error: Failed to suspend domain. Domain" +
-                    domain_uuid+"isn't running. "}
+            return APIResponse.error(code=1, msg=error_info[1] + " Failed to suspend domain. Domain" +
+                    domain_uuid+"isn't running. ")
 
 
 def reboot_domain(conn: libvirt.virConnect, domain_uuid):
@@ -129,19 +110,16 @@ def reboot_domain(conn: libvirt.virConnect, domain_uuid):
     try:
         domain = conn.lookupByUUIDString(domain_uuid)
     except libvirt.libvirtError as err:
-        return {"is_success": False,
-                "description": "error: Failed to reboot domain. "+str(err)}
+        return APIResponse.error(code=0, msg=str(err))
     else:
         if domain is None:
-            return {"is_success": False,
-                    "description": "error: Domain is none. "}
+            return APIResponse.error(code=0,msg="domain is none.")
         elif domain.state()[0] is libvirt.VIR_DOMAIN_RUNNING:
             domain.reboot()
-            return {"is_success": True, "description": "Reboot successfully. "}
+            return APIResponse.success()
         else:
-            return {"is_success": False,
-                    "description": "error: Failed to reboot domain. Domain"
-                    + domain_uuid+"isn't running. "}
+            return APIResponse.error(code=1, msg="error: Failed to reboot domain. Domain"
+                    + domain_uuid+"isn't running. ")
 
 
 def resume_domain(conn: libvirt.virConnect, domain_uuid):
@@ -150,19 +128,16 @@ def resume_domain(conn: libvirt.virConnect, domain_uuid):
     try:
         domain = conn.lookupByUUIDString(domain_uuid)
     except libvirt.libvirtError as err:
-        return {"is_success": False,
-                "description": "error: Failed to resume domain. "+str(err)}
+        return APIResponse.error(code=0, msg=str(err))
     else:
         if domain is None:
-            return {"is_success": False,
-                    "description": "error: Domain is none. "}
+            return APIResponse.error(code=0,msg="domain is none.")
         elif domain.state()[0] is libvirt.VIR_DOMAIN_PAUSED:
             domain.resume()
             return {"is_success": True}
         else:
-            return {"is_success": False,
-                    "description": "error: Failed to resume domain. Domain"
-                    + domain_uuid+"state is error. "}
+            return APIResponse.error(code=1, msg="error: Failed to resume domain. Domain"
+                    + domain_uuid+"state is error. ")
 
 
 def set_auto_start(conn: libvirt.virConnect, domain_uuid):
@@ -171,15 +146,13 @@ def set_auto_start(conn: libvirt.virConnect, domain_uuid):
     try:
         domain = conn.lookupByUUIDString(domain_uuid)
     except libvirt.libvirtError as err:
-        return {"is_success": False,
-                "description": "Failed to set_auto_start domain. "
-                + str(err)}
+        return APIResponse.error(code=0, msg=str(err))
     else:
         if domain is None:
-            return {"is_success": False, "description": "Domain is none. "}
+            return APIResponse.error(code=0,msg="domain is none.")
         else:
             domain.setAutostart(1)
-            return {"is_success": True}
+            return APIResponse.success()
 
 
 def shutdown_domain(conn: libvirt.virConnect, domain_uuid):
@@ -188,19 +161,16 @@ def shutdown_domain(conn: libvirt.virConnect, domain_uuid):
     try:
         domain = conn.lookupByUUIDString(domain_uuid)
     except libvirt.libvirtError as err:
-        return {"is_success": False,
-                "description": "error: Failed to shutdown domain. "+str(err)}
+        return APIResponse.error(code=0, msg=str(err))
     else:
         if domain is None:
-            return {"is_success": False,
-                    "description": "error: Domain is none. "}
+            return APIResponse.error(code=0,msg="domain is none.")
         elif domain.state()[0] is libvirt.VIR_DOMAIN_RUNNING:
             domain.shutdown()
             return {"is_success": True}
         else:
-            return {"is_success": False,
-                    "description": "error: Failed to shutdown domain.  Domain"
-                    + domain_uuid+"state is error. "}
+            return APIResponse.error(code=1, msg="error: Failed to shutdown domain.  Domain"
+                    + domain_uuid+"state is error. ")
 
 
 def start_domain(conn: libvirt.virConnect, domain_uuid):
@@ -209,19 +179,32 @@ def start_domain(conn: libvirt.virConnect, domain_uuid):
     try:
         domain = conn.lookupByUUIDString(domain_uuid)
     except libvirt.libvirtError as err:
-        return {"is_success": False,
-                "description": "error: Failed to start domain. "+str(err)}
+        return APIResponse.error(code=0, msg=str(err))
     else:
         if domain is None:
-            return {"is_success": False,
-                    "description": "error: Domain is none. "}
+            return APIResponse.error(code=0,msg="domain is none.")
         elif domain.state()[0] is libvirt.VIR_DOMAIN_SHUTOFF:
             domain.create()
             return {"is_success": True}
         else:
-            return {"is_success": False,
-                    "description": "error: Failed to shutdown domain. Domain"
-                    + domain_uuid+"state is error. "}
+            return APIResponse.error(code=1, msg="error: Failed to shutdown domain. Domain"
+                    + domain_uuid+"state is error. ")
+        
+def rename_domain(conn: libvirt.virConnect, domain_uuid: str, domain_new_name: str):
+    '''rename a domain'''
+    try:
+        domain = conn.lookupByUUIDString(domain_uuid)
+    except libvirt.libvirtError as err:
+        return APIResponse.error(code=0, msg=str(err))
+    else:
+        if domain is None:
+            return APIResponse.error(code=0,msg="domain is none.")
+        else:
+            try:
+                domain.rename(domain_new_name)
+                return APIResponse.success()
+            except libvirt.libvirtError as err:
+                return APIResponse.error(code=0, msg=str(err))
 
 
 def get_domains_list(conn: libvirt.virConnect):
@@ -254,7 +237,7 @@ def batch_start_domains(conn: libvirt.virConnect, domain_uuid_list):
 def batch_suspend_domains(conn: libvirt.virConnect, domain_uuid_list):
     '''batch suspend domains'''
     for uuid in domain_uuid_list:
-        suspend_domain(conn, uuid)
+        pause_domain(conn, uuid)
 
 
 def batch_shutdown(conn: libvirt.virConnect, domain_uuid_list):

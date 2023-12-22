@@ -1,6 +1,6 @@
 import src.storage.storage_api as storage_api
 from src.storage.entity.rbd_manager import RbdManager
-from utils.response import APIResponse
+from src.utils.response import APIResponse
 
 cluster = storage_api.cluster
 pool = storage_api.pool
@@ -24,6 +24,30 @@ class SnapShot():
     def get_rbd(self):
         return RbdManager(self.ioctx).get_rbd_inst()
     
+    def get_snap_info(self, snap_name: str):
+        '''
+            snap = dict{
+            id:
+            size:
+            name:
+            }
+        '''
+        image =None
+        try:
+            image = self.get_image()
+            snapIterator = image.list_snaps()
+            snapGenerator = snapIterator.__iter__()
+            while True:
+                try:
+                    snap = next(snapGenerator)
+                    if(snap.get("name")==snap_name):
+                        return APIResponse.success(snap)
+                except StopIteration:
+                    break
+            return APIResponse.error(code=400, msg="snapshot " + snap_name + "isn't exsit.")
+        except Exception as err:
+            return APIResponse.error(code=400, msg=str(err))
+    
     def query_snaps(self):
         image =None
         try:
@@ -37,12 +61,32 @@ class SnapShot():
                 except StopIteration:
                     break
                 except Exception as err:
-                    return APIResponse.error(code=4, msg=str(err))
+                    return APIResponse.error(code=400, msg=str(err))
             return APIResponse.success(snaps)
         except Exception as err:
-            return APIResponse.error(code=-4, msg=str(err))
+            return APIResponse.error(code=400, msg=str(err))
         finally:
             image.close()
+
+    # def rename_snap(self, old_name: str, new_name: str):
+    #     image =None
+    #     try:
+    #         image = self.get_image()
+    #         snapIterator = image.list_snaps()
+    #         snapGenerator = snapIterator.__iter__()
+    #         while True:
+    #             try:
+    #                 snap = next(snapGenerator)
+    #                 if(snap.get("name")==old_name):
+    #                     snap['name'] = new_name
+    #                     return APIResponse.success(snap)
+    #             except StopIteration:
+    #                 break
+    #         return APIResponse.error(code=400, msg="snapshot " + old_name + "isn't exsit.")
+    #     except Exception as err:
+    #         return APIResponse.error(code=400, msg=str(err))
+    #     finally:
+    #         image.close()
     
     def is_snap_exits(self, snap_name):
         try:
