@@ -1,6 +1,7 @@
 from flask import Blueprint
+import requests
+guest_bp = Blueprint("guest-bp", __name__, url_prefix="/kvm/guest")
 
-guest_bp = Blueprint("guest-bp", __name__, url_prefix="kvm/guest")
 
 
 @guest_bp.route("/")

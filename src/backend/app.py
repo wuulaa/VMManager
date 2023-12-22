@@ -1,3 +1,4 @@
+import requests
 from flask import Flask
 from blueprints.network_bp import network_bp
 from blueprints.guest_bp import guest_bp
@@ -10,3 +11,11 @@ app.register_blueprint(guest_bp)
 @app.route("/")
 def backend():
     return "VMManager backend"
+
+
+@app.route("/test")
+def test():
+    response = requests.get("http://127.0.0.1:5001/test")
+    if response.status_code == 200:
+        return response.text
+    return "Failed"
