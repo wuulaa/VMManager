@@ -1,6 +1,6 @@
 import sys
 import os
-from src.domain_manager.guest import *
+from src.backend_slave.domain_manager.guest import *
 from src.utils.connect import *
 
 # conn = get_connected(User="root@172.16.2.83")
@@ -100,8 +100,11 @@ testXML = '''
 #     assert result["is_success"] == True
 
 
-# def test_batch_start_domains(conn: libvirt.virConnect, domain_flag):
-#     result = batch_start_domains(conn, domain_flag)
+def test_batch_start_domains(conn: libvirt.virConnect, domain_flag):
+    print(batch_start_domains(conn, domain_flag))
+
+uuid1 = get_uuid_by_name("domain16")
+test_batch_start_domains(conn, uuid1)
 
 
 # def test_batch_suspend_domains(conn: libvirt.virConnect, domain_flag):
@@ -123,8 +126,3 @@ testXML = '''
 # for domain in domains:
 #     print(str(domain)+"             "+str(domains[domain]))
 
-def test_get_domains_info():
-    return get_domain_detail_info(conn, get_uuid_by_name(conn, "rbd4"))
-
-info = test_get_domains_info()
-print(info)
