@@ -26,5 +26,5 @@ from src.image.ISO.ISOApi import ISOApi
 # response = create_rbd("images", "image1", 10)
 # print(response.get_msg())
 
-print(query_rbd("images").data)
+print(query_rbds("images").data)
 
