@@ -1,39 +1,40 @@
 import libvirt
-
-def list_all_network(conn: libvirt.virConnect) -> list:
-    return conn.listAllNetworks()
+from utils.response import APIResponse
 
 
-def create_network(conn: libvirt.virConnect, xml: str) -> libvirt.virNetwork:
-    return conn.networkCreateXML(xml)
+def list_all_network(conn: libvirt.virConnect):
+    nets = conn.listAllNetworks()
+    return APIResponse.success(nets)
 
 
-def define_network(conn: libvirt.virConnect, xml: str) -> libvirt.virNetwork:
-    return conn.networkDefineXML(xml)
+def create_network(conn: libvirt.virConnect, xml: str):
+    try: 
+        network = conn.networkCreateXML(xml)
+        return APIResponse.success(network)
+    except libvirt.libvirtError as err:
+        return APIResponse.error(code=400, mag=str(err))
 
 
-def start_network(network: libvirt.virNetwork):
+def define_network(conn: libvirt.virConnect, xml: str):
+    try: 
+        network = conn.networkDefineXML(xml)
+        return APIResponse.success(network)
+    except libvirt.libvirtError as err:
+        return APIResponse.error(code=400, mag=str(err))
+
+
+def start_network(conn: libvirt.virConnect, network: libvirt.virNetwork):
     try:
         network.create()
-        return {
-            "is_success": True
-        }
-    except libvirt.libvirtError as e:
-        return {
-            "is_success": False,
-            "description": str(e)
-        }
+        return APIResponse.success()
+    except libvirt.libvirtError as err:
+        return APIResponse.error(code=400, mag=str(err))
 
 
-def stop_network(network: libvirt.virNetwork):
+def stop_network(conn: libvirt.virConnect, network: libvirt.virNetwork):
     try:
         network.undefine()
-        return {
-            "is_success": True
-        }
-    except libvirt.libvirtError as e:
-        return {
-            "is_success": False,
-            "description": str(e)
-        }
+        return APIResponse.success()
+    except libvirt.libvirtError as err:
+        return APIResponse.error(code=400, mag=str(err))
 

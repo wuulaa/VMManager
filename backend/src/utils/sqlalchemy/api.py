@@ -72,42 +72,42 @@ class Base():
         return session.scalar(stmt)
 
 
-if __name__ == '__main__':
-    from backend.src.volume.db.pool import Pool
-    db = Base()
-    with enginefacade.get_session() as session:
-        import pdb
-        pool = Pool('py-test2', 20480, 'Sonya')
-        db.insert(session, pool)
+# if __name__ == '__main__':
+#     from backend.src.volume.db.pool import Pool
+#     db = Base()
+#     with enginefacade.get_session() as session:
+#         import pdb
+#         pool = Pool('py-test2', 20480, 'Sonya')
+#         db.insert(session, pool)
 
-        query_pool = Pool()
-        query_pool.name = 'py-test2'
-        print(query_pool.to_dict())
+#         query_pool = Pool()
+#         query_pool.name = 'py-test2'
+#         print(query_pool.to_dict())
 
-        pool_list1 = db.condition_select(session, Pool, instance=query_pool)
-        print(pool_list1[0].name)
+#         pool_list1 = db.condition_select(session, Pool, instance=query_pool)
+#         print(pool_list1[0].name)
 
-        pool_list2 = db.condition_select(session, Pool, values=query_pool.to_dict())
-        print(pool_list2[0].name)
+#         pool_list2 = db.condition_select(session, Pool, values=query_pool.to_dict())
+#         print(pool_list2[0].name)
 
-        # 判断两种方法查询出来的数据是否一致
-        print(pool_list1[0] is pool_list2[0])
+#         # 判断两种方法查询出来的数据是否一致
+#         print(pool_list1[0] is pool_list2[0])
 
-        pdb.set_trace()
-        db.condition_update(session,
-                            Pool,
-                            pool.uuid,
-                            {'name': 'new_pool1155',
-                             'allocation': 0,
-                             'owner': 'ZYQ123'})
+#         pdb.set_trace()
+#         db.condition_update(session,
+#                             Pool,
+#                             pool.uuid,
+#                             {'name': 'new_pool1155',
+#                              'allocation': 0,
+#                              'owner': 'ZYQ123'})
 
-        selected_pool = db.select_by_uuid(session, Pool, pool.uuid)
-        print(selected_pool.to_dict())
+#         selected_pool = db.select_by_uuid(session, Pool, pool.uuid)
+#         print(selected_pool.to_dict())
 
-        db.delete(session, selected_pool)
+#         db.delete(session, selected_pool)
 
-        pool1 = Pool('test1', 1234, 'owner1')
-        pool2 = Pool('test2', 12345, 'owner2')
-        pool3 = Pool('test3', 12346, 'owner3')
-        db.batch_insert(session, [pool1, pool2, pool3])
-        session.commit()
+#         pool1 = Pool('test1', 1234, 'owner1')
+#         pool2 = Pool('test2', 12345, 'owner2')
+#         pool3 = Pool('test3', 12346, 'owner3')
+#         db.batch_insert(session, [pool1, pool2, pool3])
+#         session.commit()

@@ -95,6 +95,7 @@ def guest_get_network_interfaces(domain: libvirt.virDomain):
     res = libvirt_qemu.qemuAgentCommand(domain, command, timeout=-1, flags=0)
     return res
 
+
 ####################
 # Helper Functions #
 ####################
