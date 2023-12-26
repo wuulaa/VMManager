@@ -73,7 +73,7 @@ class Base():
 
 
 # if __name__ == '__main__':
-#     from backend.src.volume.db.pool import Pool
+#     from backend.src.volume.db.models import Pool
 #     db = Base()
 #     with enginefacade.get_session() as session:
 #         import pdb

@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 
+from backend.src.utils.sqlalchemy import enginefacade
 from backend.src.utils.sqlalchemy.model import Base
 
 
@@ -95,3 +96,6 @@ class Volume(Base):
 
     # def get_xml_string(self):
     #     return self._get_device().get_xml_string()
+
+
+Base.metadata.create_all(enginefacade.get_engine())
