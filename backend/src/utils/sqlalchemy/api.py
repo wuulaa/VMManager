@@ -76,7 +76,6 @@ class Base():
 #     from backend.src.volume.db.models import Pool
 #     db = Base()
 #     with enginefacade.get_session() as session:
-#         import pdb
 #         pool = Pool('py-test2', 20480, 'Sonya')
 #         db.insert(session, pool)
 
@@ -93,7 +92,6 @@ class Base():
 #         # 判断两种方法查询出来的数据是否一致
 #         print(pool_list1[0] is pool_list2[0])
 
-#         pdb.set_trace()
 #         db.condition_update(session,
 #                             Pool,
 #                             pool.uuid,
