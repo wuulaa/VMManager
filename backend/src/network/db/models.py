@@ -12,11 +12,14 @@ from backend.src.utils.sqlalchemy import enginefacade
 
 class Network(Base):
     __tablename__ = "network"
+    uuid: Mapped[str] = mapped_column(String(64),
+                                      unique=True,
+                                      comment="network UUID")
 
 
 
-class Ethernet(Base):
-    __tablename__ = "ethernet"
+class Interface(Base):
+    __tablename__ = "interface"
     uuid: Mapped[str] = mapped_column(String(64),
                                       unique=True,
                                       comment="interface UUID")
@@ -30,10 +33,14 @@ class Ethernet(Base):
     source_uuid: Mapped[str] = mapped_column(String(64),
                                       nullable=False,
                                       unique=True,
-                                      comment="interface source")
+                                      comment="interface source, mapped to a network")
     model_type: Mapped[str] = mapped_column(String(64),
                                             default="virtio",
                                             comment="interface model type")
+    xml: Mapped[str] = mapped_column(String(64),
+                                     comment="xml string of a NIC/interface")
+    network_uuid: Mapped[str] = mapped_column(String(64),
+                                      comment="UUID of the network this interface belongs to")
     
 class OVSBridge(Base):
     __tablename__ = "ovs_bridge"
@@ -42,6 +49,8 @@ class OVSBridge(Base):
                                       comment="OVS bridge UUID")
     name: Mapped[str] = mapped_column(String(64),
                                       comment="OVS bridge name")
+    ports: Mapped[List["OVSPort"]] = relationship(back_populates="ovs_bridge",
+                                                   cascade="all, delete-orphan")
     
 
 class OVSPort(Base):
@@ -54,4 +63,10 @@ class OVSPort(Base):
     vlan_tag: Mapped[str] = mapped_column(String(64),
                                           nullable=True,
                                           comment="OVS port tag")
-    
+    bridge_uuid: Mapped[str] = mapped_column(String(64),
+                                             comment="The UUID of ovs bridge this port belongs to")
+    bridge: Mapped["OVSBridge"] = relationship(back_populates="ports")
+
+
+
+Base.metadata.create_all(enginefacade.get_engine())

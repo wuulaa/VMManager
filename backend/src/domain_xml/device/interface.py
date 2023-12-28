@@ -87,14 +87,15 @@ def _random_mac(conn:libvirt.virConnect):
 ####################
 # Helper Functions #
 ####################
-def create_interface_builder(interface_type: str = "network",
+def create_default_interface_builder(interface_type: str = "network",
                              mac: str = None,
                              source_network: str = "default",
                              model_type: str = "virtio",
                              ) -> DeviceInterface:
     device_interface = DeviceInterface()
     device_interface.type = interface_type
-    device_interface.mac_addr = mac
+    if mac is not None:
+        device_interface.mac_addr = mac
     device_interface.network = source_network
     device_interface.model = model_type
     return device_interface
