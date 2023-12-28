@@ -103,7 +103,8 @@ class SnapShot():
         image =None
         try:
             if self.is_snap_exits(snap_name):
-                raise Exception("snapshot " + snap_name + " already exists.")
+                return APIResponse.error(code=400, msg = "snapshot " + snap_name + " already exists.")
+                raise Exception()
             image = self.get_image()
             image.create_snap(snap_name)
         except Exception as err:

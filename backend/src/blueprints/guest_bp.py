@@ -1,5 +1,6 @@
 from flask import Blueprint
 import requests
+from src.domain_xml.xml_init import create_initial_xml
 guest_bp = Blueprint("guest-bp", __name__, url_prefix="/kvm/guest")
 
 
@@ -11,6 +12,9 @@ def guest():
 
 @guest_bp.route("/add", methods=["POST"])
 def add():
+    config_xml = create_initial_xml("domain_flask")
+    
+    return 
     pass
 
 
