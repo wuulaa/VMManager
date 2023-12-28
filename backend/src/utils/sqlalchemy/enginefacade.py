@@ -35,10 +35,33 @@ def transactional(func):
     def wrapper(*args, **kwargs):
         try:
             _is_new_session = True
-            if (len(args) > 0 and isinstance(args[1], Session)):
+            if (len(args) > 1 and isinstance(args[1], Session)):
                 _is_new_session = False
                 res = func(*args, **kwargs)
                 args[1].flush()  # session.flush()
+            else:
+                session = get_session()
+                session.begin()
+                res = func(args[0], session, *args[1:], **kwargs)
+                session.commit()
+            return res
+        except Exception as e:
+            print(f"Error in {func.__name__}: {e}")
+        finally:
+            if _is_new_session:
+                session.close()
+    return wrapper
+
+
+def auto_session(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            _is_new_session = True
+            if (len(args) > 0 and isinstance(args[0], Session)):
+                _is_new_session = False
+                res = func(*args, **kwargs)
+                args[0].flush()  # session.flush()
             else:
                 session = get_session()
                 session.begin()
@@ -51,6 +74,3 @@ def transactional(func):
             if _is_new_session:
                 session.close()
     return wrapper
-
-
-auto_session = transactional

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
 from . import enginefacade
-from backend.src.utils.generator import UUIDGenerator
+from src.utils.generator import UUIDGenerator
 
 
 # model 基类
@@ -29,8 +29,7 @@ class Base(DeclarativeBase):
 
     def get_field_list(self) -> List:
         if self._field_list is None:
-            self._field_list = [
-                column.name for column in self.__table__.columns]
+            self._field_list = [column.name for column in self.__table__.columns]
         return self._field_list
 
     def to_dict(self) -> dict:
