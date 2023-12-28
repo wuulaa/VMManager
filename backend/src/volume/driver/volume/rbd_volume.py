@@ -5,7 +5,8 @@ from src.volume.common import config
 
 
 CONF = config.CONF
-POOL_NAME = CONF.rbd.pool_name
+provider = CONF['volume']['provider']
+POOL_NAME = CONF['volume']['pool_name']
 
 
 class RbdVolume(VolumeDriver):
