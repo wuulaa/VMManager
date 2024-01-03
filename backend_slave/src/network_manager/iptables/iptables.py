@@ -1,11 +1,12 @@
 import iptc
+import subprocess
 from src.utils.response import APIResponse
 
 INPUT = "INPUT"
 OUTPUT = "OUTPUT"
 PREROUTING = "PREROUTING"
 POSTROUTING = "POSTROUTING"
-FORWARD = "FOEWARD"
+FORWARD = "FORWARD"
 
 FILTER = iptc.Table.FILTER
 MANGLE = iptc.Table.MANGLE
@@ -120,32 +121,6 @@ def create_rule(src=None, dst=None,
 def create_rule_from_dict(rule_dict: dict):
     rule: iptc.Rule = iptc.iptc.easy.encode_iptc_rule(rule_dict)
     return rule
-
-
-# def create_rule_from_dict(rule_dict: dict):
-#     rule = iptc.Rule()
-
-#     for key, value in rule_dict.items():
-#         if value is not None:
-#             if key in ["src", "dst", "in_interface", "out_interface"]:
-#                 setattr(rule, key, value)
-#             elif key == "jump":
-#                 target = iptc.Target(rule, value)
-#                 to_ports = rule_dict.get("to_ports")
-#                 if to_ports is not None:
-#                     target.to_ports = value
-#                 rule.target = target
-#             elif key == "protocol":
-#                 rule.protocol = value
-#                 match = iptc.Match(rule, value)
-#                 if rule_dict.get("sport") is not None:
-#                     match.sport = rule_dict["sport"]
-#                 if rule_dict.get("dport") is not None:
-#                     match.dport = rule_dict["dport"]
-#                 if rule_dict.get("state") is not None:
-#                     match.state = rule_dict["state"]
-#                 rule.add_match(match)
-#     return rule
     
 
 def append_rule(table_name: str, chain_name: str, rule_dict: dict):
@@ -181,15 +156,97 @@ def delete_rule(table_name: str, chain_name: str, rule_dict: dict):
     except iptc.IPTCError as err:
         return APIResponse.error(400, str(err))
 
-rule_dict = {
-    "src":"!1.2.3.4/255.255.255.0",
-    "dst":"1.2.3.4/255.255.255.0",
-    "protocol":"tcp",
-    "target":MASQUERADE,
-    "to_ports":"1024-65535"
-}
 
-print(dump_chain(NAT,POSTROUTING).data)
-res = insert_rule(NAT, POSTROUTING, rule_dict)
-print(res.code)
-print(dump_chain(NAT,POSTROUTING).data)
+######## cmd #########
+
+
+def append_rule_cmd(table_name: str, chain_name: str, rule):
+    '''
+    append a rule to a chain
+    '''
+    cmd = f"iptables -t {table_name} -A {chain_name} {rule}"
+    res = subprocess.call(cmd, shell=True)
+    if res == 0:
+        return APIResponse.success()
+    return APIResponse.error(code=400)
+    
+
+def insert_rule_cmd(table_name: str, chain_name: str, rule):
+    '''
+    insert a rule to the beginning of a chain
+    '''
+    cmd = f"iptables -t {table_name} -I {chain_name} {rule}"
+    res = subprocess.call(cmd, shell=True)
+    if res == 0:
+        return APIResponse.success()
+    return APIResponse.error(code=400)
+
+
+def delete_rule_cmd(table_name: str, chain_name: str, rule):
+    '''
+    delete a rule from chain
+    '''
+    cmd = f"iptables -t {table_name} -D {chain_name} {rule}"
+    res = subprocess.call(cmd, shell=True)
+    if res == 0:
+        return APIResponse.success()
+    return APIResponse.error(code=400)
+
+
+def create_chain_cmd(table_name: str, chain_name: str):
+    '''
+    create a chain
+    '''
+    cmd = f"iptables -t {table_name} -N {chain_name}"
+    res = subprocess.call(cmd, shell=True)
+    if res == 0:
+        return APIResponse.success()
+    return APIResponse.error(code=400)
+
+
+def insert_chain_reference_cmd(table_name: str, parent_chain_name: str, reffered_chain_name: str):
+    '''
+    insert a chain reference to another chain
+    '''
+    cmd = f"iptables -t {table_name} -I {parent_chain_name} -j {reffered_chain_name}"
+    res = subprocess.call(cmd, shell=True)
+    if res == 0:
+        return APIResponse.success()
+    return APIResponse.error(code=400)
+
+
+def delete_chain_cmd(table_name: str, parent_chain_name: str, chain_name: str):
+    '''
+    delete a chain from table
+    '''
+    cmd1 = f"iptables -t {table_name} -F {chain_name}"
+    res1 = subprocess.call(cmd1, shell=True)
+    cmd2 = f"iptables -t {table_name} -D {parent_chain_name} -j {chain_name}"
+    res2 = subprocess.call(cmd2, shell=True)
+    cmd3 = f"iptables -t {table_name} -X {chain_name}"
+    res3 = subprocess.call(cmd3, shell=True)
+    if res1 == 0 and res2 == 0 and res3 == 0:
+        return APIResponse.success()
+    return APIResponse.error(code=400)
+
+
+def dump_table_cmd(table_name: str):
+    '''
+    dump table content
+    '''
+    cmd = f"iptables -t {table_name} -nvL"
+    res = subprocess.run(cmd, shell=True,capture_output=True)
+    if res.returncode == 0:
+        return APIResponse.success(data=res.stdout)
+    return APIResponse.error(code=400, msg=res.stderr)
+
+
+def dump_chain_cmd(table_name: str, chain_name: str):
+    '''
+    dump chain content
+    '''
+    cmd = f"iptables -t {table_name} -nvL {chain_name}"
+    res = subprocess.run(cmd, shell=True, capture_output=True)
+    if res.returncode == 0:
+        return APIResponse.success(data=res.stdout.decode("utf-8"))
+    return APIResponse.error(code=400, msg=res.stderr.decode("utf-8"))
