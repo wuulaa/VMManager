@@ -1,3 +1,4 @@
+import copy
 from functools import wraps
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -42,7 +43,7 @@ def transactional(func):
             else:
                 session = get_session()
                 session.begin()
-                res = func(args[0], session, *args[1:], **kwargs)
+                res = copy.deepcopy(func(args[0], session, *args[1:], **kwargs))
                 session.commit()
             return res
         except Exception as e:
@@ -65,7 +66,7 @@ def auto_session(func):
             else:
                 session = get_session()
                 session.begin()
-                res = func(session, *args, **kwargs)
+                res = copy.deepcopy(func(session, *args, **kwargs))
                 session.commit()
             return res
         except Exception as e:
