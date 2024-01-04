@@ -46,7 +46,7 @@ class APIResponse(object):
     def get_data(self):
         return self.data
 
-    def set_data(self, data: int):
+    def set_data(self, data):
         self.data = data
 
     def get_msg(self):

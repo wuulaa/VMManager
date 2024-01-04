@@ -1,17 +1,23 @@
-from .volume_builder import VolumeXMLBuilder
+from src.volume.xml.volume.volume_builder import VolumeXMLBuilder
 from src.domain_xml.device.common import Auth, Host
 from src.domain_xml.device.disk import DeviceDisk, DiskSource
 from src.utils.singleton import singleton
-from src.volume.common import config
+from src.utils import config
 
 
 CONF = config.CONF
 
-POOL_NAME = CONF.rbd.pool_name
-HOST_NAME = CONF.rbd.host_name
-HOST_PORT = CONF.rbd.host_port
-AUTH_USER = CONF.rbd.auth_user
-SECRET_UUID = CONF.rbd.secret_uuid
+# POOL_NAME = CONF.rbd.pool_name
+# HOST_NAME = CONF.rbd.host_name
+# HOST_PORT = CONF.rbd.host_port
+# AUTH_USER = CONF.rbd.auth_user
+# SECRET_UUID = CONF.rbd.secret_uuid
+
+POOL_NAME = CONF['volume']["pool_name"]
+HOST_NAME = CONF['volume']["host_name"]
+HOST_PORT = CONF['volume']["host_port"]
+AUTH_USER = CONF['volume']["auth_user"]
+SECRET_UUID = CONF['volume']["secret_uuid"]
 
 
 @singleton

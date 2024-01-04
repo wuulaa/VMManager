@@ -112,7 +112,7 @@ class VolumeService():
         else:
             raise Exception(
                 "The new capacity is smaller than the used capacity")
-
+        
 
 # service = VolumeService()
 # service.create_volume('a2d6b10a-8957-4648-8052-8371fb10f4e1',

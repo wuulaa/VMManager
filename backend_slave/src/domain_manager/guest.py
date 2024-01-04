@@ -1,5 +1,5 @@
 import libvirt
-from utils.response import APIResponse
+from src.utils.response import APIResponse
 
 states = {
     0:"nostate",
@@ -23,7 +23,7 @@ def create_persistent_domain(conn: libvirt.virConnect, confingXML):
     try:
         domain = conn.defineXML(confingXML)
     except libvirt.libvirtError as err:
-        return APIResponse.error(code=400, mag=str(err))
+        return APIResponse.error(code=400, msg=str(err))
     else:
         return APIResponse.success(data={"domain_name":domain.name})
     
@@ -34,7 +34,7 @@ def create_unpersistent_domain(conn: libvirt.virConnect, confingXML):
     try:
         domain = conn.createXML(confingXML)
     except libvirt.libvirtError as err:
-        return APIResponse.error(code=400, mag=str(err))
+        return APIResponse.error(code=400, msg=str(err))
     else:
         return APIResponse.success(data={"domain_name":domain.name})
 
@@ -65,7 +65,6 @@ def delete_domain(conn: libvirt.virConnect, domain_uuid, flags=4):
             return APIResponse.error(code=1,mas="error: Failed to undefine domain. Domain"
                     + domain_uuid+"isn't shutoff.")
         
-
 
 def destroy_domain(conn: libvirt.virConnect, domain_uuid):
     '''destroy domain'''
@@ -104,8 +103,8 @@ def pause_domain(conn: libvirt.virConnect, domain_uuid):
                     domain_uuid+"isn't running. ")
 
 
-def reboot_domain(conn: libvirt.virConnect, domain_uuid):
-    '''reboot domain'''
+def restart_domain(conn: libvirt.virConnect, domain_uuid):
+    '''restart domain'''
 
     try:
         domain = conn.lookupByUUIDString(domain_uuid)
@@ -118,7 +117,7 @@ def reboot_domain(conn: libvirt.virConnect, domain_uuid):
             domain.reboot()
             return APIResponse.success()
         else:
-            return APIResponse.error(code=1, msg="error: Failed to reboot domain. Domain"
+            return APIResponse.error(code=1, msg="error: Failed to restart domain. Domain"
                     + domain_uuid+"isn't running. ")
 
 
@@ -207,6 +206,19 @@ def rename_domain(conn: libvirt.virConnect, domain_uuid: str, domain_new_name: s
                 return APIResponse.error(code=400, msg=str(err))
 
 
+# def update_domain_description(conn:libvirt.virConnect, domain_uuid: str, description: str):
+#     '''update domain descrition'''
+#     try:
+#         domain = conn.lookupByUUIDString(domain_uuid)
+#     except libvirt.libvirtError as err:
+#         return APIResponse.error(code=400, msg=str(err))
+#     else:
+#         if domain is None:
+#             return APIResponse.error(code=400, msg="domain is none.")
+#         else:
+#             try:
+#                 domain.
+
 def get_domains_list(conn: libvirt.virConnect):
     '''
         get domains state info
@@ -232,36 +244,117 @@ def batch_start_domains(conn: libvirt.virConnect, domain_uuid_list):
     '''batch start domains'''
     failed_list =[]
     success_list=[]
-    for uuid in domain_uuid_list:
-        if(start_domain(conn, uuid).code != 0):
-            failed_list.append(uuid)
+    for i in  range(0, len(domain_uuid_list)):
+        result = start_domain(conn, domain_uuid_list[i])
+        if(result.code != 0):
+            failed_list += domain_uuid_list[i:]
+            break
         else:
-            success_list.append(uuid)
-    if(failed_list.__len__==0):
+            success_list.append(domain_uuid_list[i])
+    if(len(failed_list)==0):
         return APIResponse.success(success_list)
     else:
-        return APIResponse.error(msg=failed_list)
+        response = APIResponse()
+        response.set_data(dict = {
+            "success:":success_list[0:],
+            "error":failed_list[0]
+        })
+        response.set_code(400)
+        response.set_msg("failed to batch operate. "+ failed_list[0] + result.msg)
+        return response
 
 
-def batch_suspend_domains(conn: libvirt.virConnect, domain_uuid_list):
-    '''batch suspend domains'''
-    for uuid in domain_uuid_list:
-        pause_domain(conn, uuid)
+def batch_pause_domains(conn: libvirt.virConnect, domain_uuid_list):
+    '''batch pause domains'''
+    failed_list =[]
+    success_list=[]
+    for i in  range(0, len(domain_uuid_list)):
+        result = pause_domain(conn, domain_uuid_list[i])
+        if(result.code != 0):
+            failed_list += domain_uuid_list[i:]
+            break
+        else:
+            success_list.append(domain_uuid_list[i])
+    if(len(failed_list)==0):
+        return APIResponse.success(success_list)
+    else:
+        response = APIResponse()
+        response.set_data(dict = {
+            "success:":success_list[0:],
+            "error":failed_list[0]
+        })
+        response.set_code(400)
+        response.set_msg("failed to batch operate. "+ failed_list[0] + result.msg)
+        return response
 
 
 def batch_shutdown(conn: libvirt.virConnect, domain_uuid_list):
     '''batch shutdown domains'''
-    for uuid in domain_uuid_list:
-        shutdown_domain(conn, uuid)
+    failed_list =[]
+    success_list=[]
+    for i in  range(0, len(domain_uuid_list)):
+        result = shutdown_domain(conn, domain_uuid_list[i])
+        if(result.code != 0):
+            failed_list += domain_uuid_list[i:]
+            break
+        else:
+            success_list.append(domain_uuid_list[i])
+    if(len(failed_list)==0):
+        return APIResponse.success(success_list)
+    else:
+        response = APIResponse()
+        response.set_data(dict = {
+            "success:":success_list[0:],
+            "error":failed_list[0]
+        })
+        response.set_code(400)
+        response.set_msg("failed to batch operate. "+ failed_list[0] + result.msg)
+        return response
 
 
 def batch_del_domains(conn: libvirt.virConnect, domain_uuid_list):
     '''batch delete domains'''
-    for uuid in domain_uuid_list:
-        delete_domain(conn, uuid)
+    failed_list =[]
+    success_list=[]
+    for i in  range(0, len(domain_uuid_list)):
+        result = delete_domain(conn, domain_uuid_list[i])
+        if(result.code != 0):
+            failed_list += domain_uuid_list[i:]
+            break
+        else:
+            success_list.append(domain_uuid_list[i])
+    if(len(failed_list)==0):
+        return APIResponse.success(success_list)
+    else:
+        response = APIResponse()
+        response.set_data(dict = {
+            "success:":success_list[0:],
+            "error":failed_list[0]
+        })
+        response.set_code(400)
+        response.set_msg("failed to batch operate. "+ failed_list[0] + result.msg)
+        return response
 
 
 def batch_restart_domains(conn: libvirt.virConnect, domain_uuid_list):
-    '''batch reboot domains'''
-    for uuid in domain_uuid_list:
-        reboot_domain(conn, uuid)
+    '''batch restart domains'''
+    failed_list =[]
+    success_list=[]
+    for i in  range(0, len(domain_uuid_list)):
+        result = restart_domain(conn, domain_uuid_list[i])
+        if(result.code != 0):
+            failed_list += domain_uuid_list[i:]
+            break
+        else:
+            success_list.append(domain_uuid_list[i])
+    if(len(failed_list)==0):
+        return APIResponse.success(success_list)
+    else:
+        response = APIResponse()
+        response.set_data(dict = {
+            "success:":success_list[0:],
+            "error":failed_list[0]
+        })
+        response.set_code(400)
+        response.set_msg("failed to batch operate. "+ failed_list[0] + result.msg)
+        return response

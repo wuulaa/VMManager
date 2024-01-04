@@ -1,6 +1,8 @@
 from flask import Blueprint
+from flask import request
 import requests
 from src.domain_xml.xml_init import create_initial_xml
+from src.guest.api import *
 guest_bp = Blueprint("guest-bp", __name__, url_prefix="/kvm/guest")
 
 
@@ -12,10 +14,39 @@ def guest():
 
 @guest_bp.route("/add", methods=["POST"])
 def add():
-    config_xml = create_initial_xml("domain_flask")
-    
-    return 
-    pass
+    name = request.values.get("name")
+    slave = request.values.get("slave")
+    return create_domain(name, slave)
+
+
+@guest_bp.route("/shutdown", methods=["POST"])
+def shutdown():
+    name = request.values.get("name")
+    slave = request.values.get("slave")
+    return shutdown_domain(name, slave)
+
+
+@guest_bp.route("/destroy", methods=["POST"])
+def destroy():
+    name = request.values.get("name")
+    slave = request.values.get("slave")
+    return destroy_domain(name, slave)
+
+
+@guest_bp.route("/start", methods=["POST"])
+def start():
+    name = request.values.get("name")
+    slave = request.values.get("slave")
+    return start_domain(name, slave)
+
+
+#to do
+@guest_bp.route("/clone", methods=["POST"])
+def clone():
+    name = request.values.get("name")
+    child_name = request.values.get("childName")
+    slave = request.values.get("slave")
+    return clone_domain(name, child_name, slave)
 
 
 @guest_bp.route("/addDevice", methods=["POST"])
@@ -38,11 +69,6 @@ def attach_nic():
     pass
 
 
-@guest_bp.route("/clone", methods=["POST"])
-def clone():
-    pass
-
-
 @guest_bp.route("/createList")
 def create_list():
     pass
@@ -55,11 +81,6 @@ def delete():
 
 @guest_bp.route("/delDevice", methods=["POST"])
 def delete_device():
-    pass
-
-
-@guest_bp.route("/destroy", methods=["POST"])
-def destroy():
     pass
 
 
@@ -207,18 +228,4 @@ def set_cpu():
 def sflow():
     pass
 
-
-@guest_bp.route("/shutdown", methods=["POST"])
-def shutdown():
-    pass
-
-
-@guest_bp.route("/start", methods=["POST"])
-def start():
-    pass
-
-
-@guest_bp.route("/status")
-def status():
-    pass
 

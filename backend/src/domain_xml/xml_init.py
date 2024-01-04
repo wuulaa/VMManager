@@ -84,7 +84,7 @@ def create_initial_xml(domain_name: str):
     # interface0, interface1 = create_interfaces("demoBridge", domain_name)
     # devices.interface.append(interface0)
     # devices.interface.append(interface1)
-    # guest.devices = devices
+    guest.devices = devices
 
     # VNC
     vnc_viewer = create_vnc_viewer(15910)

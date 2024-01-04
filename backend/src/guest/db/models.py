@@ -25,9 +25,15 @@ from backend.src.utils.sqlalchemy import enginefacade
 class Guest(Base):
     __tablename__ = 'guest'
     
+    id:Mapped[int] = mapped_column(Integer,
+                                    )
+
     uuid: Mapped[str] = mapped_column(String(64),
                                       unique=True,
                                       comment="Guest UUID")
+    user_uuid: Mapped[str] = mapped_column(String(64),
+                                      unique= False,
+                                      comment= "guest user uuid")
     name: Mapped[str] = mapped_column(String(64),
                                       unique=False,
                                       nullable=False,
@@ -47,7 +53,6 @@ class Guest(Base):
                                       unique=False,
                                       nullable=True,
                                       comment="Guest architecture")
-    
     cpu: Mapped[int] = mapped_column(Integer,
                                      default=0,
                                      comment="CPU count")
@@ -73,6 +78,12 @@ class Guest(Base):
                                       unique=False,
                                       nullable=True,
                                       comment="Guest VNC address")
+    parent_uuid: Mapped[str] = mapped_column(String(64),
+                                             comment="parent guest uuid")
+    children_list: Mapped[str] = mapped_column(String(64),
+                                               comment="children guest uuid list")
+    backups_list: Mapped[str] = mapped_column(String(64),
+                                              comment="backups uuid list")
 
 
     
