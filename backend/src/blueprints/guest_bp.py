@@ -3,6 +3,7 @@ from flask import request
 import requests
 from src.domain_xml.xml_init import create_initial_xml
 from src.guest.api import *
+import src.utils.consts as consts
 guest_bp = Blueprint("guest-bp", __name__, url_prefix="/kvm/guest")
 
 
@@ -11,12 +12,25 @@ guest_bp = Blueprint("guest-bp", __name__, url_prefix="/kvm/guest")
 def guest():
     return "kvm guest"
 
+@guest_bp.route("/list", methods=["GET"])
+def get_domains_list():
+    return get_domains_list()
+
+@guest_bp.route("/detail", methods=["GET"])
+def get_domain_detail():
+    return 
+
+@guest_bp.route("/rename", methods=["POST"])
+def rename_domain():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    new_name = request.values.get(consts.P_NEW_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
 
 @guest_bp.route("/add", methods=["POST"])
 def add():
-    name = request.values.get("name")
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
     slave = request.values.get("slave")
-    return create_domain(name, slave)
+    return create_domain(domain_name, slave)
 
 
 @guest_bp.route("/shutdown", methods=["POST"])

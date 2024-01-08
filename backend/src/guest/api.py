@@ -58,6 +58,16 @@ def start_domain(domain_name: str, slave_name: str):
     guestService.status_update(uuid, status=status[1])
     return str(response.content)
 
+def get_domains_list():
+    return guestService.get_domain_list()
+
+def rename_domain(domain_name, new_name, slave_name):
+    uuid = guestService.get_uuid_by_name(domain_name, slave_name)
+    data = {"uuid": uuid, "new_name": new_name}
+    url = CONF['slaves'][slave_name]
+    response: requests.Response = requests.post(url="http://"+url+"/startDomain/", data=data)
+    return 
+
 
 #to do
 def clone_domain(domain_name: str, child_name: str, slave_name: str):

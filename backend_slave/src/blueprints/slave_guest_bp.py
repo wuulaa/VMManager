@@ -12,8 +12,7 @@ def test():
 
 @guest_bp.route("/addDomain/", methods=["POST"])
 def add_domain():
-    domain_name = request.values.get("domain_name")
-    xml = request.values.get("domain_xml")
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
     xml = request.values.get(consts.P_DOMAIN_XML)
     res = service.create_domain(xml)
     if (res.code == 0):
