@@ -57,7 +57,7 @@ def add_vxlan_port():
 def set_tag():
     bridge_name = request.values.get(consts.P_BRIDGE_NAME)
     port_name = request.values.get(consts.P_PORT_NAME)
-    tag = request.values.get(consts.P_TAG))
+    tag = request.values.get(consts.P_TAG)
     res = service.set_port_tag(bridge_name, port_name, tag)
     return res.code()
 
