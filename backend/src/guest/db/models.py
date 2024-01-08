@@ -25,19 +25,18 @@ from backend.src.utils.sqlalchemy import enginefacade
 class Guest(Base):
     __tablename__ = 'guest'
     
-    id:Mapped[int] = mapped_column(Integer,
-                                    )
-
     uuid: Mapped[str] = mapped_column(String(64),
                                       unique=True,
+                                      nullable=False,
                                       comment="Guest UUID")
-    user_uuid: Mapped[str] = mapped_column(String(64),
-                                      unique= False,
-                                      comment= "guest user uuid")
     name: Mapped[str] = mapped_column(String(64),
                                       unique=False,
                                       nullable=False,
                                       comment="Guest name")
+    slave_name: Mapped[str] = mapped_column(String(64),
+                                      unique=False,
+                                      nullable=False,
+                                      comment="Node name")
     title: Mapped[str] = mapped_column(String(64),
                                       unique=False,
                                       nullable=True,
@@ -65,10 +64,8 @@ class Guest(Base):
     max_memory: Mapped[int] = mapped_column(Integer,
                                         default=0,
                                         comment="Max Memory size(MB)")
-    
     boot_option: Mapped[str] = mapped_column(String(64),
                                       unique=False,
-                                      nullable=False,
                                       comment="Guest boot option, mapped to a volume")
     spice_address: Mapped[str] = mapped_column(String(64),
                                       unique=False,
