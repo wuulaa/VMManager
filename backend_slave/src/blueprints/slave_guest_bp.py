@@ -11,9 +11,14 @@ def test():
 
 @guest_bp.route("/addDomain/", methods=["POST"])
 def add_domain():
+    domain_name = request.values.get("domain_name")
     xml = request.values.get("domain_xml")
     res = service.create_domain(xml)
-    return str(res)
+    if (res.code == 0):
+        uuid = service.get_uuid_by_name(domain_name = domain_name)
+        return {"success": True, "uuid":uuid}
+    else:
+        return {"success": False, "uuid": None}
 
 
 @guest_bp.route("/shutdownDomain/", methods=["POST"])

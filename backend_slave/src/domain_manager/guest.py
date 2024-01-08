@@ -1,7 +1,7 @@
 import libvirt
 from src.utils.response import APIResponse
 
-states = {
+status = {
     0:"nostate",
     1:"running",
     2:"blocked",
@@ -227,7 +227,7 @@ def get_domains_list(conn: libvirt.virConnect):
     result = dict()
     domains = conn.listAllDomains()
     for domain in domains:
-        result[domain.name()] = states[domain.state()[0]]
+        result[domain.name()] = status[domain.state()[0]]
     return result
 
 
