@@ -1,6 +1,12 @@
+import libvirt
+import time
 from src.network_manager.idl import ovs_lib
 from src.network_manager.iptables import nat
+from src.network_manager import qemu_guest_agent as qa
 from src.utils.response import APIResponse
+from src.utils import connect
+
+connection = connect.get_libvirt_connection()
 
 ovsdb_helper = ovs_lib.OVSDBHelper()
 base_ovs = ovs_lib.BaseOVS(ovsdb_helper.ovsIdl)
@@ -93,5 +99,40 @@ def create_route(netA: str, netB: str, parent: str):
 
 def delete_route(netA: str, netB: str, parent: str):
     return nat.delete_route_networks(netA, netB, parent)
+
     
-    
+def set_guest_ip_ubuntu(uuid: str,
+                        ip_address: str,
+                        gateway: str,
+                        interface_name: str,
+                        dns: str = "114.114.114.114",
+                        file_path: str = "/etc/netplan/01-network-manager-all.yaml"):
+    """
+    set static ip for domain, domain must be running.
+    """
+    domain: libvirt.virDomain = connection.lookupByUUIDString(uuid)
+    res = qa.guest_open_file(domain, file_path, mode="w")
+    # print("open", res)
+    file_handle = qa.get_file_handle(res)
+    network_str = f"""
+network:
+    ethernets:
+        {interface_name}:
+            dhcp4: no
+            addresses: [{ip_address}]
+            optional: true
+            gateway4: {gateway}
+            nameservers:
+                    addresses: [{dns}]
+ 
+    version: 2
+"""
+    res = qa.guest_write_file(domain, file_handle, network_str)
+    # print("write", res)
+    res = qa.guest_close_file(domain, file_handle)
+    # print("close", res)
+    res = qa.guest_exec(domain, "netplan", ["apply"])
+    return APIResponse.success()
+
+
+def

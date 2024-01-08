@@ -1,6 +1,11 @@
 import libvirt
 from utils.response import APIResponse
 
+################################################
+# This file handles libvirt network. As we use
+# OVS network instead, it can be deprecated.
+################################################
+
 error_info = {
     400:"Unkown exception.",
     401:"Count Exceeds limit",
