@@ -83,6 +83,18 @@ class Guest(Base):
                                               comment="backups uuid list")
 
 
+class Slave(Base):
+    __tablename__ = 'slave'
+    
+    uuid: Mapped[str] = mapped_column(String(64),
+                                      unique=True,
+                                      nullable=False,
+                                      comment="Slave UUID")
+    name: Mapped[str] = mapped_column(String(64),
+                                      unique=False,
+                                      nullable=False,
+                                      comment="Slave name")
+
     
 Base.metadata.create_all(enginefacade.get_engine())
     
