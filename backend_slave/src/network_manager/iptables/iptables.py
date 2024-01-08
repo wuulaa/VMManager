@@ -215,6 +215,17 @@ def insert_chain_reference_cmd(table_name: str, parent_chain_name: str, reffered
     return APIResponse.error(code=400)
 
 
+def append_chain_reference_cmd(table_name: str, parent_chain_name: str, reffered_chain_name: str):
+    '''
+    append a chain reference to another chain
+    '''
+    cmd = f"iptables -t {table_name} -A {parent_chain_name} -j {reffered_chain_name}"
+    res = subprocess.call(cmd, shell=True)
+    if res == 0:
+        return APIResponse.success()
+    return APIResponse.error(code=400)
+
+
 def delete_chain_cmd(table_name: str, parent_chain_name: str, chain_name: str):
     '''
     delete a chain from table
@@ -250,3 +261,29 @@ def dump_chain_cmd(table_name: str, chain_name: str):
     if res.returncode == 0:
         return APIResponse.success(data=res.stdout.decode("utf-8"))
     return APIResponse.error(code=400, msg=res.stderr.decode("utf-8"))
+
+
+def iptables_save_cmd(file_path: str):
+    '''
+    save iptables rules to a file,
+    save to system if no file name is provided
+    '''
+    if file_path is None:
+        cmd = f"iptables-save"
+    else:
+        cmd = f"iptables-save > {file_path}"
+    res = subprocess.call(cmd, shell=True)
+    if res == 0:
+        return APIResponse.success()
+    return APIResponse.error(code=400)
+
+
+def restore_iptables_from_file(file_path: str):
+    '''
+    restore iptables rules from file
+    '''
+    cmd = f"iptables-restore < {file_path}"
+    res = subprocess.call(cmd, shell=True)
+    if res == 0:
+        return APIResponse.success()
+    return APIResponse.error(code=400)

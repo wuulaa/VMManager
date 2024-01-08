@@ -37,23 +37,25 @@ def shutdown_domain(domain_name: str, slave_name: str):
     data = {"uuid":uuid}
     url = CONF['slaves'][slave_name]
     response: requests.Response = requests.post(url="http://"+url+"/shutdownDomain/", data=data)
-    guestService.status_update(uuid, status=status[4])
+    guestService.status_update(uuid, status=status[5])
     return str(response.content)
 
 
 def destroy_domain(domain_name: str, slave_name: str):
-    data = {"domain_name":domain_name}
+    uuid = guestService.get_uuid_by_name(domain_name, slave_name)
+    data = {"uuid":uuid}
     url = CONF['slaves'][slave_name]
     response: requests.Response = requests.post(url="http://"+url+"/destroyDomain/", data=data)
-    uuid = guestService.get_uuid_by_name(domain_name, slave_name)
-    guestService.status_update(uuid, status=status[4])
+    guestService.status_update(uuid, status=status[5])
     return str(response.content)
 
 
 def start_domain(domain_name: str, slave_name: str):
-    data = {"domain_name":domain_name}
+    uuid = guestService.get_uuid_by_name(domain_name, slave_name)
+    data = {"uuid":uuid}
     url = CONF['slaves'][slave_name]
     response: requests.Response = requests.post(url="http://"+url+"/startDomain/", data=data)
+    guestService.status_update(uuid, status=status[1])
     return str(response.content)
 
 

@@ -4,7 +4,7 @@ from ovs.db import idl
 from ovsdbapp.backend.ovs_idl import connection
 from ovsdbapp.backend.ovs_idl.command import BaseCommand
 from ovsdbapp.schema.open_vswitch import impl_idl
-
+from src.utils.config import CONF
 
 FAILMODE_SECURE = 'secure'
 FAILMODE_STANDALONE = 'standalone'
@@ -14,8 +14,8 @@ TYPE_GRE = 'gre'
 TYPE_VXLAN = 'vxlan'
 VXLAN_UDP_PORT = 4789
 TYPE_GRE_IP6 = 'ip6gre'
-SCHEMA_PATH = "/home/york/VMManger/vswitch.ovsschema"
-SOCK_PATH = "tcp:127.0.0.1:6640"
+SCHEMA_PATH = CONF["ovs"]["schemapath"]
+SOCK_PATH = CONF["ovs"]["sockpath"]
 
 
 class OVSDBHelper:
@@ -244,8 +244,11 @@ class OVSBridge(BaseOVS):
         for port_name in port_names:
             self.delete_port(port_name)
 
-    def set_port_tag(self, port_name: str, tag: int):
+    def set_port_tag(self, port_name: str, tag: str):
         self.ovsdb.db_set('Port', port_name, ('tag', tag)).execute()
+    
+    def remove_port_tag(self, port_name: str, tag: str):
+        self.ovsdb.db_remove('Port', port_name, 'tag', tag).execute()
 
     def set_port_type(self, port_name: str, port_type: str):
         self.ovsdb.db_set('Interface', port_name, ('type', port_type)).execute()
