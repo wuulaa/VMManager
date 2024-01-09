@@ -6,6 +6,11 @@ from src.utils.sqlalchemy import api as db
 
 @singleton
 class OVSService():
+    
+    ############
+    ## bridge ##
+    ############
+    
     @enginefacade.transactional
     def create_bridge(self, session,
                       bridge_name: str,
@@ -30,9 +35,24 @@ class OVSService():
         bridge = db.select_by_uuid(session, OVSBridge, bridge_uuid)
         return bridge
     
+    @enginefacade.transactional
+    def get_bridge_by_name(self, session,
+                           bridge_name: str
+                           ):
+        bridge = db.select_by_name(session, OVSBridge, bridge_name)
+        return bridge
     
     
+    @enginefacade.transactional
+    def get_bridge_uuid_by_name(self, session,
+                           bridge_name: str
+                           ):
+        bridge = db.select_by_name(session, OVSBridge, bridge_name)
+        return bridge.uuid
     
+    ##########
+    ## port ##
+    ##########
     
     @enginefacade.transactional
     def create_port(self, session,
@@ -42,13 +62,20 @@ class OVSService():
                     remote_ip: str= None,
                     vlan_tag: str = None
                     ):
+        bridge: OVSBridge = db.select_by_uuid(session, OVSBridge, bridge_uuid)
         port = OVSPort(name, bridge_uuid, port_type, remote_ip, vlan_tag)
+        port.slave_uuid = bridge.slave_uuid
         db.insert(session, port)
         return port
     
     @enginefacade.transactional
     def get_port_by_uuid(self, session,port_uuid: str):
         port = db.select_by_uuid(session, OVSPort, port_uuid)
+        return port
+    
+    @enginefacade.transactional
+    def get_port_by_name(self, session, port_name: str):
+        port = db.select_by_name(session, OVSPort, port_name)
         return port
     
     @enginefacade.transactional

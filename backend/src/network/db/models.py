@@ -16,6 +16,7 @@ class Network(Base):
                                       unique=True,
                                       comment="network UUID")
     name: Mapped[str] = mapped_column(String(64),
+                                      unique=True,
                                       comment="network name")
     address: Mapped[str] = mapped_column(String(64),
                                       unique=True,
@@ -33,6 +34,9 @@ class Network(Base):
 
 class Interface(Base):
     __tablename__ = "interface"
+    name: Mapped[str] = mapped_column(String(64),
+                                      unique=True,
+                                      comment="port name")
     uuid: Mapped[str] = mapped_column(String(64),
                                       unique=True,
                                       comment="interface UUID")
@@ -67,16 +71,17 @@ class Interface(Base):
     network: Mapped["Network"] = relationship(back_populates="interfaces")
     
     def __init__(self,
+                 name: str,
                  network_uuid: str,
-                 port_uuid: str,
                  ip_address: str,
                  mac: str = None,
                  inerface_type: str = "direct"
                  ):
         if ip_address:
+            self.name = name
             self.uuid = self._gen_uuid()
             self.network_uuid = network_uuid
-            self.port_uuid = port_uuid
+            # self.port_uuid = port_uuid
             self.interface_type = inerface_type
             if mac is not None:
                 self.mac = mac
@@ -88,11 +93,13 @@ class OVSBridge(Base):
     uuid: Mapped[str] = mapped_column(String(64),
                                       unique=True,
                                       comment="OVS bridge UUID")
+    
     name: Mapped[str] = mapped_column(String(64),
                                       comment="OVS bridge name")
+    
     slave_uuid: Mapped[str] = mapped_column(String(64),
-                                      nullable=True,
                                       comment="slave node uuid")
+    
     ports: Mapped[List["OVSPort"]] = relationship(back_populates="bridge",
                                                   cascade="all, delete-orphan")
     
@@ -118,6 +125,8 @@ class OVSPort(Base):
                                           comment="OVS port tag")
     bridge_uuid: Mapped[str] = mapped_column(String(64),
                                              comment="The UUID of ovs bridge this port belongs to")
+    slave_uuid: Mapped[str] = mapped_column(String(64),
+                                             comment="The UUID of slave this port belongs to. it is the same as bridge's slave_uuid")
     port_type: Mapped[str] = mapped_column(Enum("internal", "vxlan"),
                                            default="internal",
                                            comment="ovs_port type, could be a vxlan port or a internal port")

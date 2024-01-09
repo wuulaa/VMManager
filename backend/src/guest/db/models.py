@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import List
+from typing import Any, List
 from sqlalchemy import ForeignKey
 from sqlalchemy import Boolean, String
 from sqlalchemy import SmallInteger, Integer
@@ -91,10 +91,13 @@ class Slave(Base):
                                       nullable=False,
                                       comment="Slave UUID")
     name: Mapped[str] = mapped_column(String(64),
-                                      unique=False,
+                                      unique=True,
                                       nullable=False,
                                       comment="Slave name")
 
+    def __init__(self, name: str, ):
+        self.name = name
+        self.uuid = self._gen_uuid()
     
 Base.metadata.create_all(enginefacade.get_engine())
     
