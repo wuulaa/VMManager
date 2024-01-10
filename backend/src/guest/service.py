@@ -1,6 +1,6 @@
 from src.utils.singleton import singleton
 from src.utils.sqlalchemy import enginefacade
-from src.guest.db.models import Guest
+from src.guest.db.models import Guest, Slave
 import src.volume.db as db
 
 @singleton
@@ -44,4 +44,20 @@ class GuestService():
     @enginefacade.transactional
     def get_domain_list():
         return db.condition_select(Guest)
+    
+    
+    
+@singleton
+class SlaveService():
+    @enginefacade.transactional
+    def create_slave(self, session, name: str):
+        slave = Slave(name)
+        db.insert(session, slave)
+        return slave
+    
+    @enginefacade.transactional
+    def get_uuid_by_name(sefl, session, name: str):
+        slave: Slave = db.select_by_name(session, name)
+        return slave.uuid
+    
     
