@@ -31,8 +31,16 @@ def put_description(domain_name: str, description: str):
 
 def delete_domain(domain_name: str):
     uuid = guest_manager.get_uuid_by_name(connection, domain_name)
-    return guest_manager.delete_domain(connection, domain_name)
+    return guest_manager.delete_domain(connection, uuid)
 
 def pause_domain(domain_name: str):
     uuid = guest_manager.get_uuid_by_name(connection, domain_name)
-    return guest_manager.pause_domain(connection, domain_name)
+    return guest_manager.pause_domain(connection, uuid)
+
+def resume_domain(domain_name: str):
+    uuid = guest_manager.get_uuid_by_name(connection, domain_name)
+    return guest_manager.resume_domain(connection, uuid)
+
+def set_auto_start_domain(domain_name: str):
+    uuid = guest_manager.get_uuid_by_name(connection, domain_name)
+    return guest_manager.set_auto_start(connection, uuid)

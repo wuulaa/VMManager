@@ -29,30 +29,39 @@ def add_domain():
 def shutdown_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     res = guestAPI.shutdown_domain(domain_name)
-    if (res.code == 0):
-        return APIResponse.success().json()
-    else:
-        return APIResponse.error(code = 400, msg = res.msg).json()
+    return res.json()
 
 
 @guest_bp.route("/destroyDomain/", methods=["POST"])
 def destroy_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     res = guestAPI.destroy_domain(domain_name)
-    if (res.code == 0):
-        return APIResponse.success().json()
-    else:
-        return APIResponse.error(code = 400, msg = res.msg).json()
+    return res.json()
+    
+@guest_bp.route("/pauseDomain/", methods=["POST"])
+def pause_domain():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    res = guestAPI.pause_domain(domain_name)
+    return res.json()
+    
+@guest_bp.route("/resumeDomain/", methods=["POST"])
+def resume_domain():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    res = guestAPI.resume_domain(domain_name)
+    return res.json()
+    
+@guest_bp.route("/setAutoRestartDomain/", methods=["POST"])
+def set_auto_start_domain():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    res = guestAPI.set_auto_start_domain(domain_name)
+    return res.json()
 
 
 @guest_bp.route("/startDomain/", methods=["POST"])
 def start_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     res = guestAPI.start_domain(domain_name)
-    if (res.code == 0):
-        return APIResponse.success().json()
-    else:
-        return APIResponse.error(code = 400, msg = res.msg).json()
+    return res.json()
 
 
 @guest_bp.route("/renameDomain/", methods=["POST"])
@@ -60,29 +69,20 @@ def rename_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     new_name = request.values.get(consts.P_NEW_NAME)
     res = guestAPI.rename_domain(domain_name, new_name)
-    if (res.code == 0):
-        return APIResponse.success().json()
-    else:
-        return APIResponse.error(code = 400, msg = res.msg).json()
+    return res.json()
 
 @guest_bp.route("/putDes/", methods=["POST"])
 def put_description():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     new_description = request.values.get(consts.P_NEW_DESCRIPTION)
     res = guestAPI.put_description(domain_name, new_description)
-    if (res.code == 0):
-        return APIResponse.success().json()
-    else:
-        return APIResponse.error(code = 400, msg = res.msg).json()
+    return res.json()
 
 @guest_bp.route("/delDomain/", methods=["POST"])
 def put_description():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     res = guestAPI.delete_domain(domain_name)
-    if (res.code == 0):
-        return APIResponse.success().json()
-    else:
-        return APIResponse.error(code = 400, msg = res.msg).json()
+    return res.json()
 
 
 # @guest_bp.route("/cloneDomain/", methods=["POST"])

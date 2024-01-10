@@ -61,16 +61,22 @@ def migrate():
     pass
 
 @guest_bp.route("/shutdown", methods=["POST"])
-def shutdown():
+def shutdown_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     return guestAPI.shutdown_domain(domain_name, slave_name).json()
 
 @guest_bp.route("/destroy", methods=["POST"])
-def destroy():
+def destroy_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
-    return guestAPI.destroy_domain(domain_name, slave_name).json()
+    return guestAPI.pause_domain(domain_name, slave_name).json()
+
+@guest_bp.route("/pause", methods=["POST"])
+def pause_domain():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.pause_domain(domain_name, slave_name).json()
 
 @guest_bp.route("/start", methods=["POST"])
 def start():

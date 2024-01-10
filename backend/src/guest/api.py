@@ -69,6 +69,16 @@ class GuestAPI():
         if(response.code == 0):
             guestService.status_update(uuid, status=status[3])
         return response
+    
+    @enginefacade.transactional
+    def resume_domain(self, domain_name: str, slave_name: str):
+        uuid = guestService.get_uuid_by_name(domain_name, slave_name)
+        data = {"uuid": uuid}
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse(requests.post(url="http://"+url+"/resumeDomain/", data=data))
+        if(response.code == 0):
+            guestService.status_update(uuid, status=status[1])
+        return response
 
     @enginefacade.transactional
     def start_domain(self, domain_name: str, slave_name: str):
