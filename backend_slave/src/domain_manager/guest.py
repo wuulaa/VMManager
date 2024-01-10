@@ -206,19 +206,6 @@ def rename_domain(conn: libvirt.virConnect, domain_uuid: str, domain_new_name: s
                 return APIResponse.error(code=400, msg=str(err))
 
 
-# def update_domain_description(conn:libvirt.virConnect, domain_uuid: str, description: str):
-#     '''update domain descrition'''
-#     try:
-#         domain = conn.lookupByUUIDString(domain_uuid)
-#     except libvirt.libvirtError as err:
-#         return APIResponse.error(code=400, msg=str(err))
-#     else:
-#         if domain is None:
-#             return APIResponse.error(code=400, msg="domain is none.")
-#         else:
-#             try:
-#                 domain.
-
 def get_domains_list(conn: libvirt.virConnect):
     '''
         get domains state info
@@ -230,6 +217,30 @@ def get_domains_list(conn: libvirt.virConnect):
         result[domain.name()] = status[domain.state()[0]]
     return result
 
+
+def set_domain_description(conn: libvirt.virConnect, domain_uuid: str, description: str):
+    '''set domain description'''
+    try:
+        domain = conn.lookupByUUIDString(domain_uuid)
+        if domain is None:
+            return APIResponse.error(code=404, msg=error_info.get(404))
+        domain.setMetadata(
+        libvirt.VIR_DOMAIN_METADATA_DESCRIPTION, description, None, None)
+        return APIResponse.success()
+    except libvirt.libvirtError as err:
+        return APIResponse.error(code=400, msg=str(err))
+    
+
+def set_domain_title(conn: libvirt.virConnect, domain_uuid: str, title: str):
+    '''set domain title'''
+    try:
+        domain = conn.lookupByUUIDString(domain_uuid)
+        if domain is None:
+            return APIResponse.error(code=404, msg=error_info.get(404))
+        domain.setMetadata(libvirt.VIR_DOMAIN_METADATA_TITLE, title, None, None)
+        return APIResponse.success()
+    except libvirt.libvirtError as err:
+        return APIResponse.error(code=400, msg=str(err))
 
 def get_domain_detail_info(conn: libvirt.virConnect, domain_uuid):
     domain: libvirt.virDomain = conn.lookupByUUIDString(domain_uuid)

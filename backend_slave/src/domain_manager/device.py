@@ -28,33 +28,6 @@ def set_domain_name(conn: libvirt.virConnect, domain_uuid: str, name: str):
         return APIResponse.error(code=400, msg=str(err))
 
 
-def set_domain_description(conn: libvirt.virConnect, domain_uuid: str, description: str):
-    '''set domain description'''
-    try:
-        domain = conn.lookupByUUIDString(domain_uuid)
-        if domain is None:
-            return APIResponse.error(code=404, msg=error_info.get(404))
-        domain.setMetadata(
-        libvirt.VIR_DOMAIN_METADATA_DESCRIPTION, description, None, None)
-        return APIResponse.success()
-    except libvirt.libvirtError as err:
-        return APIResponse.error(code=400, msg=str(err))
-    
-
-
-def set_domain_title(conn: libvirt.virConnect, domain_uuid: str, title: str):
-    '''set domain title'''
-    try:
-        domain = conn.lookupByUUIDString(domain_uuid)
-        if domain is None:
-            return APIResponse.error(code=404, msg=error_info.get(404))
-        domain.setMetadata(libvirt.VIR_DOMAIN_METADATA_TITLE, title, None, None)
-        return APIResponse.success()
-    except libvirt.libvirtError as err:
-        return APIResponse.error(code=400, msg=str(err))
-    
-
-
 def set_domain_vcpu(
         conn: libvirt.virConnect, 
         domain_uuid: str,

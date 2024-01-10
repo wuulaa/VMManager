@@ -3,56 +3,80 @@ from flask import request
 import requests
 from src.domain_xml.xml_init import create_initial_xml
 from src.guest.api import GuestAPI
+from src.utils.response import APIResponse
 import src.utils.consts as consts
 guest_bp = Blueprint("guest-bp", __name__, url_prefix="/kvm/guest")
 
 guestAPI = GuestAPI()
 
-@guest_bp.route("/")
+@guest_bp.route("/test")
 def guest():
-    return "kvm guest"
+    # response: requests.Response = requests.post(url="http://127.0.0.1:5001/test")
+    # data = response.json()["data"]
+    return "data"
 
 @guest_bp.route("/list", methods=["GET"])
 def get_domains_list():
-    return get_domains_list()
+    response =APIResponse()
+    response.set_code(0)
+    response.set_data(guestAPI.get_domains_list())
+    return response.json()
 
 @guest_bp.route("/detail", methods=["GET"])
 def get_domain_detail():
     return 
 
-@guest_bp.route("/rename", methods=["POST"])
+@guest_bp.route("/add", methods=["POST"])
+def add_domain():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.create_domain(domain_name, slave_name).json()
+
+@guest_bp.route("/putName", methods=["POST"])
 def rename_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     new_name = request.values.get(consts.P_NEW_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
-    return rename_domain()
+    return guestAPI.rename_domain(domain_name, new_name, slave_name).json()
 
-@guest_bp.route("/add", methods=["POST"])
-def add():
+@guest_bp.route("/putDes", methods=["POST"])
+def put_description():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    new_description = request.values.get(consts.P_NEW_DESCRIPTION)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.put_description(domain_name, new_description, slave_name).json()
+
+@guest_bp.route("/del", methods=["POST"])
+def delete_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
-    return guestAPI.create_domain(domain_name, slave_name)
+    return guestAPI.delete_domain(domain_name, slave_name).json()
 
+@guest_bp.route("/clone", methods=["POST"])
+def clone():
+    pass
+
+@guest_bp.route("/migrate", methods=["POST"])
+def migrate():
+    pass
 
 @guest_bp.route("/shutdown", methods=["POST"])
 def shutdown():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
-    return guestAPI.shutdown_domain(domain_name, slave_name)
-
+    return guestAPI.shutdown_domain(domain_name, slave_name).json()
 
 @guest_bp.route("/destroy", methods=["POST"])
 def destroy():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
-    return guestAPI.destroy_domain(domain_name, slave_name)
-
+    return guestAPI.destroy_domain(domain_name, slave_name).json()
 
 @guest_bp.route("/start", methods=["POST"])
 def start():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
-    return guestAPI.start_domain(domain_name, slave_name)
+    return guestAPI.start_domain(domain_name, slave_name).json()
 
 
 #to do
@@ -87,12 +111,6 @@ def attach_nic():
 @guest_bp.route("/createList")
 def create_list():
     pass
-
-
-@guest_bp.route("/del", methods=["POST"])
-def delete():
-    pass
-
 
 @guest_bp.route("/delDevice", methods=["POST"])
 def delete_device():
@@ -154,10 +172,6 @@ def merge_snapshot():
     pass
 
 
-@guest_bp.route("/migrate", methods=["POST"])
-def migrate():
-    pass
-
 
 @guest_bp.route("/modify/vncPasswd", methods=["POST"])
 def modify_vnc_passwd():
@@ -191,11 +205,6 @@ def move():
 
 @guest_bp.route("/pause", methods=["POST"])
 def pause():
-    pass
-
-
-@guest_bp.route("/putDes", methods=["POST"])
-def put_description():
     pass
 
 

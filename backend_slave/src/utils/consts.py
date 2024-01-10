@@ -4,6 +4,7 @@ P_DOMAIN_XML = "domain_xml"
 P_DOMAIN_NAME = "domain_name"
 P_DOMAIN_UUID = "domain_UUID"
 P_NEW_NAME = "new_name"
+P_NEW_DESCRIPTION = "new_description"
 
 P_CHILD_NAME = "child_name"
 

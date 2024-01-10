@@ -45,6 +45,11 @@ class GuestService():
     def get_domain_list():
         return db.condition_select(Guest)
     
+    @enginefacade.transactional
+    def delete_domain_by_uuid(self, session, uuid: str):
+        guest = db.select_by_uuid(Guest, uuid)
+        return db.delete( session, guest)
+    
     
     
 @singleton

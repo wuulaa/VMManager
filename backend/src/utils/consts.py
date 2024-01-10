@@ -1,6 +1,8 @@
 P_SLAVE_NAME = "slave_name"
 P_DOMAIN_NAME = "domain_name"
 P_NEW_NAME = "new_name"
+P_NEW_DESCRIPTION = "new_description"
+P_DOMAIN_UUID = "domain_uuid"
 
 P_CHILD_NAME = "child_name"
 

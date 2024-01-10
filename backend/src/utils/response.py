@@ -61,6 +61,12 @@ class APIResponse(object):
 
     def json(self) -> str:
         return json.dumps(self.__dict__, cls=MyEncoder, indent=4)
+    
+    def deserialize_response(self, content: str):
+        content = json.loads(content)
+        self.code = content["code"]
+        self.data = content["data"]
+        self.msg = content["msg"]
 
 
 class MyEncoder(json.JSONEncoder):
