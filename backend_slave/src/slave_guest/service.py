@@ -25,6 +25,12 @@ def start_domain(domain_name: str):
     res = guest.start_domain(connection, uuid)
     return str(res.code)
 
+
+def rename_domain(domain_name: str, new_name: str):
+    uuid = guest.get_uuid_by_name(connection, domain_name)
+    res = guest.rename_domain(connection, uuid, new_name)
+    return str(res.code) 
+
 def get_uuid_by_name(domain_name: str):
     return guest.get_uuid_by_name(connection, domain_name)
 

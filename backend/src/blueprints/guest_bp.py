@@ -2,11 +2,11 @@ from flask import Blueprint
 from flask import request
 import requests
 from src.domain_xml.xml_init import create_initial_xml
-from src.guest.api import *
+from src.guest.api import GuestAPI
 import src.utils.consts as consts
 guest_bp = Blueprint("guest-bp", __name__, url_prefix="/kvm/guest")
 
-
+guestAPI = GuestAPI()
 
 @guest_bp.route("/")
 def guest():
@@ -25,42 +25,43 @@ def rename_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     new_name = request.values.get(consts.P_NEW_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return rename_domain()
 
 @guest_bp.route("/add", methods=["POST"])
 def add():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
-    slave = request.values.get("slave")
-    return create_domain(domain_name, slave)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.create_domain(domain_name, slave_name)
 
 
 @guest_bp.route("/shutdown", methods=["POST"])
 def shutdown():
-    name = request.values.get("name")
-    slave = request.values.get("slave")
-    return shutdown_domain(name, slave)
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.shutdown_domain(domain_name, slave_name)
 
 
 @guest_bp.route("/destroy", methods=["POST"])
 def destroy():
-    name = request.values.get("name")
-    slave = request.values.get("slave")
-    return destroy_domain(name, slave)
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.destroy_domain(domain_name, slave_name)
 
 
 @guest_bp.route("/start", methods=["POST"])
 def start():
-    name = request.values.get("name")
-    slave = request.values.get("slave")
-    return start_domain(name, slave)
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.start_domain(domain_name, slave_name)
 
 
 #to do
 @guest_bp.route("/clone", methods=["POST"])
 def clone():
-    name = request.values.get("name")
     child_name = request.values.get("childName")
-    slave = request.values.get("slave")
-    return clone_domain(name, child_name, slave)
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.clone_domain(domain_name, child_name, slave_name)
 
 
 @guest_bp.route("/addDevice", methods=["POST"])

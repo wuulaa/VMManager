@@ -28,12 +28,20 @@ class GuestService():
         return guest
     
     @enginefacade.transactional
+    def update_guest(self, session, uuid: str, values: dict):
+        return db.condition_update(session, Guest, uuid, values)
+
+    @enginefacade.transactional
     def status_update(self, session, uuid: str, status: str):
         db.condition_update(session, uuid, {"status": status})
         guest: Guest = db.select_by_uuid(session, Guest, uuid)
         return guest
     
     @enginefacade.transactional
-    def get_uuid_by_name(domain_name: str, slave_name: str):
-        return db.condition_select(Guest, values = {"name": domain_name, "slave_name": slave_name}).uuid
+    def get_uuid_by_name(self, session, domain_name: str, slave_name: str):
+        return db.condition_select(session, Guest, values = {"name": domain_name, "slave_name": slave_name}).uuid
+    
+    @enginefacade.transactional
+    def get_domain_list():
+        return db.condition_select(Guest)
     
