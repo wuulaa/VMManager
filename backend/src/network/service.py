@@ -11,6 +11,8 @@ from src.utils.sqlalchemy import enginefacade
 from src.utils.config import CONF
 from src.utils import consts
 
+from src.guest.api import SlaveAPI
+slave_api = SlaveAPI()
 
 @singleton
 class NetworkService:
@@ -101,7 +103,8 @@ class NetworkService:
         name: str = interface.name
         
         # 1. create ovs port in slave
-        slave_address: str = CONF.get("slaves", slave_name)
+        slave_address: str = slave_api.get_slave_address_by_name(slave_name).get_data()
+        slave_uuid: str = slave_api.get_slave_by_name(name).get_data().uuid
         slave_bridge_name = CONF.get("network", "bridge_prefix") + "_slave"
         
         url = "http://"+ slave_address
@@ -118,11 +121,15 @@ class NetworkService:
         port: OVSPort = db.create_port(session, name, interface_uuid, "internal")
         port_uuid = port.uuid
         
-        # 3. set interface slave uuid, port uuid and status in db. TODO: slave uuid
+        # 3. set interface slave uuid, port uuid and status in db.
         db.update_interface_port(session, interface_uuid, port_uuid)
         db.update_interface_status(session, interface_uuid, "bound_unuse")
+        db.update_interface_slave_uuid(session, interface_uuid, slave_uuid)
+        
+        return APIResponse.success()
         
         
+    @enginefacade.transactional
     def unbind_interface_port(self, session, interface_uuid: str):
         """
         unbind ovs port and interface,
@@ -130,15 +137,44 @@ class NetworkService:
 
         """
         interface: Interface = db.get_interface_by_uuid(interface_uuid)
-        name: str = interface.name
+        port_name: str = interface.name
+        slave_address: str = slave_api.get_slave_address_by_uuid(interface.slave_uuid).get_data()
+        url = "http://"+ slave_address
+        slave_bridge_name = CONF.get("network", "bridge_prefix") + "_slave"
         
-        pass
+        # 1. delete ovs-port in slave
+        data = {
+                consts.P_BRIDGE_NAME: slave_bridge_name,
+                consts.P_PORT_NAME: port_name,
+            }
+        response: requests.Response = requests.post(url + "/delPort/", data)
+        
+        # 2. write port db
+        db.delete_port(session, interface.port_uuid)
+        
+        # 3. write interface db
+        db.update_interface_port(session, interface_uuid, None)
+        db.update_interface_status(session, interface_uuid, "un_bound")
+        db.update_interface_slave_uuid(session, interface_uuid, None)
+        
+        return APIResponse.success()
         
         
-    def delete_interface(self, session, uuid: str, name: str=None):
-        pass
+    @enginefacade.transactional
+    def delete_interface(self, session, interface_uuid: str, name: str=None):
+        interface: Interface = db.get_interface_by_uuid(interface_uuid)
+        
+        # 1. in bound unbound the interace
+        if interface.status != "unbound":
+            self.unbind_interface_port(session, interface_uuid)
+        
+        # 2. delete in db
+        db.delete_interface_by_uuid(session, interface_uuid)
+        
+        return APIResponse.success()
     
     
+    @enginefacade.transactional
     def create_network(self, session, name, ip_address):
         """
         create virtual network,
@@ -148,7 +184,8 @@ class NetworkService:
             name (str): name of the network
             ip_address (str): address of the network, eg: 1.2.3.4/24
         """
-        db.create_network(name=name, ip_address=ip_address)
+        network: Network = db.create_network(name=name, ip_address=ip_address)
+        return APIResponse.success(network.uuid)
     
     
     @enginefacade.transactional
@@ -165,9 +202,9 @@ class NetworkService:
             raise Exception(f'cannot find a network which name={name}')
         interfaces: list[Interface] = network.interfaces
         for interface in interfaces:
-            self.unbind_interface_port(session=session, interface_uuid=interface.uuid)
             self.delete_interface(session, interface.uuid)
         db.delete_network_by_name(session, name)
+        return APIResponse.success()
     
     
     def create_network_routing(self, session, addrA, addrB, parent_addr):

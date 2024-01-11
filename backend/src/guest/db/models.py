@@ -94,9 +94,13 @@ class Slave(Base):
                                       unique=True,
                                       nullable=False,
                                       comment="Slave name")
+    address: Mapped[str] = mapped_column(String(64),
+                                         unique=True,
+                                         comment="Slave address, including ip and port")
 
-    def __init__(self, name: str, ):
+    def __init__(self, name: str, address: str):
         self.name = name
+        self.address = address
         self.uuid = self._gen_uuid()
     
 Base.metadata.create_all(enginefacade.get_engine())

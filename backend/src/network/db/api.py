@@ -60,6 +60,11 @@ def update_interface_port(session, uuid, port_uuid):
 def update_interface_status(session, uuid, new_status: str):
     condition_update(session, Interface, uuid, {"status": new_status})
     return select_by_uuid(session, Interface, uuid)
+
+@enginefacade.auto_session
+def update_interface_slave_uuid(session, uuid, slave_uuid: str):
+    condition_update(session, Interface, uuid, {"slave_uuid": slave_uuid})
+    return select_by_uuid(session, Interface, uuid)
     
 #############
 ## network ##

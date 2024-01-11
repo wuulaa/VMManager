@@ -144,7 +144,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/renameDomain/", data=data).json())
         if(response.code == 0):
-            uuid = db.get_uuid_by_name(domain_name, slave_name)
+            uuid = db.get_uuid_by_name(session, domain_name, slave_name)
             db.update_guest(session, uuid, values={"name": new_name})
         return response
 
@@ -154,7 +154,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/putDes/", data=data).json())
         if(response.code == 0):
-            uuid = db.get_uuid_by_name(domain_name, slave_name)
+            uuid = db.get_uuid_by_name(session, domain_name, slave_name)
             db.update_guest(session, uuid, values={"description": new_description})
         return response
 
@@ -164,11 +164,35 @@ class GuestService():
         url = CONF['slave'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/delDomain/", data=data).json())
         if(response.code == 0):
-            uuid = db.get_uuid_by_name(domain_name, slave_name)
+            uuid = db.get_uuid_by_name(session, domain_name, slave_name)
             db.delete_domain_by_uuid(session, uuid = uuid)
         return response
     
 
-
-
+class SlaveService():
+    @enginefacade.transactional
+    def create_slave(self, session, slave_name: str, slave_address):
+       slave = db.create_slave(session, slave_name, slave_address)
+       if slave:
+           return APIResponse.success(data=slave.uuid)
+       
+    @enginefacade.transactional
+    def get_slave_by_uuid(self, session, uuid: str):
+       slave = db.get_slave_by_uuid(session, uuid)
+       return APIResponse.success(data=slave)
+   
+    @enginefacade.transactional
+    def get_slave_by_name(self, session, name: str):
+       slave = db.get_slave_by_name(session, name)
+       return APIResponse.success(data=slave)
+       
+    @enginefacade.transactional
+    def get_slave_address(self, session, slave_name: str = None, uuid: str = None):
+        if uuid:
+            addr = db.get_slave_address_by_uuid(session, uuid)
+            return APIResponse.success(data=addr)
+        else:
+            uuid = db.get_slave_uuid_by_name(session, slave_name)
+            addr = db.get_slave_address_by_uuid(session, uuid)
+            return APIResponse.success(data=addr)
     

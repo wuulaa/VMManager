@@ -1,5 +1,6 @@
 from src.volume.api import API
-from src.guest.service import GuestService
+from src.guest.service import GuestService, SlaveService
+from src.utils.response import APIResponse
 
 status = {
     0:"nostate",
@@ -12,6 +13,7 @@ status = {
     7:"pmsuspended"
 }
 guestService = GuestService()
+slaveService = SlaveService()
 
 class GuestAPI():
 
@@ -62,6 +64,21 @@ class GuestAPI():
         return guestService.delete_domain(domain_name, slave_name)
     
 
-
+class SlaveAPI():
+    
+    def create_slave(self, slave_name: str, slave_address) -> APIResponse:
+        return slaveService.create_slave(slave_name, slave_address)
+    
+    def get_slave_by_uuid(self, uuid: str) -> APIResponse:
+        return slaveService.get_slave_by_uuid(uuid)
+    
+    def get_slave_by_name(self, name: str) -> APIResponse:
+        return slaveService.get_slave_by_name(name)
+    
+    def get_slave_address_by_uuid(self, uuid: str) -> APIResponse:
+        return slaveService.get_slave_address(uuid=uuid)
+    
+    def get_slave_address_by_name(self, name: str) -> APIResponse:
+        return slaveService.get_slave_address(slave_name=name)
 
     

@@ -75,6 +75,10 @@ class Interface(Base):
                                             nullable=True,
                                             comment="UUID of the guest VM this interface belongs to")
     
+    slave_uuid: Mapped[str] = mapped_column(String(64),
+                                            nullable=True,
+                                            comment="UUID of the slave node this interface is bound to")
+    
     network: Mapped["Network"] = relationship(back_populates="interfaces")
     
     def __init__(self,

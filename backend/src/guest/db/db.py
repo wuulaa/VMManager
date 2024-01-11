@@ -48,14 +48,35 @@ def delete_domain_by_uuid(session, uuid: str):
     return db.delete( session, guest)
     
 @enginefacade.auto_session
-def create_slave(session, name: str):
-    slave = Slave(name)
+def create_slave(session, name: str, address: str):
+    slave = Slave(name, address)
     db.insert(session, slave)
     return slave
 
 @enginefacade.auto_session
-def get_uuid_by_name(session, name: str):
+def get_slave_by_uuid(session, uuid: str):
+    slave: Slave = db.select_by_uuid(session, uuid)
+    return slave
+
+@enginefacade.auto_session
+def get_slave_by_name(session, name: str):
+    slave: Slave = db.select_by_name(session, name)
+    return slave
+
+@enginefacade.auto_session
+def get_slave_uuid_by_name(session, name: str):
     slave: Slave = db.select_by_name(session, name)
     return slave.uuid
+
+@enginefacade.auto_session
+def get_slave_name_by_uuid(session, uuid: str):
+    slave: Slave = db.select_by_uuid(session, uuid)
+    return slave.name
+
+@enginefacade.auto_session
+def get_slave_address_by_uuid(session, uuid: str):
+    slave: Slave = db.select_by_uuid(session, uuid)
+    return slave.address
+
     
     

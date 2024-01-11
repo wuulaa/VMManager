@@ -7,7 +7,9 @@ P_DOMAINS_NAME_LIST = "domains_name_list"
 
 P_CHILD_NAME = "child_name"
 
-P_NETWORK_ADDRESS = "network_address"
+P_NETWORK_ADDRESS = "ip_address"
+P_NETWORK_NAME = "network_name"
+P_IP_ADDRESS = "network_address"
 P_BRIDGE_NAME = "bridge_name"
 P_PORT_NAME = "port_name"
 P_TYPE = "type"
@@ -17,5 +19,6 @@ P_NETWORKA = "networkA"
 P_NETWORKB = "networkB"
 P_INTERFACE_NAME = "interface_name"
 P_GATEWAY = "gateway"
+P_MAC = "mac"
 
 P_PARENT = "parent"
