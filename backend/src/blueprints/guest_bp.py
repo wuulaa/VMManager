@@ -11,9 +11,8 @@ guestAPI = GuestAPI()
 
 @guest_bp.route("/test")
 def guest():
-    # response: requests.Response = requests.post(url="http://127.0.0.1:5001/test")
-    # data = response.json()["data"]
-    return "data"
+    response: requests.Response = requests.get(url="http://127.0.0.1:5001/test")
+    return APIResponse().deserialize_response(response.json()).json()
 
 @guest_bp.route("/list", methods=["GET"])
 def get_domains_list():
@@ -57,8 +56,14 @@ def clone():
     pass
 
 @guest_bp.route("/migrate", methods=["POST"])
-def migrate():
+def migrate(): 
     pass
+
+@guest_bp.route("/start", methods=["POST"])
+def start():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.start_domain(domain_name, slave_name).json()
 
 @guest_bp.route("/shutdown", methods=["POST"])
 def shutdown_domain():
@@ -78,20 +83,49 @@ def pause_domain():
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     return guestAPI.pause_domain(domain_name, slave_name).json()
 
-@guest_bp.route("/start", methods=["POST"])
-def start():
+@guest_bp.route("/resume", methods=["POST"])
+def resume_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
-    return guestAPI.start_domain(domain_name, slave_name).json()
+    return guestAPI.resume_domain(domain_name, slave_name).json()
 
+@guest_bp.route("/batchStartDomains", methods=["POST"])
+def batch_start_domain():
+    domains_name_list = request.values.get(consts.P_DOMAINS_NAME_LIST)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.batch_start_domains(domains_name_list, slave_name).json()
+
+@guest_bp.route("/batchPauseDomains", methods=["POST"])
+def batch_pause_domain():
+    domains_name_list = request.values.get(consts.P_DOMAINS_NAME_LIST)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.batch_pause_domains(domains_name_list, slave_name).json()
+
+@guest_bp.route("/batchShutdownDomains", methods=["POST"])
+def batch_shutdown_domain():
+    domains_name_list = request.values.get(consts.P_DOMAINS_NAME_LIST)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.batch_shutdown_domains(domains_name_list, slave_name).json()
+
+@guest_bp.route("/batchDeleteDomains", methods=["POST"])
+def batch_delete_domain():
+    domains_name_list = request.values.get(consts.P_DOMAINS_NAME_LIST)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.batch_delete_domains(domains_name_list, slave_name).json()
+
+@guest_bp.route("/batchRestartDomains", methods=["POST"])
+def batch_restart_domain():
+    domains_name_list = request.values.get(consts.P_DOMAINS_NAME_LIST)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.batch_restart_domains(domains_name_list, slave_name).json()
 
 #to do
-@guest_bp.route("/clone", methods=["POST"])
-def clone():
-    child_name = request.values.get("childName")
-    domain_name = request.values.get(consts.P_DOMAIN_NAME)
-    slave_name = request.values.get(consts.P_SLAVE_NAME)
-    return guestAPI.clone_domain(domain_name, child_name, slave_name)
+# @guest_bp.route("/clone", methods=["POST"])
+# def clone():
+#     child_name = request.values.get("childName")
+#     domain_name = request.values.get(consts.P_DOMAIN_NAME)
+#     slave_name = request.values.get(consts.P_SLAVE_NAME)
+#     return guestAPI.clone_domain(domain_name, child_name, slave_name)
 
 
 @guest_bp.route("/addDevice", methods=["POST"])

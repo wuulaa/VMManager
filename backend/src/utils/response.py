@@ -46,7 +46,7 @@ class APIResponse(object):
     def get_data(self):
         return self.data
 
-    def set_data(self, data: int):
+    def set_data(self, data):
         self.data = data
 
     def get_msg(self):
@@ -62,12 +62,11 @@ class APIResponse(object):
     def json(self) -> str:
         return json.dumps(self.__dict__, cls=MyEncoder, indent=4)
     
-    def deserialize_response(self, content: str):
-        content = json.loads(content)
-        self.code = content["code"]
-        self.data = content["data"]
-        self.msg = content["msg"]
-
+    def deserialize_response(self, content: json):
+        self.set_code(content["code"])
+        self.set_data(content["data"])
+        self.set_msg(content["msg"])
+        return self
 
 class MyEncoder(json.JSONEncoder):
     def default(self, obj):

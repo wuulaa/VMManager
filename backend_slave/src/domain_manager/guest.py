@@ -299,7 +299,7 @@ def batch_pause_domains(conn: libvirt.virConnect, domain_uuid_list):
         return response
 
 
-def batch_shutdown(conn: libvirt.virConnect, domain_uuid_list):
+def batch_shutdown_domains(conn: libvirt.virConnect, domain_uuid_list):
     '''batch shutdown domains'''
     failed_list =[]
     success_list=[]
@@ -323,7 +323,7 @@ def batch_shutdown(conn: libvirt.virConnect, domain_uuid_list):
         return response
 
 
-def batch_del_domains(conn: libvirt.virConnect, domain_uuid_list):
+def batch_delete_domains(conn: libvirt.virConnect, domain_uuid_list):
     '''batch delete domains'''
     failed_list =[]
     success_list=[]

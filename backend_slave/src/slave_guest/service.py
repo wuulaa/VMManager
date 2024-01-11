@@ -44,3 +44,33 @@ def resume_domain(domain_name: str):
 def set_auto_start_domain(domain_name: str):
     uuid = guest_manager.get_uuid_by_name(connection, domain_name)
     return guest_manager.set_auto_start(connection, uuid)
+
+def batch_start_domains(domain_name_list):
+    domain_uuid_list = []
+    for name in domain_name_list:
+        domain_uuid_list.add(guest_manager.get_uuid_by_name(name))
+    return guest_manager.batch_start_domains(connection, domain_uuid_list)
+
+def batch_pause_domains(domain_name_list):
+    domain_uuid_list = []
+    for name in domain_name_list:
+        domain_uuid_list.add(guest_manager.get_uuid_by_name(name))
+    return guest_manager.batch_pause_domains(connection, domain_uuid_list)
+
+def batch_shutdown_domains(domain_name_list):
+    domain_uuid_list = []
+    for name in domain_name_list:
+        domain_uuid_list.add(guest_manager.get_uuid_by_name(name))
+    return guest_manager.batch_shutdown_domains(connection, domain_uuid_list)
+
+def batch_delete_domains(domain_name_list):
+    domain_uuid_list = []
+    for name in domain_name_list:
+        domain_uuid_list.add(guest_manager.get_uuid_by_name(name))
+    return guest_manager.batch_delete_domains(connection, domain_uuid_list)
+
+def batch_restart_domains(domain_name_list):
+    domain_uuid_list = []
+    for name in domain_name_list:
+        domain_uuid_list.add(guest_manager.get_uuid_by_name(name))
+    return guest_manager.batch_restart_domains(connection, domain_uuid_list)

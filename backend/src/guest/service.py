@@ -1,68 +1,174 @@
+from src.domain_xml.xml_init import create_initial_xml
+from src.utils.config import CONF
+from src.volume.xml.volume.rbd_builder import RbdVolumeXMLBuilder
+from src.volume.api import API
+from src.guest.db import db as db
 from src.utils.singleton import singleton
 from src.utils.sqlalchemy import enginefacade
-from src.guest.db.models import Guest, Slave
-import src.volume.db as db
+from src.utils.response import APIResponse
+import requests
 
-@singleton
+status = {
+    0:"nostate",
+    1:"running",
+    2:"blocked",
+    3:"paused",
+    4:"shutdown",
+    5:"shutoff",
+    6:"crashed",
+    7:"pmsuspended"
+}
+
+vol_api = API()
+
 class GuestService():
     @enginefacade.transactional
-    def create_guest(self, session, uuid: str, name: str, slave_name: str, **kwargs):
-        title = kwargs.get("title", None)
-        description = kwargs.get("description", None)
-        status = kwargs.get("status", None)
-        architecture = kwargs.get("architecture", None)
-        cpu = kwargs.get("cpu", None)
-        max_cpu = kwargs.get("max_cpu", None)
-        memory = kwargs.get("memory", None)
-        max_memory = kwargs.get("max_memory", None)
-        boot_option = kwargs.get("boot_option", None)
-        spice_address = kwargs.get("spice_address", None)
-        vnc_address = kwargs.get("vnc_address", None)
-        parent_uuid = kwargs.get("parent_uuid", None)
-        children_list = kwargs.get("children_list", None)
-        backups_list = kwargs.get("backups_list", None)
-        guest = Guest(uuid ,name, slave_name, title, description, status, architecture, cpu, max_cpu,
-                      memory, max_memory, boot_option, spice_address, vnc_address, parent_uuid,
-                      children_list, backups_list)
-        db.insert(session, guest)
-        return guest
-    
-    @enginefacade.transactional
-    def update_guest(self, session, uuid: str, values: dict):
-        return db.condition_update(session, Guest, uuid, values)
+    def create_domain(self, session, domain_name: str, slave_name: str, **kwargs):
+        guest = create_initial_xml(domain_name)
+        vol_api.create_volume("a2d6b10a-8957-4648-8052-8371fb10f4e1", domain_name, 20*1024)
+        rbdXML = RbdVolumeXMLBuilder()
+        device = rbdXML.construct(domain_name)
+        guest.devices.disk.append(device)
+        url = CONF['slaves'][slave_name]
+        data = {"domain_xml":guest.get_xml_string(), "domain_name": domain_name}
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/addDomain/", data=data).json())
+        if(response.code == 0):
+            uuid = response.get_data()['uuid']
+            db.create_guest(session, uuid, domain_name, slave_name, **kwargs)
+        return response
 
     @enginefacade.transactional
-    def status_update(self, session, uuid: str, status: str):
-        db.condition_update(session, uuid, {"status": status})
-        guest: Guest = db.select_by_uuid(session, Guest, uuid)
-        return guest
-    
+    def shutdown_domain(self, session, domain_name: str, slave_name: str):
+        uuid = db.get_uuid_by_name(domain_name, slave_name)
+        data = {"uuid": uuid}
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/shutdownDomain/", data=data).json)
+        if(response.code == 0):
+            db.status_update(session, uuid, status=status[5])
+        return response
+
     @enginefacade.transactional
-    def get_uuid_by_name(self, session, domain_name: str, slave_name: str):
-        return db.condition_select(session, Guest, values = {"name": domain_name, "slave_name": slave_name}).uuid
-    
+    def destroy_domain(self, session, domain_name: str, slave_name: str):
+        uuid = db.get_uuid_by_name(domain_name, slave_name)
+        data = {"uuid": uuid}
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/destroyDomain/", data=data).json())
+        if(response.code == 0):
+            db.status_update(session, uuid, status=status[5])
+        return response
+
     @enginefacade.transactional
-    def get_domain_list():
-        return db.condition_select(Guest)
-    
+    def pause_domain(self, session, domain_name: str, slave_name: str):
+        uuid = db.get_uuid_by_name(domain_name, slave_name)
+        data = {"uuid": uuid}
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/pauseDomain/", data=data).json())
+        if(response.code == 0):
+            db.status_update(session, uuid, status=status[3])
+        return response
+
     @enginefacade.transactional
-    def delete_domain_by_uuid(self, session, uuid: str):
-        guest = db.select_by_uuid(Guest, uuid)
-        return db.delete( session, guest)
-    
-    
-    
-@singleton
-class SlaveService():
+    def resume_domain(self, session, domain_name: str, slave_name: str):
+        uuid = db.get_uuid_by_name(domain_name, slave_name)
+        data = {"uuid": uuid}
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/resumeDomain/", data=data).json())
+        if(response.code == 0):
+            db.status_update(session, uuid, status=status[1])
+        return response
+
     @enginefacade.transactional
-    def create_slave(self, session, name: str):
-        slave = Slave(name)
-        db.insert(session, slave)
-        return slave
-    
+    def start_domain(self, session, domain_name: str, slave_name: str):
+        uuid = db.get_uuid_by_name(domain_name, slave_name)
+        data = {"uuid": uuid}
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/startDomain/", data=data).json())
+        if(response.code == 0):
+            db.status_update(session, uuid, status=status[1])
+        return response
+
     @enginefacade.transactional
-    def get_uuid_by_name(sefl, session, name: str):
-        slave: Slave = db.select_by_name(session, name)
-        return slave.uuid
+    def batch_start_domains(self, session, domains_name_list, slave_name: str):
+        data = {"domains_name_list": domains_name_list}
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/batchStartDomains/", data=data).json())
+        return response
+
+    @enginefacade.transactional
+    def batch_pause_domains(self, session, domains_name_list, slave_name: str):
+        data = {"domains_name_list": domains_name_list}
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/batchPauseDomains/", data=data).json())
+        success_list = response.get_data()["success"]
+        for uuid in success_list:
+            db.status_update(session, uuid, status[3])
+        return response
+
+    @enginefacade.transactional
+    def batch_shutdown_domains(self, session, domains_name_list, slave_name: str):
+        data = {"domains_name_list": domains_name_list}
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/batchShutdownDomains/", data=data).json())
+        success_list = response.get_data()["success"]
+        for uuid in success_list:
+            db.status_update(session, uuid, status[4])
+        return response
+
+    @enginefacade.transactional
+    def batch_delete_domains(self, session, domains_name_list, slave_name: str):
+        data = {"domains_name_list": domains_name_list}
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/batchDeleteDomains/", data=data).json())
+        success_list = response.get_data()["success"]
+        for uuid in success_list:
+            db.delete_domain_by_uuid(session, uuid)
+        return response
+
+    @enginefacade.transactional
+    def batch_restart_domains(self, session, domains_name_list, slave_name: str):
+        data = {"domains_name_list": domains_name_list}
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/batchRestartDomains/", data=data).json())
+        success_list = response.get_data()["success"]
+        for uuid in success_list:
+            db.status_update(session, uuid, status[1])
+        return response
+
+    @enginefacade.transactional
+    def get_domains_list(session):
+        return db.get_domain_list(session)
+
+    @enginefacade.transactional
+    def rename_domain(self, session, domain_name, new_name, slave_name):
+        data = {"domain_name": domain_name, "new_name": new_name}
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/renameDomain/", data=data).json())
+        if(response.code == 0):
+            uuid = db.get_uuid_by_name(domain_name, slave_name)
+            db.update_guest(session, uuid, values={"name": new_name})
+        return response
+
+    @enginefacade.transactional
+    def put_description(self, session, domain_name, new_description, slave_name):
+        data = {"domain_name": domain_name, "new_description": new_description}
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/putDes/", data=data).json())
+        if(response.code == 0):
+            uuid = db.get_uuid_by_name(domain_name, slave_name)
+            db.update_guest(session, uuid, values={"description": new_description})
+        return response
+
+    @enginefacade.transactional
+    def delete_domain(self, session, domain_name, slave_name):
+        data = {"domain_name": domain_name}
+        url = CONF['slave'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/delDomain/", data=data).json())
+        if(response.code == 0):
+            uuid = db.get_uuid_by_name(domain_name, slave_name)
+            db.delete_domain_by_uuid(session, uuid = uuid)
+        return response
     
+
+
+
     

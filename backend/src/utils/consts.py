@@ -3,6 +3,7 @@ P_DOMAIN_NAME = "domain_name"
 P_NEW_NAME = "new_name"
 P_NEW_DESCRIPTION = "new_description"
 P_DOMAIN_UUID = "domain_uuid"
+P_DOMAINS_NAME_LIST = "domains_name_list"
 
 P_CHILD_NAME = "child_name"
 
