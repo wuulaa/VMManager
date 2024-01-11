@@ -3,6 +3,10 @@ from src.utils.response import APIResponse
 
 def append_drop_to_forward():
     append_rule_cmd(FILTER, FORWARD, f"-j DROP")
+    
+
+def delete_drop_from_forward():
+    delete_rule_cmd(FILTER, FORWARD, f"-j DROP")
 
 
 def create_ovs_nat_network(network_addr:str, bridge_name: str):
@@ -54,9 +58,10 @@ def delete_ovs_nat_network(network_addr:str):
     nat_chain_name = "NAT" + chain_prefix
     filter_chain_name = "FORWARD" + chain_prefix
     
+    res3 = delete_route_chain(network_addr)
     res1 = delete_chain_cmd(NAT, POSTROUTING, nat_chain_name)
     res2 = delete_chain_cmd(FILTER, FORWARD, filter_chain_name)
-    if res1.get_code() == 0 and res2.get_code() == 0:
+    if res1.get_code() == 0 and res2.get_code() == 0 and res3.get_code() == 0:
         return APIResponse.success()
     
     return APIResponse.error(code=400)
@@ -67,6 +72,13 @@ def create_route_chain(network_addr:str):
     parent_chain_name = "FORWARD" + network_addr.replace("/","_").replace(".", "_")
     create_chain_cmd(FILTER, chain_name)
     append_chain_reference_cmd(FILTER, parent_chain_name, chain_name)
+    return APIResponse.success()
+
+
+def delete_route_chain(network_addr:str):
+    chain_name = "ROUTE" + network_addr.replace("/","_").replace(".", "_")
+    parent_chain_name = "FORWARD" + network_addr.replace("/","_").replace(".", "_")
+    delete_chain_cmd(FILTER, parent_chain_name, chain_name)
     return APIResponse.success()
 
 
@@ -99,5 +111,5 @@ def delete_route_networks(network_addrA:str, network_addrB:str, parent_addr:str)
 
 # create_ovs_nat_network("20.0.0.0/8", "york")
 # append_drop_to_forward()
-# delete_ovs_nat_network("20.0.0.0/8")
+# delete_ovs_nat_network("50.0.0.0/8")
 # create_route_networks("20.0.0.0/24", "20.0.1.0/24", "20.0.0.0/8")

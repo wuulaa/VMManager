@@ -228,7 +228,8 @@ def append_chain_reference_cmd(table_name: str, parent_chain_name: str, reffered
 
 def delete_chain_cmd(table_name: str, parent_chain_name: str, chain_name: str):
     '''
-    delete a chain from table
+    delete a chain from table,
+    reference is also deleted
     '''
     cmd1 = f"iptables -t {table_name} -F {chain_name}"
     res1 = subprocess.call(cmd1, shell=True)
