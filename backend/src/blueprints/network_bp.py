@@ -7,19 +7,38 @@ from src.utils import consts
 network_bp = Blueprint("network-bp", __name__, url_prefix="/kvm")
 network_api = NetworkAPI()
 
-@network_bp.route("/cluster/detail")
-def cluster_detail():
-    pass
+@network_bp.route("/network/list")
+def list():
+    """
+    list add networks
+    """
+    return network_api.list_networks().json()
 
 
-@network_bp.route("/cluster/list")
-def cluster_list():
-    pass
+@network_bp.route("/network/detail")
+def network_detail():
+    """
+    get detail of a network
+    """
+    network_name = request.values.get(consts.P_NETWORK_NAME)
+    return network_api.network_detail(network_name).json()
 
 
-@network_bp.route("/network/ethernet")
-def ethernet():
-    pass
+@network_bp.route("/network/ethernets")
+def list_ethernets():
+    """
+    list all virtual interfaces
+    """
+    return network_api.list_interfaces().json()
+
+
+@network_bp.route("/network/detailEthernet")
+def detailEthernet():
+    """
+    get a all virtual interfaces detail
+    """
+    name = request.values.get(consts.P_INTERFACE_NAME)
+    return network_api.interface_detail(name).json()
 
 
 @network_bp.route("/network/portAdd", methods=["POST"])
@@ -37,7 +56,7 @@ def port_del():
     return network_api.delete_interface(name).json()
 
 
-@network_bp.route("/network/portGroupPut", methods=["POST"])
+@network_bp.route("/network/portPut", methods=["POST"])
 def port_put():
     pass
 
@@ -61,19 +80,7 @@ def virtual_del():
     return network_api.delete_network(network_name).json()
 
 
-@network_bp.route("/network/virtualPut", methods=["POST"])
-def virtual_put():
-    pass
 
-
-@network_bp.route("/portGroup/detail")
-def port_group_detail():
-    pass
-
-
-@network_bp.route("/portGroup/list")
-def port_group_list():
-    pass
 
 
 

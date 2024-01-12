@@ -83,6 +83,11 @@ def update_interface_guest_uuid(session, uuid, guest_uuid: str):
 def update_interface_xml(session, uuid, xml: str):
     condition_update(session, Interface, uuid, {"xml": xml})
     return select_by_uuid(session, Interface, uuid)
+
+
+@enginefacade.auto_session
+def get_interface_list(session):
+    return condition_select(session, Interface)
     
 #############
 ## network ##
@@ -125,6 +130,16 @@ def get_network_by_name(session, name):
 def get_network_uuid_by_name(session, name):
     network: Network = select_by_name(session, Network, name)
     return network.uuid
+
+
+@enginefacade.auto_session
+def get_network_list(session):
+    return condition_select(session, Network)
+
+
+@enginefacade.auto_session
+def get_network_interface_list(session, network_uuid):
+    return condition_select(session, Interface, values={"network_uuid" : network_uuid})
 
 
 ##############

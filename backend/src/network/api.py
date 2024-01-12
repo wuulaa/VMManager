@@ -30,9 +30,26 @@ class NetworkAPI():
     def delete_network(self, name) -> APIResponse:
         return network_service.delete_network(name=name)
     
+    
     def get_interface_xml(self, interface_name) -> APIResponse:
         return network_service.get_interface_xml(interface_name)
+    
     
     def attach_interface_to_domain(self, domain_uuid: str, interface_name: str)-> APIResponse:
         return network_service.add_interface_to_domain(interface_name=interface_name,
                                                        domain_uuid=domain_uuid)
+        
+    def list_networks(self):
+        return network_service.list_networks()
+    
+    
+    def list_interfaces(self):
+        return network_service.list_interfaces()
+    
+    
+    def network_detail(self, network_name: str):
+        return network_service.network_detail(network_name)
+    
+    
+    def interface_detail(self, interface_name: str):
+        return network_service.interface_detail(interface_name)

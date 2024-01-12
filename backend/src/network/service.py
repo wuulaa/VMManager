@@ -243,6 +243,27 @@ class NetworkService:
         
     
     
-    def remove_interface_to_domain(self,session):
+    def remove_interface_from_domain(self,session):
         pass
     
+    
+    def list_networks(self):
+        network_list: list[Network] = db.get_network_list()
+        res = [network.to_dict() for network in network_list]
+        return APIResponse.success(res)
+    
+    
+    def list_interfaces(self):
+        interface_list: list[Interface] = db.get_interface_list()
+        res = [interface.to_dict() for interface in interface_list]
+        return APIResponse.success(res)
+    
+    
+    def network_detail(self, network_name: str):
+        network: Network = db.get_network_by_name(network_name)
+        return APIResponse.success(network.to_dict())
+    
+    
+    def interface_detail(self, interface_name: str):
+        interface: Interface = db.get_interface_by_name(interface_name)
+        return APIResponse.success(interface.to_dict())
