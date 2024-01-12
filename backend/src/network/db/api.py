@@ -39,6 +39,11 @@ def get_interface_by_uuid(session, uuid):
 
 
 @enginefacade.auto_session
+def get_interface_by_name(session, name):
+    return select_by_name(session, Interface, name)
+
+
+@enginefacade.auto_session
 def update_interface_ip(session, uuid, new_ip):
     condition_update(session, Interface, uuid, {"ip_address": new_ip})
     return select_by_uuid(session, Interface, uuid)
@@ -61,9 +66,22 @@ def update_interface_status(session, uuid, new_status: str):
     condition_update(session, Interface, uuid, {"status": new_status})
     return select_by_uuid(session, Interface, uuid)
 
+
 @enginefacade.auto_session
 def update_interface_slave_uuid(session, uuid, slave_uuid: str):
     condition_update(session, Interface, uuid, {"slave_uuid": slave_uuid})
+    return select_by_uuid(session, Interface, uuid)
+
+
+@enginefacade.auto_session
+def update_interface_guest_uuid(session, uuid, guest_uuid: str):
+    condition_update(session, Interface, uuid, {"guest_uuid": guest_uuid})
+    return select_by_uuid(session, Interface, uuid)
+
+
+@enginefacade.auto_session
+def update_interface_xml(session, uuid, xml: str):
+    condition_update(session, Interface, uuid, {"xml": xml})
     return select_by_uuid(session, Interface, uuid)
     
 #############

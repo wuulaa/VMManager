@@ -1,7 +1,7 @@
 import requests
 from src.utils.response import APIResponse
 from src.utils.singleton import singleton
-from src.domain_xml.device import interface
+from src.domain_xml.device import interface as interface_xml
 from src.common.network_manager import api as netapi
 from src.guest.db.models import Slave
 from src.guest.service import SlaveService
@@ -11,8 +11,9 @@ from src.utils.sqlalchemy import enginefacade
 from src.utils.config import CONF
 from src.utils import consts
 
-from src.guest.api import SlaveAPI
+from src.guest.api import SlaveAPI, GuestAPI
 slave_api = SlaveAPI()
+guest_api = GuestAPI()
 
 @singleton
 class NetworkService:
@@ -117,14 +118,19 @@ class NetworkService:
             }
         response: requests.Response = requests.post(url + "/addPort/", data)
         
+        # generate interface xml
+        mac = interface.mac
+        xml = interface_xml.create_direct_ovs_interface(name, mac).get_xml_string()
+        
         # 2. create port in db
         port: OVSPort = db.create_port(session, name, interface_uuid, "internal")
         port_uuid = port.uuid
         
-        # 3. set interface slave uuid, port uuid and status in db.
+        # 3. set interface slave uuid, port uuid, xml and status in db.
         db.update_interface_port(session, interface_uuid, port_uuid)
         db.update_interface_status(session, interface_uuid, "bound_unuse")
         db.update_interface_slave_uuid(session, interface_uuid, slave_uuid)
+        db.update_interface_xml(session, interface_uuid, xml)
         
         return APIResponse.success()
         
@@ -156,6 +162,7 @@ class NetworkService:
         db.update_interface_port(session, interface_uuid, None)
         db.update_interface_status(session, interface_uuid, "un_bound")
         db.update_interface_slave_uuid(session, interface_uuid, None)
+        db.update_interface_xml(session, interface_uuid, None)
         
         return APIResponse.success()
         
@@ -217,12 +224,23 @@ class NetworkService:
         netapi.delete_route(addrA, addrB, parent_addr)
     
     
-    def get_interface_xml(self, session):
-        pass
-    
-    
-    def add_interface_to_domain(self, session):
-        pass
+    @enginefacade.transactional
+    def get_interface_xml(self, session, name: str):
+        interface: Interface = db.get_interface_by_name(session, name)
+        return APIResponse.success(interface.xml)
+        
+        
+    @enginefacade.transactional
+    def add_interface_to_domain(self, session, interface_name, domain_uuid):
+        interface: Interface = db.get_interface_by_name(session, interface_name)
+        if interface.status == "bound_in_use" or interface.guest_uuid is not None:
+            return APIResponse.error(401, "interface already in use")
+        slave_name = guest_api.get_domain_slave_name(domain_uuid)
+        
+        self.bind_interface_to_port(session, interface.uuid, slave_name)
+        db.update_interface_guest_uuid(session, interface.uuid, domain_uuid)
+        return APIResponse.success()
+        
     
     
     def remove_interface_to_domain(self,session):

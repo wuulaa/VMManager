@@ -66,6 +66,9 @@ class GuestAPI():
     def attach_nic(self, domain_name: str, slave_name: str, interface_name: str, flags: int):
         return guestService.attach_nic(domain_name, slave_name, interface_name, flags)
     
+    def get_domain_slave_name(session, domain_uuid: str):
+        return guestService.get_domain_slave_name(domain_uuid)
+    
 
 class SlaveAPI():
     

@@ -31,7 +31,8 @@ class NetworkAPI():
         return network_service.delete_network(name=name)
     
     def get_interface_xml(self, interface_name) -> APIResponse:
-        pass
+        return network_service.get_interface_xml(interface_name)
     
     def attach_interface_to_domain(self, domain_uuid: str, interface_name: str)-> APIResponse:
-        pass
+        return network_service.add_interface_to_domain(interface_name=interface_name,
+                                                       domain_uuid=domain_uuid)

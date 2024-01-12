@@ -181,10 +181,15 @@ class GuestService():
         }
         url = CONF['slave'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
-        if response.code == 0:
-            domain_uuid = db.get_domain_uuid_by_name(session, domain_name, slave_name)
-            networkapi.attach_interface_to_domain(domain_uuid, interface_name)
+        if response.code != 0:
+            return APIResponse.error(msg=response.msg)
+        domain_uuid = db.get_domain_uuid_by_name(session, domain_name, slave_name)
+        response = networkapi.attach_interface_to_domain(domain_uuid, interface_name)
         return response
+    
+    
+    def get_domain_slave_name(session, domain_uuid: str):
+        return APIResponse.success(db.get_domain_slave_name(session, domain_uuid))
     
 
 class SlaveService():
