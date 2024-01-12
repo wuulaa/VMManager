@@ -109,6 +109,13 @@ def delete_domain():
     res = guestAPI.delete_domain(domain_name)
     return res.json()
 
+@guest_bp.route("/attachDevice/", methods=["POST"])
+def attach_device():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    xml = request.values.get(consts.P_DEVICE_XML)
+    flags = request.values.get(consts.P_FLAGS)
+    res = guestAPI.attach_device(domain_name, xml, int(flags))
+    return res.json()
 
 # @guest_bp.route("/cloneDomain/", methods=["POST"])
 # def clone_domain():

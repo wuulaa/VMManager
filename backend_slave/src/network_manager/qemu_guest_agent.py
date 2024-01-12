@@ -96,6 +96,13 @@ def guest_get_network_interfaces(domain: libvirt.virDomain):
     return res
 
 
+def guest_set_user_password(domain: libvirt.virDomain, username: str, password: str):
+    command = '{"execute":"guest-set-user-password""arguments":{"username":%s,"password":"%s"}, "crypted": false}' % (username, encode(password))
+    res = libvirt_qemu.qemuAgentCommand(domain, command, timeout=-1, flags=0)
+    return res
+
+
+
 ####################
 # Helper Functions #
 ####################

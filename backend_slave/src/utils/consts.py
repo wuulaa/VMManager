@@ -21,3 +21,6 @@ P_INTERFACE_NAME = "interface_name"
 P_GATEWAY = "gateway"
 
 P_PARENT = "parent"
+
+P_DEVICE_XML = "device_xml"
+P_FLAGS = "flags"

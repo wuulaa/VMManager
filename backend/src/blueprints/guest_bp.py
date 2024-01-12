@@ -145,7 +145,11 @@ def attach_disk():
 
 @guest_bp.route("/attachNic", methods=["POST"])
 def attach_nic():
-    pass
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    interface_name = request.values.get(consts.P_INTERFACE_NAME)
+    flags = request.values.get(consts.P_FLAGS)
+    return guestAPI.attach_nic(domain_name, slave_name, interface_name, int(flags)).json()
 
 
 @guest_bp.route("/createList")

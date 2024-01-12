@@ -1,4 +1,5 @@
 from src.domain_manager import guest as guest_manager
+from src.domain_manager import device as device_manager
 from src.utils import connect
 
 connection = connect.get_libvirt_connection()
@@ -74,3 +75,7 @@ def batch_restart_domains(domain_name_list):
     for name in domain_name_list:
         domain_uuid_list.add(guest_manager.get_uuid_by_name(name))
     return guest_manager.batch_restart_domains(connection, domain_uuid_list)
+
+def attach_device(domain_name: str, xml: str, flags: int = 0):
+    uuid = guest_manager.get_uuid_by_name(connection, domain_name)
+    return device_manager.attach_device_to_domain(connection, uuid, xml, flags)

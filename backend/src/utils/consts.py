@@ -22,3 +22,5 @@ P_GATEWAY = "gateway"
 P_MAC = "mac"
 
 P_PARENT = "parent"
+
+P_FLAGS = "flags"

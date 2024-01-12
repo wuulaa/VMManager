@@ -123,7 +123,7 @@ network:
             optional: true
             gateway4: {gateway}
             nameservers:
-                    addresses: [{dns}]
+                addresses: [{dns}]
  
     version: 2
 """

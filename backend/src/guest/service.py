@@ -6,6 +6,7 @@ from src.guest.db import db as db
 from src.utils.singleton import singleton
 from src.utils.sqlalchemy import enginefacade
 from src.utils.response import APIResponse
+from src.network.api import NetworkAPI
 import requests
 
 status = {
@@ -20,6 +21,7 @@ status = {
 }
 
 vol_api = API()
+networkapi = NetworkAPI()
 
 class GuestService():
     @enginefacade.transactional
@@ -166,6 +168,21 @@ class GuestService():
         if(response.code == 0):
             uuid = db.get_uuid_by_name(session, domain_name, slave_name)
             db.delete_domain_by_uuid(session, uuid = uuid)
+        return response
+    
+    @enginefacade.transactional
+    def attach_nic(self, session, domain_name, slave_name, interface_name, flags):
+        xml = networkapi.get_interface_xml(interface_name)
+        data = {
+            "domain_name": domain_name,
+            "device_xml": xml,
+            "flags": flags
+        }
+        url = CONF['slave'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
+        if response.code == 0:
+            domain_uuid = db.get_uuid_by_name(session, domain_name, slave_name)
+            networkapi.attach_interface_to_domain(domain_uuid, interface_name)
         return response
     
 
