@@ -63,7 +63,7 @@ class VolumeService():
         return length
 
     @enginefacade.transactional
-    def delete_volume_by_uuid(self, session, pool_uuid: str, volume_uuid: str):
+    def delete_volume_by_uuid(self, session, volume_uuid: str):
         volume = db.select_by_uuid(session, Volume, volume_uuid)
         if volume is None:
             raise Exception(f'cannot find a volume which id={volume_uuid}')
@@ -112,7 +112,7 @@ class VolumeService():
         else:
             raise Exception(
                 "The new capacity is smaller than the used capacity")
-        
+
 
 # service = VolumeService()
 # service.create_volume('a2d6b10a-8957-4648-8052-8371fb10f4e1',
