@@ -35,7 +35,7 @@ def status_update(session, uuid: str, status: str):
     return guest
 
 @enginefacade.auto_session
-def get_uuid_by_name(session, domain_name: str, slave_name: str):
+def get_domain_uuid_by_name(session, domain_name: str, slave_name: str):
     return db.condition_select(session, Guest, values = {"name": domain_name, "slave_name": slave_name}).uuid
 
 @enginefacade.auto_session
@@ -55,27 +55,27 @@ def create_slave(session, name: str, address: str):
 
 @enginefacade.auto_session
 def get_slave_by_uuid(session, uuid: str):
-    slave: Slave = db.select_by_uuid(session, uuid)
+    slave: Slave = db.select_by_uuid(session, Slave, uuid)
     return slave
 
 @enginefacade.auto_session
 def get_slave_by_name(session, name: str):
-    slave: Slave = db.select_by_name(session, name)
+    slave: Slave = db.select_by_name(session, Slave, name)
     return slave
 
 @enginefacade.auto_session
 def get_slave_uuid_by_name(session, name: str):
-    slave: Slave = db.select_by_name(session, name)
+    slave: Slave = db.select_by_name(session, Slave, name)
     return slave.uuid
 
 @enginefacade.auto_session
 def get_slave_name_by_uuid(session, uuid: str):
-    slave: Slave = db.select_by_uuid(session, uuid)
+    slave: Slave = db.select_by_uuid(session, Slave, uuid)
     return slave.name
 
 @enginefacade.auto_session
 def get_slave_address_by_uuid(session, uuid: str):
-    slave: Slave = db.select_by_uuid(session, uuid)
+    slave: Slave = db.select_by_uuid(session, Slave, uuid)
     return slave.address
 
     
