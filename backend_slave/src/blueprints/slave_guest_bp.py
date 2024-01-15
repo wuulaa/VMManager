@@ -117,6 +117,14 @@ def attach_device():
     res = guestAPI.attach_device(domain_name, xml, int(flags))
     return res.json()
 
+@guest_bp.route("/detachDevice/", methods=["POST"])
+def detach_device():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    xml = request.values.get(consts.P_DEVICE_XML)
+    flags = request.values.get(consts.P_FLAGS)
+    res = guestAPI.detach_device(domain_name, xml, int(flags))
+    return res.json()
+
 @guest_bp.route("/setCPU/", methods=["POST"])
 def set_domain_vcpu():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)

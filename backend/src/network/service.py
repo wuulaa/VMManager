@@ -139,7 +139,7 @@ class NetworkService:
     def unbind_interface_port(self, session, interface_uuid: str):
         """
         unbind ovs port and interface,
-        port is directly removed 
+        port is directly deleted
 
         """
         interface: Interface = db.get_interface_by_uuid(interface_uuid)
@@ -231,7 +231,12 @@ class NetworkService:
         
         
     @enginefacade.transactional
-    def add_interface_to_domain(self, session, interface_name, domain_uuid):
+    def add_interface_to_domain(self, session, interface_name: str, domain_uuid: str):
+        """
+        add interface to domain.
+        this only includes db and bind operation, ip is not really set.
+        Note that domain ip could be acutally set when domain is running.
+        """
         interface: Interface = db.get_interface_by_name(session, interface_name)
         if interface.status == "bound_in_use" or interface.guest_uuid is not None:
             return APIResponse.error(401, "interface already in use")
@@ -242,8 +247,41 @@ class NetworkService:
         return APIResponse.success()
         
     
+    @enginefacade.transactional
+    def remove_interface_from_domain(self, session, interface_name, domain_uuid):
+        """
+        remove interface from domain.
+        this only includes interface db and unbind operations.
+
+        Args:
+            session (_type_): _description_
+            interface_name (_type_): _description_
+            domain_uuid (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        interface: Interface = db.get_interface_by_name(interface_name)
+        if interface.status != "bound_in_use" or interface.guest_uuid is None:
+            return APIResponse.error(401, "interface not used by domain")
+        self.unbind_interface_port(session, interface.uuid)
+        db.update_interface_guest_uuid(session, interface.uuid, None)
+        return APIResponse.success()
     
-    def remove_interface_from_domain(self,session):
+    
+    def set_domain_nic_ip(self,
+                          domain_uuid,
+                          ip_address: str,
+                          gateway: str,
+                          interface_name: str,
+                          dns: str = "114.114.114.114",
+                          file_path: str = "/etc/netplan/01-network-manager-all.yaml"
+                          ):
+        return netapi.set_guest_ip_ubuntu(domain_uuid, ip_address, gateway,
+                                   interface_name, dns, file_path)
+    
+    
+    def remove_domain_nic_ip(self, domain_uuid, interface_name):
         pass
     
     

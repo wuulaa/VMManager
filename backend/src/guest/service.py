@@ -187,6 +187,24 @@ class GuestService():
         response = networkapi.attach_interface_to_domain(domain_uuid, interface_name)
         return response
     
+    
+    @enginefacade.transactional
+    def detach_nic(self, session, domain_name, slave_name, interface_name, flags):
+        xml = networkapi.get_interface_xml(interface_name)
+        data = {
+            consts.P_DOMAIN_NAME : domain_name,
+            consts.P_DOMAIN_XML : xml,
+            consts.P_FLAGS : flags
+        }
+        url = CONF['slave'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/detachDevice/", data=data).json())
+        if response.code != 0:
+            return APIResponse.error(msg=response.msg)
+        domain_uuid = db.get_domain_uuid_by_name(session, domain_name, slave_name)
+        response = networkapi.detach_interface_from_domain(domain_uuid, interface_name)
+        return response
+    
+    
     @enginefacade.transactional
     def set_domain_vcpu(self, session, domain_name, slave_name, cpu_num, flags):
         data = {consts.P_DOMAIN_NAME : domain_name, consts.P_CPU_NUM : cpu_num, consts.P_FLAGS : flags}

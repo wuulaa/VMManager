@@ -66,6 +66,9 @@ class GuestAPI():
     
     def attach_nic(self, domain_name: str, slave_name: str, interface_name: str, flags: int):
         return guestService.attach_nic(domain_name, slave_name, interface_name, flags)
+    
+    def detach_nic(self, domain_name: str, slave_name: str, interface_name: str, flags: int):
+        return guestService.detach_nic(domain_name, slave_name, interface_name, flags)
         
     def set_domain_vcpu(self, domain_name: str, slave_name: str, cpu_num: int, flags: int):
         if (flags is None):

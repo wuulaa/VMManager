@@ -135,3 +135,16 @@ network:
     return APIResponse.success()
 
 
+def remove_domain_ip_ubuntu(uuid: str, file_path: str = "/etc/netplan/01-network-manager-all.yaml"):
+    """
+    remove static ip for domain, domain must be running.
+    """
+    domain: libvirt.virDomain = connection.lookupByUUIDString(uuid)
+    res = qa.guest_open_file(domain, file_path, mode="w")
+    file_handle = qa.get_file_handle(res)
+    # make the file empty
+    network_str = ''
+    res = qa.guest_write_file(domain, file_handle, network_str)
+    res = qa.guest_close_file(domain, file_handle)
+    res = qa.guest_exec(domain, "netplan", ["apply"])
+    return APIResponse.success()
