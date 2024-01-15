@@ -187,6 +187,25 @@ class GuestService():
         response = networkapi.attach_interface_to_domain(domain_uuid, interface_name)
         return response
     
+    @enginefacade.transactional
+    def set_domain_vcpu(self, session, domain_name, slave_name, cpu_num, flags):
+        data = {consts.P_DOMAIN_NAME : domain_name, consts.P_CPU_NUM : cpu_num, consts.P_FLAGS : flags}
+        url = CONF['slave'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/setCPU/", data=data).json())
+        if(response.code == 0):
+            uuid = db.get_domain_uuid_by_name(session, domain_name, slave_name)
+            db.update_guest(session, uuid, values={"cpu": cpu_num})
+        return response
+    
+    @enginefacade.transactional
+    def set_domain_memory(self, session, domain_name, slave_name, memory_size, flags):
+        data = {consts.P_DOMAIN_NAME : domain_name, consts.P_MEMORY_SIZE : memory_size, consts.P_FLAGS : flags}
+        url = CONF['slave'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/setMemory", data=data).json())
+        if(response.code == 0):
+            uuid = db.get_domain_uuid_by_name(session, domain_name, slave_name)
+            db.update_guest(session, uuid, values={"memory": memory_size})
+        return response
     
     def get_domain_slave_name(session, domain_uuid: str):
         return APIResponse.success(db.get_domain_slave_name(session, domain_uuid))

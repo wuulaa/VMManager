@@ -287,10 +287,21 @@ def set_auto_restart():
     pass
 
 
-@guest_bp.route("/setCpu", methods=["POST"])
+@guest_bp.route("/setCPU", methods=["POST"])
 def set_cpu():
-    pass
+    cpu_num = request.values.get(consts.P_CPU_NUM)
+    flag = request.values.get(consts.P_FLAGS)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    return guestAPI.set_domain_vcpu(domain_name, slave_name, cpu_num, flag).json()
 
+@guest_bp.route("/setMemory", methods=["POST"])
+def set_memory():
+    memory_size = request.values.get(consts.P_MEMORY_SIZE)
+    flag = request.values.get(consts.P_FLAGS)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    return guestAPI.set_domain_memory(domain_name, slave_name, memory_size, flag).json()
 
 @guest_bp.route("/sflow")
 def sflow():

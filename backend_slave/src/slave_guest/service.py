@@ -79,3 +79,11 @@ def batch_restart_domains(domain_name_list):
 def attach_device(domain_name: str, xml: str, flags: int = 0):
     uuid = guest_manager.get_uuid_by_name(connection, domain_name)
     return device_manager.attach_device_to_domain(connection, uuid, xml, flags)
+
+def set_domain_vcpu(domain_name: str, cpu_num: int, flags):
+    uuid = guest_manager.get_uuid_by_name(connection, domain_name)
+    return device_manager.set_domain_vcpu(connection, uuid, cpu_num, flags)
+
+def set_domain_memory(domain_name: str, memory_size: int, flags):
+    uuid = guest_manager.get_uuid_by_name(connection, domain_name)
+    return device_manager.set_domain_memory(connection, uuid, memory_size, flags)

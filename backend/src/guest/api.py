@@ -1,6 +1,7 @@
 from src.volume.api import API
 from src.guest.service import GuestService, SlaveService
 from src.utils.response import APIResponse
+import libvirt
 
 status = {
     0:"nostate",
@@ -65,6 +66,16 @@ class GuestAPI():
     
     def attach_nic(self, domain_name: str, slave_name: str, interface_name: str, flags: int):
         return guestService.attach_nic(domain_name, slave_name, interface_name, flags)
+        
+    def set_domain_vcpu(self, domain_name: str, slave_name: str, cpu_num: int, flags: int):
+        if (flags is None):
+            flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
+        return guestService.set_domain_vcpu(domain_name, slave_name, cpu_num, flags)
+    
+    def set_domain_memory(self, domain_name: str, slave_name: str, memory_size: int, flags: int):
+        if (flags is None):
+            flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
+        return guestService.set_domain_memory(domain_name, slave_name, memory_size, flags)
     
     def get_domain_slave_name(session, domain_uuid: str):
         return guestService.get_domain_slave_name(domain_uuid)

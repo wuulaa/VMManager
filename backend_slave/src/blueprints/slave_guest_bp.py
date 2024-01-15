@@ -117,6 +117,22 @@ def attach_device():
     res = guestAPI.attach_device(domain_name, xml, int(flags))
     return res.json()
 
+@guest_bp.route("/setCPU/", methods=["POST"])
+def set_domain_vcpu():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    cpu_num = request.values.get(consts.P_CPU_NUM)
+    flags = request.values.get(consts.P_FLAGS)
+    res = guestAPI.set_domain_vcpu(domain_name, cpu_num, int(flags))
+    return res.json()
+
+@guest_bp.route("/setMemory/", methods=["POST"])
+def set_domain_memory():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    memory_size = request.values.get(consts.P_MEMORY_SIZE)
+    flags = request.values.get(consts.P_FLAGS)
+    res = guestAPI.set_domain_memory(domain_name, memory_size, int(flags))
+    return res.json()
+
 # @guest_bp.route("/cloneDomain/", methods=["POST"])
 # def clone_domain():
 #     domain_name = request.values.get(consts.P_DOMAIN_NAME)
