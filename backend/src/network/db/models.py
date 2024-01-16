@@ -7,8 +7,8 @@ from sqlalchemy import SmallInteger, Integer
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
-from backend.src.utils.sqlalchemy.model import Base
-from backend.src.utils.sqlalchemy import enginefacade
+from src.utils.sqlalchemy.model import Base
+from src.utils.sqlalchemy import enginefacade
 
 class Network(Base):
     __tablename__ = "network"

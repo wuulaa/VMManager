@@ -26,4 +26,7 @@ P_MAC = "mac"
 
 P_PARENT = "parent"
 
+P_DEVICE_XML = "device_xml"
+P_PORT = "port"
+P_PASSWD = "passwd"
 P_FLAGS = "flags"

@@ -80,11 +80,22 @@ class GuestAPI():
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
         return guestService.set_domain_memory(domain_name, slave_name, memory_size, flags)
     
+    def add_vnc(self, domain_name: str, slave_name: str, port:int, passwd: str, flags):
+        if (flags is None):
+            flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
+        return guestService.add_vnc(domain_name, slave_name, port, passwd, flags)
+    
+    def add_spice(self, domain_name: str, slave_name: str, port:int, passwd: str, flags):
+        if (flags is None):
+            flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
+        return guestService.add_spice(domain_name, slave_name, port, passwd, flags)
+    
     def get_domain_slave_name(session, domain_uuid: str):
         return guestService.get_domain_slave_name(domain_uuid)
     
     def get_domain_status(session, domain_uuid: str):
         return guestService.get_domain_status(domain_uuid)
+    
     
 
 class SlaveAPI():

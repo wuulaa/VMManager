@@ -61,12 +61,13 @@ class DeviceGraphics(Device):
     # Default config #
     ##################
 
-def create_spice_viewer(port: int):
+def create_spice_viewer(port: int, passwd: str):
     graphic = DeviceGraphics()
     graphic.type = "spice"
     graphic.port = port
     graphic.autoport = False
     graphic.listen = "0.0.0.0"
+    graphic.passwd = passwd
     listen = GraphicsListen()
     listen.type = "address"
     listen.address = "0.0.0.0"
@@ -76,12 +77,13 @@ def create_spice_viewer(port: int):
     return graphic
 
 
-def create_vnc_viewer(port: int):
+def create_vnc_viewer(port: int, passwd: str):
     graphic = DeviceGraphics()
     graphic.type = "vnc"
     graphic.port = port
     graphic.autoport = False
     graphic.listen = "0.0.0.0"
+    graphic.passwd = passwd
     listen = GraphicsListen()
     listen.type = "address"
     listen.address = "0.0.0.0"

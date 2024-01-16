@@ -4,7 +4,7 @@ import requests
 from src.domain_xml.xml_init import create_initial_xml
 from src.guest.api import GuestAPI
 from src.utils.response import APIResponse
-import src.utils.consts as consts
+from src.utils import consts
 guest_bp = Blueprint("guest-bp", __name__, url_prefix="/kvm/guest")
 
 guestAPI = GuestAPI()
@@ -133,11 +133,6 @@ def add_device():
     pass
 
 
-@guest_bp.route("/addEthernet", methods=["POST"])
-def add_ethernet():
-    pass
-
-
 @guest_bp.route("/attachDick", methods=["POST"])
 def attach_disk():
     pass
@@ -166,12 +161,35 @@ def detach_nic():
     flags = request.values.get(consts.P_FLAGS)
     return guestAPI.detach_nic(domain_name, slave_name, interface_name, int(flags)).json()
 
+
+@guest_bp.route("/addVNC", methods=["POST"])
+def add_vnc():
+    """
+    attach a vnc to domain
+    """
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    port = request.values.get(consts.P_PORT)
+    passwd = request.values.get(consts.P_PASSWD)
+    flags = request.values.get(consts.P_FLAGS)
+    return guestAPI.add_vnc(domain_name, slave_name, port, passwd, int(flags)).json()
+
+
+@guest_bp.route("/addSPICE", methods=["POST"])
+def add_spice():
+    """
+    attach a vnc to domain
+    """
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    port = request.values.get(consts.P_PORT)
+    passwd = request.values.get(consts.P_PASSWD)
+    flags = request.values.get(consts.P_FLAGS)
+    return guestAPI.add_spice(domain_name, slave_name, port, passwd, int(flags)).json()
+
+
 @guest_bp.route("/createList")
 def create_list():
-    pass
-
-@guest_bp.route("/delDevice", methods=["POST"])
-def delete_device():
     pass
 
 

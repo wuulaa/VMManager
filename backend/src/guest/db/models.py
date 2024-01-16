@@ -7,8 +7,8 @@ from sqlalchemy import SmallInteger, Integer
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
-from backend.src.utils.sqlalchemy.model import Base
-from backend.src.utils.sqlalchemy import enginefacade
+from src.utils.sqlalchemy.model import Base
+from src.utils.sqlalchemy import enginefacade
 
 
 # status = {
@@ -74,13 +74,13 @@ class Guest(Base):
     vnc_address: Mapped[str] = mapped_column(String(64),
                                       unique=False,
                                       nullable=True,
-                                      comment="Guest VNC address")
+                                      comment="Guest VNC address, including ip, port and passwd")
     parent_uuid: Mapped[str] = mapped_column(String(64),
                                              comment="parent guest uuid")
     children_list: Mapped[str] = mapped_column(String(64),
                                                comment="children guest uuid list")
     backups_list: Mapped[str] = mapped_column(String(64),
-                                              comment="backups uuid list")
+                                              comment="backups uuid list, including ip, port and passwd")
 
 
 class Slave(Base):

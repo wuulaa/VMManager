@@ -7,6 +7,7 @@ from src.utils.singleton import singleton
 from src.utils.sqlalchemy import enginefacade
 from src.utils.response import APIResponse
 from src.network.api import NetworkAPI
+from src.domain_xml.device import graphics
 import src.utils.consts as consts 
 import requests
 
@@ -178,18 +179,18 @@ class GuestService():
     
     @enginefacade.transactional
     def attach_nic(self, session, domain_name, slave_name, interface_name, flags):
+        domain_uuid = db.get_domain_uuid_by_name(session, domain_name, slave_name)
+        response = networkapi.attach_interface_to_domain(domain_uuid, interface_name)
         xml = networkapi.get_interface_xml(interface_name)
         data = {
             consts.P_DOMAIN_NAME : domain_name,
-            consts.P_DOMAIN_XML : xml,
+            consts.P_DEVICE_XML : xml,
             consts.P_FLAGS : flags
         }
         url = CONF['slave'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(msg=response.msg)
-        domain_uuid = db.get_domain_uuid_by_name(session, domain_name, slave_name)
-        response = networkapi.attach_interface_to_domain(domain_uuid, interface_name)
         return response
     
     
@@ -198,7 +199,7 @@ class GuestService():
         xml = networkapi.get_interface_xml(interface_name)
         data = {
             consts.P_DOMAIN_NAME : domain_name,
-            consts.P_DOMAIN_XML : xml,
+            consts.P_DEVICE_XML : xml,
             consts.P_FLAGS : flags
         }
         url = CONF['slave'][slave_name]
@@ -229,6 +230,43 @@ class GuestService():
             uuid = db.get_domain_uuid_by_name(session, domain_name, slave_name)
             db.update_guest(session, uuid, values={"memory": memory_size})
         return response
+    
+    
+    @enginefacade.transactional
+    def add_vnc(self, session, domain_name, slave_name, port: int, passwd: str, flags):
+        xml = graphics.create_vnc_viewer(port, passwd).get_xml_string()
+        data = {
+            consts.P_DOMAIN_NAME : domain_name,
+            consts.P_DEVICE_XML: xml,
+            consts.P_FLAGS : flags
+        }
+        url = CONF['slave'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
+        if response.code != 0:
+            return APIResponse.error(msg=response.msg)
+        uuid = db.get_domain_uuid_by_name(session, domain_name, slave_name)
+        address = f"{url}:{port}:{passwd}"
+        db.update_guest(session, uuid, values={"vnc_address":address })
+        return response
+    
+    
+    @enginefacade.transactional
+    def add_spice(self, session, domain_name, slave_name, port: int, passwd: str, flags):
+        xml = graphics.create_spice_viewer(port, passwd).get_xml_string()
+        data = {
+            consts.P_DOMAIN_NAME : domain_name,
+            consts.P_DEVICE_XML: xml,
+            consts.P_FLAGS : flags
+        }
+        url = CONF['slave'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
+        if response.code != 0:
+            return APIResponse.error(msg=response.msg)
+        uuid = db.get_domain_uuid_by_name(session, domain_name, slave_name)
+        address = f"{url}:{port}:{passwd}"
+        db.update_guest(session, uuid, values={"spice_address":address })
+        return response
+        
     
     def get_domain_slave_name(session, domain_uuid: str):
         return APIResponse.success(db.get_domain_slave_name(session, domain_uuid))
