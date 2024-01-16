@@ -59,6 +59,11 @@ class Interface(Base):
                                             unique=False,
                                             comment="ip address bond to the interface, could be null if net set yet")
     
+    gateway: Mapped[str] = mapped_column(String(64),
+                                            nullable=True,
+                                            unique=False,
+                                            comment="ip gateway bond to the interface, could be null if net set yet")
+    
     xml: Mapped[str] = mapped_column(String(64),
                                      nullable=True,
                                      comment="xml string of a NIC/interface")
@@ -79,12 +84,17 @@ class Interface(Base):
                                             nullable=True,
                                             comment="UUID of the slave node this interface is bound to")
     
+    ip_modified: Mapped[Boolean] = mapped_column(Boolean,
+                                             default=False,
+                                             comment="If interface ip is modified when domain is shutdown")
+    
     network: Mapped["Network"] = relationship(back_populates="interfaces")
     
     def __init__(self,
                  name: str,
                  network_uuid: str,
                  ip_address: str,
+                 gateway: str,
                  mac: str = None,
                  inerface_type: str = "direct"
                  ):
@@ -93,6 +103,8 @@ class Interface(Base):
             self.uuid = self._gen_uuid()
             self.network_uuid = network_uuid
             self.interface_type = inerface_type
+            self.ip_address = ip_address
+            self.gateway = gateway
             if mac is not None:
                 self.mac = mac
     

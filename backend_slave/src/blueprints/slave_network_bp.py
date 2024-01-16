@@ -92,9 +92,31 @@ def delete_troute():
 
 @network_bp.post("/setStaticIP")
 def set_static_ip():
+    """
+    set a domain's interface static ip.
+    This function uses qga to write the config file.
+    currently supports ubuntu only.
+    domain must be running while executing this func.
+    five atempts would be done in ten seconds if exception occurs
+
+    Returns:
+        _type_: _description_
+    """
     domain_UUID = request.values.get(consts.P_DOMAIN_UUID)
     ipaddress = request.values.get(consts.P_NETWORK_ADDRESS)
     gateway = request.values.get(consts.P_GATEWAY)
     interface_name = request.values.get(consts.P_INTERFACE_NAME)
     res = service.set_guest_ip_ubuntu(domain_UUID, ipaddress, gateway, interface_name)
+    return res.json()
+
+
+@network_bp.post("/removeStaticIP")
+def remove_static_ip():
+    """
+    remove a domain static ip.
+    remove all interface ips if no interface name is provided
+    """
+    domain_UUID = request.values.get(consts.P_DOMAIN_UUID)
+    interface_name = request.values.get(consts.P_INTERFACE_NAME)
+    res = service.remove_domain_ip_ubuntu(domain_UUID, interface_name)
     return res.json()

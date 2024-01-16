@@ -12,11 +12,12 @@ def create_interface(session,
                     name: str,
                     network_name: str,
                     ip_address: str,
+                    gateway: str,
                     mac: str = None,
                     inerface_type: str = "direct"
                    ):
     network_uuid = select_by_name(session, Network, network_name).uuid
-    interface = Interface(name, network_uuid, ip_address,
+    interface = Interface(name, network_uuid, ip_address, gateway,
                           mac, inerface_type)
     insert(session, interface)
     return interface 
@@ -46,6 +47,12 @@ def get_interface_by_name(session, name):
 @enginefacade.auto_session
 def update_interface_ip(session, uuid, new_ip):
     condition_update(session, Interface, uuid, {"ip_address": new_ip})
+    return select_by_uuid(session, Interface, uuid)
+
+
+@enginefacade.auto_session
+def update_interface_gateway(session, uuid, gateway):
+    condition_update(session, Interface, uuid, {"gateway": gateway})
     return select_by_uuid(session, Interface, uuid)
 
 
@@ -82,6 +89,12 @@ def update_interface_guest_uuid(session, uuid, guest_uuid: str):
 @enginefacade.auto_session
 def update_interface_xml(session, uuid, xml: str):
     condition_update(session, Interface, uuid, {"xml": xml})
+    return select_by_uuid(session, Interface, uuid)
+
+
+@enginefacade.auto_session
+def update_interface_modified(session, uuid, ip_modified: bool):
+    condition_update(session, Interface, uuid, {"ip_modified": ip_modified})
     return select_by_uuid(session, Interface, uuid)
 
 

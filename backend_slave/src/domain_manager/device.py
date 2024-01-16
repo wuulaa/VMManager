@@ -1,6 +1,6 @@
 import libvirt
-import domain_manager.conf.conf as device_constrains
-from utils.response import APIResponse
+import src.domain_manager.conf.conf as device_constrains
+from src.utils.response import APIResponse
 
 error_info = {
     400:"Unkown exception.",

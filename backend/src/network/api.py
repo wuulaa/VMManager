@@ -11,17 +11,28 @@ class NetworkAPI():
                          name: str,
                          network_name: str,
                          ip_address: str,
+                         gateway: str, 
                          mac: str = None,
                          inerface_type: str = "direct") -> APIResponse:
         return network_service.create_interface(name=name,
                                                 network_name=network_name,
                                                 ip_address=ip_address,
+                                                gateway=gateway,
                                                 mac=mac,
                                                 inerface_type=inerface_type)
     
-    def delete_interface(self, interface_uuid: str, name: str=None) -> APIResponse:
-        return network_service.delete_interface(interface_uuid=interface_uuid,
-                                                name=name)
+    def delete_interface(self, interface_name: str) -> APIResponse:
+        return network_service.delete_interface(name=interface_name)
+    
+    
+    def modify_interface(self, interface_name: str, ip_addr: str, gateway:str) -> APIResponse:
+        return network_service.modify_interface(interface_uuid=None, name=interface_name,
+                                                ip_addr=ip_addr, gateway=gateway)
+        
+        
+    def domain_ip_modified(self, domain_uuid) -> APIResponse:
+        return network_service.domain_ip_modified(domain_uuid=domain_uuid)
+    
     
     def create_network(self, name, network_address) -> APIResponse:
         return network_service.create_network(name=name,

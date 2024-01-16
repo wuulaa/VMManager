@@ -88,6 +88,11 @@ class GuestService():
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/startDomain/", data=data).json())
         if(response.code == 0):
             db.status_update(session, uuid, status=status[1])
+        
+        # this invoke is used for juding whether domain interfaces' ip is modified
+        # while domain is not running. Related operations would be done within this func
+        networkapi.domain_ip_modified(uuid)    
+        
         return response
 
     @enginefacade.transactional
@@ -227,6 +232,9 @@ class GuestService():
     
     def get_domain_slave_name(session, domain_uuid: str):
         return APIResponse.success(db.get_domain_slave_name(session, domain_uuid))
+    
+    def get_domain_status(session, domain_uuid: str):
+        return APIResponse.success(db.get_domain_status(session, domain_uuid))
     
 
 class SlaveService():

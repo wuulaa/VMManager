@@ -1,5 +1,6 @@
 import libvirt
 import time
+import yaml
 from src.network_manager.idl import ovs_lib
 from src.network_manager.iptables import nat
 from src.network_manager import qemu_guest_agent as qa
@@ -135,3 +136,58 @@ network:
     return APIResponse.success()
 
 
+def remove_guest_ip_ubuntu(uuid: str, interface_name: str = None, file_path: str = "/etc/netplan/01-network-manager-all.yaml"):
+    """
+    remove static ip for domain, domain must be running.
+    if no interface name is provided, remove all
+    otherwise remove the given interface only
+    """
+    domain: libvirt.virDomain = connection.lookupByUUIDString(uuid)
+    if interface_name is None:
+        # remove all interface configs if no name is provided
+        res = qa.guest_open_file(domain, file_path, mode="w")
+        file_handle = qa.get_file_handle(res)
+        network_str = ''
+        res = qa.guest_write_file(domain, file_handle, network_str)
+        res = qa.guest_close_file(domain, file_handle)
+        res = qa.guest_exec(domain, "netplan", ["apply"])
+        return APIResponse.success()
+    
+    # open in read mode
+    res = qa.guest_open_file(domain, file_path, mode="r")
+    file_handle = qa.get_file_handle(res)
+    read_content = qa.guest_read_file(domain, file_handle)
+    content = qa.decode_file_read_res(read_content)
+    print(content)
+    yaml_data = yaml.safe_load(content)
+    if ("network" in yaml_data and "ethernets" in yaml_data["network"]
+        and interface_name in yaml_data["network"]["ethernets"]):
+        # read content and delete the specific interface
+        del yaml_data["network"]["ethernets"][interface_name]
+    # close file
+    res = qa.guest_close_file(domain, file_handle)
+    
+    # open in write mode
+    res = qa.guest_open_file(domain, file_path, mode="w")
+    file_handle = qa.get_file_handle(res)
+    modified_content = yaml.dump(yaml_data, default_flow_style=False)
+    print(modified_content)
+    # write back modified content
+    res = qa.guest_write_file(domain, file_handle, modified_content)
+    # close file and apply
+    res = qa.guest_close_file(domain, file_handle)
+    res = qa.guest_exec(domain, "netplan", ["apply"])
+    return APIResponse.success()
+    
+
+def retry_with_delay(func, *args, max_retries = 5, delay = 2):
+    for attempt in range(1, max_retries + 1):
+        try:
+            result = func(*args)
+            return result
+        except libvirt.libvirtError as e:
+           print(f"Attempt {attempt} failed. Exception: {str(e)}")
+           if attempt < max_retries:
+               time.sleep(delay)
+    
+    return APIResponse.error(code=400, msg=f"Function {func.__name__} failed after {max_retries} attempts")

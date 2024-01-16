@@ -69,6 +69,7 @@ class NetworkService:
                          name: str,
                          network_name: str,
                          ip_address: str,
+                         gateway: str, 
                          mac: str = None,
                          inerface_type: str = "direct"):
         """
@@ -84,6 +85,7 @@ class NetworkService:
         interface: Interface = db.create_interface(name=name,
                                            network_name=network_name,
                                            ip_address=ip_address,
+                                           gateway=gateway,
                                            mac=mac,
                                            inerface_type=inerface_type
                                            )
@@ -168,8 +170,11 @@ class NetworkService:
         
         
     @enginefacade.transactional
-    def delete_interface(self, session, interface_uuid: str, name: str=None):
-        interface: Interface = db.get_interface_by_uuid(interface_uuid)
+    def delete_interface(self, session, interface_uuid: str=None, name: str = None):
+        if interface_uuid:
+            interface: Interface = db.get_interface_by_uuid(interface_uuid)
+        elif name:
+            interface: Interface = db.get_interface_by_name(name)
         
         # 1. in bound unbound the interace
         if interface.status != "unbound":
@@ -178,6 +183,70 @@ class NetworkService:
         # 2. delete in db
         db.delete_interface_by_uuid(session, interface_uuid)
         
+        return APIResponse.success()
+    
+    
+    @enginefacade.transactional
+    def modify_interface(self, session, interface_uuid: str, name: str, ip_addr: str, gateway:str):
+        """
+        modify interface, currently supports ip and gateway only,
+        make sure to pass them both
+        """
+        if interface_uuid:
+            interface: Interface = db.get_interface_by_uuid(interface_uuid)
+        elif name:
+            interface: Interface = db.get_interface_by_name(name)
+        
+        remove = False
+        if gateway is None and ip_addr is None:
+            remove = True
+        else:
+            if gateway is None:
+                gateway = interface.gateway
+            if ip_addr is None:
+                ip_addr = interface.ip_address
+            
+        # 1. update in db
+        db.update_interface_ip(session, interface.uuid, ip_addr)
+        db.update_interface_gateway(session, interface.uuid, gateway)
+        # 2. check if is used in domain
+        if interface.guest_uuid is not None:
+                
+            domain_status = guest_api.get_domain_status(interface.guest_uuid).get_data()
+        
+            if domain_status == 1:
+                # if domain is running, directly change the ip/gateway
+                self.set_domain_ip(session, interface.guest_uuid,
+                                   interface.name, ip_addr, gateway, remove)
+            else:
+                # else set interface as modified, ip change would apply after starting domain
+                db.update_interface_modified(session, interface.uuid, True)
+                
+        return APIResponse.success()
+    
+    
+    @enginefacade.transactional
+    def domain_ip_modified(self, session, domain_uuid):
+        """
+        Determine whether domain's interface ip is modified when domain is not running.
+        This function should be called only when staring the domain.
+        If modified, call funcs to change domain's static ip after starting the domain.
+        This function should be called after starting domain
+
+        """
+        # find domain's interfaces
+        interfaces: list[Interface] = db.condition_select(session, Interface, values={"guest_uuid" : domain_uuid})
+        for interface in interfaces:
+            if interface.ip_modified:
+                # if interface is modified, change domain static ip
+                addr = interface.ip_address
+                gateway = interface.gateway
+                if addr or gateway:
+                    self.set_domain_ip(session, domain_uuid, interface.name, addr, gateway, False)
+                else:
+                    # if gateway and ip are both None, do remove static ip
+                    self.set_domain_ip(session, domain_uuid, interface.name, None, None, True)
+                db.update_interface_modified(session, interface.uuid, False)
         return APIResponse.success()
     
     
@@ -253,13 +322,6 @@ class NetworkService:
         remove interface from domain.
         this only includes interface db and unbind operations.
 
-        Args:
-            session (_type_): _description_
-            interface_name (_type_): _description_
-            domain_uuid (_type_): _description_
-
-        Returns:
-            _type_: _description_
         """
         interface: Interface = db.get_interface_by_name(interface_name)
         if interface.status != "bound_in_use" or interface.guest_uuid is None:
@@ -269,21 +331,38 @@ class NetworkService:
         return APIResponse.success()
     
     
-    def set_domain_nic_ip(self,
-                          domain_uuid,
-                          ip_address: str,
-                          gateway: str,
-                          interface_name: str,
-                          dns: str = "114.114.114.114",
-                          file_path: str = "/etc/netplan/01-network-manager-all.yaml"
-                          ):
-        return netapi.set_guest_ip_ubuntu(domain_uuid, ip_address, gateway,
-                                   interface_name, dns, file_path)
-    
-    
-    def remove_domain_nic_ip(self, domain_uuid, interface_name):
-        pass
-    
+    def set_domain_ip(self, session,
+                      domain_uuid: str,
+                      interface_name: str,
+                      network_addr: str,
+                      gateway: str,
+                      remove: bool = False) -> APIResponse:
+        """
+        actually set domain's ip via qga, no db operations are involed.
+        parameter remove controls wether its a remove operation
+        note that domain must be running.
+        """
+        slave_name = guest_api.get_domain_slave_name(domain_uuid).get_data()
+        slave_address: str = slave_api.get_slave_address_by_name(slave_name).get_data()
+        url = "http://"+ slave_address
+        
+        if remove == False:
+            data = {
+                    consts.P_DOMAIN_UUID: domain_uuid,
+                    consts.P_NETWORK_ADDRESS: network_addr,
+                    consts.P_GATEWAY: gateway,
+                    consts.P_INTERFACE_NAME: interface_name
+                }
+            response: requests.Response = requests.post(url + "/setStaticIP/", data)
+            return APIResponse.deserialize_response(response.json())
+        else:
+            data = {
+                    consts.P_DOMAIN_UUID: domain_uuid,
+                    consts.P_INTERFACE_NAME: interface_name
+                }
+            response: requests.Response = requests.post(url + "/removeStaticIP/", data)
+            return APIResponse.deserialize_response(response.json())
+        
     
     def list_networks(self):
         network_list: list[Network] = db.get_network_list()

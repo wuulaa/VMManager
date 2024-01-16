@@ -83,6 +83,9 @@ class GuestAPI():
     def get_domain_slave_name(session, domain_uuid: str):
         return guestService.get_domain_slave_name(domain_uuid)
     
+    def get_domain_status(session, domain_uuid: str):
+        return guestService.get_domain_status(domain_uuid)
+    
 
 class SlaveAPI():
     

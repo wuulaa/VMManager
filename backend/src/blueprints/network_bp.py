@@ -44,13 +44,14 @@ def detailEthernet():
 @network_bp.route("/network/portAdd", methods=["POST"])
 def port_add():
     """
-    add virtua port to a internet
+    add virtual port to a internet
     """
     name = request.values.get(consts.P_INTERFACE_NAME)
     network_name = request.values.get(consts.P_NETWORK_NAME)
     ipaddress = request.values.get(consts.P_IP_ADDRESS)
+    gateway = request.values.get(consts.P_GATEWAY)
     mac = request.values.get(consts.P_MAC)
-    return network_api.create_interface(name, network_name, ipaddress, mac).json()
+    return network_api.create_interface(name, network_name, ipaddress, gateway, mac).json()
 
 
 @network_bp.route("/network/portDel", methods=["POST"])
@@ -64,7 +65,13 @@ def port_del():
 
 @network_bp.route("/network/portPut", methods=["POST"])
 def port_put():
-    pass
+    """
+    modify a virtual port, currently supports gateway and ipaddr only
+    """
+    name = request.values.get(consts.P_INTERFACE_NAME)
+    ipaddress = request.values.get(consts.P_IP_ADDRESS)
+    gateway = request.values.get(consts.P_GATEWAY)
+    return network_api.modify_interface(name, ipaddress, gateway).json()
 
 
 @network_bp.route("/network/virtualAdd", methods=["POST"])
