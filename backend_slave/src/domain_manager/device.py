@@ -1,5 +1,4 @@
 import libvirt
-import src.domain_manager.conf.conf as device_constrains
 from src.utils.response import APIResponse
 
 error_info = {
@@ -16,7 +15,7 @@ def set_domain_name(conn: libvirt.virConnect, domain_uuid: str, name: str):
         if domain is None:
             return APIResponse.error(code=404, msg=error_info.get(404))
         
-        length_constrain = device_constrains.MAX_DOMAIN_NAME_LENGTH
+        length_constrain = 64
         if len(name) > length_constrain:
             description = "The length of domain name cannot exceed {length}".format(
                 length=length_constrain)

@@ -266,6 +266,31 @@ class GuestService():
         address = f"{url}:{port}:{passwd}"
         db.update_guest(session, uuid, values={"spice_address":address })
         return response
+    
+    
+    @enginefacade.transactional
+    def change_graphic_passwd(self, session, domain_name: str, slave_name: str, port:int, passwd: str, flags, vnc=True):
+        if vnc:
+            xml = graphics.create_vnc_viewer(port, passwd).get_xml_string()
+        else:
+            xml = graphics.create_spice_viewer(port, passwd).get_xml_string()
+            
+        data = {
+            consts.P_DOMAIN_NAME : domain_name,
+            consts.P_DEVICE_XML: xml,
+            consts.P_FLAGS : flags
+        }
+        url = CONF['slave'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
+        if response.code != 0:
+            return APIResponse.error(msg=response.msg)
+        uuid = db.get_domain_uuid_by_name(session, domain_name, slave_name)
+        address = f"{url}:{port}:{passwd}"
+        if vnc:
+            db.update_guest(session, uuid, values={"vnc_address":address })
+        else:
+            db.update_guest(session, uuid, values={"spice_address":address })
+        return response
         
     
     def get_domain_slave_name(session, domain_uuid: str):

@@ -188,6 +188,22 @@ def add_spice():
     return guestAPI.add_spice(domain_name, slave_name, port, passwd, int(flags)).json()
 
 
+@guest_bp.route("/changePasswd", methods=["POST"])
+def change_graphic_passwd():
+    """
+    change passwd for vnc or spice
+    """
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    port = request.values.get(consts.P_PORT)
+    passwd = request.values.get(consts.P_PASSWD)
+    flags = request.values.get(consts.P_FLAGS)
+    vnc = request.values.get(consts.P_VNC)
+    if vnc is None:
+        vnc = True
+    return guestAPI.change_graphic_passwd(domain_name, slave_name, port, passwd, int(flags), vnc).json()
+
+
 @guest_bp.route("/createList")
 def create_list():
     pass
