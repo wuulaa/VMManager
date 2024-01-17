@@ -18,3 +18,9 @@ class DeviceMemballoon(Device):
     # def set_defaults(self, guest):
     #     if not self.model:
     #         self.model = "virtio"
+
+def create_memballoon_xml(period: int):
+    mem = DeviceMemballoon()
+    mem.model = "virtio"
+    mem.stats_period = str(period)
+    return mem

@@ -95,3 +95,7 @@ def set_domain_vcpu(domain_name: str, cpu_num: int, flags):
 def set_domain_memory(domain_name: str, memory_size: int, flags):
     uuid = guest_manager.get_uuid_by_name(connection, domain_name)
     return device_manager.set_domain_memory(connection, uuid, memory_size, flags)
+
+def monitor(self, domain_name: str):
+    uuid = guest_manager.get_uuid_by_name(connection, domain_name)
+    return guest_manager.get_domain_monitor_status(connection, uuid)

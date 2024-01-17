@@ -212,8 +212,20 @@ def change_graphic_passwd():
     vnc = request.values.get(consts.P_VNC)
     if vnc is None:
         vnc = True
-    return guestAPI.change_graphic_passwd(domain_name, slave_name, port, passwd, int(flags), vnc).json()
+    return guestAPI.change_graphic_passwd(domain_name, slave_name,
+                                          port, passwd, int(flags),
+                                          vnc).json()
 
+ 
+@guest_bp.route("/monitor")
+def monitor_domain():
+    """
+    monitor domain status, note that domain should be running
+    """
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.monitor(domain_name, slave_name).json()
+    
 
 @guest_bp.route("/createList")
 def create_list():

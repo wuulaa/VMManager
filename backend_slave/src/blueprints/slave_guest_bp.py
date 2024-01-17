@@ -149,6 +149,12 @@ def set_domain_memory():
     res = guestAPI.set_domain_memory(domain_name, memory_size, int(flags))
     return res.json()
 
+@guest_bp.route("/monitor/", methods=["POST"])
+def monitor():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    res: APIResponse = guestAPI.monitor(domain_name)
+    return res.json()
+
 # @guest_bp.route("/cloneDomain/", methods=["POST"])
 # def clone_domain():
 #     domain_name = request.values.get(consts.P_DOMAIN_NAME)

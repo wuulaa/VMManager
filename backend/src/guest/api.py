@@ -98,6 +98,9 @@ class GuestAPI():
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
         return guestService.change_graphic_passwd(domain_name, slave_name, port, passwd, flags, vnc)
     
+    def monitor(self, domain_name: str, slave_name: str):
+        return guestService.monitor(domain_name, slave_name)
+    
     def get_domain_slave_name(session, domain_uuid: str):
         return guestService.get_domain_slave_name(domain_uuid)
     

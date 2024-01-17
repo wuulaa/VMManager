@@ -1,4 +1,5 @@
 import libvirt
+from xml.etree import ElementTree
 from src.utils.response import APIResponse
 
 status = {
@@ -242,6 +243,7 @@ def set_domain_title(conn: libvirt.virConnect, domain_uuid: str, title: str):
     except libvirt.libvirtError as err:
         return APIResponse.error(code=400, msg=str(err))
 
+
 def get_domain_detail_info(conn: libvirt.virConnect, domain_uuid):
     domain: libvirt.virDomain = conn.lookupByUUIDString(domain_uuid)
     return domain.info()
@@ -249,6 +251,57 @@ def get_domain_detail_info(conn: libvirt.virConnect, domain_uuid):
 
 def get_uuid_by_name(conn: libvirt.virConnect, name: str):
     return conn.lookupByName(name).UUIDString()
+
+
+def get_domain_monitor_status(conn: libvirt.virConnect, domain_uuid: str):
+    '''
+    get domain monitor status, including cpu, memory, interfaces and disks
+    '''
+    try:
+        domain = conn.lookupByUUIDString(domain_uuid)
+        if domain is None:
+            return APIResponse.error(code=404, msg=error_info.get(404))
+        # memory
+        memory_status = domain.memoryStats()
+        
+        # cpu
+        cpu_status = domain.getCPUStats(True)
+        
+        # iface
+        iface_stats = []
+        tree = ElementTree.fromstring(domain.XMLDesc())
+        ifaces = tree.findall('devices/interface/target')
+        for i in ifaces:
+            iface = i.get('dev')
+            ifaceinfo = domain.interfaceStats(iface)
+            iface_stat = {
+                "name": iface,
+                "info": ifaceinfo
+            }
+            iface_stats.append(iface_stat)
+        
+        # disk
+        disk_stats = []
+        disks = tree.findall('devices/disk/target')
+        for d in disks:
+            disk = d.get('dev')
+            disk_info = domain.blockInfo(disk)
+            disk_stat = {
+                "name": disk,
+                "info": disk_info
+            }
+            disk_stats.append(disk_stat)
+        
+        res = {
+            "name": domain.name(),
+            "memory": memory_status,
+            "cpu": cpu_status,
+            "interface": iface_stats,
+            "disk": disk_stats
+        }
+        return APIResponse.success(res)
+    except libvirt.libvirtError as err:
+        return APIResponse.error(code=400, msg=str(err))
 
 
 def batch_start_domains(conn: libvirt.virConnect, domain_uuid_list):

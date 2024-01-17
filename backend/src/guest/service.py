@@ -297,6 +297,15 @@ class GuestService():
             db.update_guest(session, uuid, values={"spice_address":address })
         return response
         
+        
+    def monitor(self, domain_name: str, slave_name: str):
+        data = {
+            consts.P_DOMAIN_NAME : domain_name,
+        }
+        url = CONF['slave'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/monitor/", data=data).json())
+        if response.code != 0:
+            return APIResponse.error(msg=response.msg)
     
     def get_domain_slave_name(session, domain_uuid: str):
         return APIResponse.success(db.get_domain_slave_name(session, domain_uuid))
