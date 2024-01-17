@@ -3,17 +3,13 @@ from src.utils.response import APIResponse
 from src.utils.singleton import singleton
 from src.domain_xml.device import interface as interface_xml
 from src.common.network_manager import api as netapi
-from src.guest.db.models import Slave
-from src.guest.service import SlaveService
 from src.network.db.models import Network, Interface, OVSPort
 from src.network import db 
 from src.utils.sqlalchemy import enginefacade
 from src.utils.config import CONF
 from src.utils import consts
 
-from src.guest.api import SlaveAPI, GuestAPI
-slave_api = SlaveAPI()
-guest_api = GuestAPI()
+
 
 @singleton
 class NetworkService:
@@ -105,6 +101,10 @@ class NetworkService:
         interface: Interface = db.get_interface_by_uuid(interface_uuid)
         name: str = interface.name
         
+        from src.guest.api import SlaveAPI, GuestAPI
+        slave_api = SlaveAPI()
+        guest_api = GuestAPI()
+        
         # 1. create ovs port in slave
         slave_address: str = slave_api.get_slave_address_by_name(slave_name).get_data()
         slave_uuid: str = slave_api.get_slave_by_name(name).get_data().uuid
@@ -144,6 +144,11 @@ class NetworkService:
         port is directly deleted
 
         """
+        from src.guest.api import SlaveAPI, GuestAPI
+        slave_api = SlaveAPI()
+        guest_api = GuestAPI()
+        
+        
         interface: Interface = db.get_interface_by_uuid(interface_uuid)
         port_name: str = interface.name
         slave_address: str = slave_api.get_slave_address_by_uuid(interface.slave_uuid).get_data()
@@ -192,6 +197,11 @@ class NetworkService:
         modify interface, currently supports ip and gateway only,
         make sure to pass them both
         """
+        from src.guest.api import SlaveAPI, GuestAPI
+        slave_api = SlaveAPI()
+        guest_api = GuestAPI()
+        
+        
         if interface_uuid:
             interface: Interface = db.get_interface_by_uuid(interface_uuid)
         elif name:
@@ -306,6 +316,11 @@ class NetworkService:
         this only includes db and bind operation, ip is not really set.
         Note that domain ip could be acutally set when domain is running.
         """
+        from src.guest.api import SlaveAPI, GuestAPI
+        slave_api = SlaveAPI()
+        guest_api = GuestAPI()
+        
+        
         interface: Interface = db.get_interface_by_name(session, interface_name)
         if interface.status == "bound_in_use" or interface.guest_uuid is not None:
             return APIResponse.error(401, "interface already in use")
@@ -342,6 +357,11 @@ class NetworkService:
         parameter remove controls wether its a remove operation
         note that domain must be running.
         """
+        from src.guest.api import SlaveAPI, GuestAPI
+        slave_api = SlaveAPI()
+        guest_api = GuestAPI()
+        
+        
         slave_name = guest_api.get_domain_slave_name(domain_uuid).get_data()
         slave_address: str = slave_api.get_slave_address_by_name(slave_name).get_data()
         url = "http://"+ slave_address
