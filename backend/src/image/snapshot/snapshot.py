@@ -62,7 +62,7 @@ class SnapShot():
                     break
                 except Exception as err:
                     return APIResponse.error(code=400, msg=str(err))
-            return APIResponse.success(snaps)
+            return APIResponse.success(data=snaps)
         except Exception as err:
             return APIResponse.error(code=400, msg=str(err))
         finally:
@@ -104,11 +104,11 @@ class SnapShot():
         try:
             if self.is_snap_exits(snap_name):
                 return APIResponse.error(code=400, msg = "snapshot " + snap_name + " already exists.")
-                raise Exception()
             image = self.get_image()
             image.create_snap(snap_name)
+            return APIResponse.success()
         except Exception as err:
-            raise Exception(str(err))
+            return APIResponse.error(code=400, msg=str(err))
         finally:
             image.close()
     
@@ -117,8 +117,9 @@ class SnapShot():
         try:
             image = self.get_image()
             image.remove_snap(snap_name)
+            return APIResponse.success()
         except Exception as err:
-            raise Exception(str(err))
+            return APIResponse.error(code=400, msg=str(err))
         finally:
             image.close()
 
@@ -178,13 +179,14 @@ class SnapShot():
     def clone(self, snap_name, dest_pool_name, dest_rbd_name):
         try:
             if not self.is_snap_exits(snap_name):
-                raise Exception('snap not exists.')
+                return APIResponse.error(code=400, msg='snap not exists.')
             if not self.is_snap_protected(snap_name):
                 self.protect_snap(snap_name)
             rbd_inst = self.get_rbd()
             c_ioctx = pool.get_ioctx_by_name(dest_pool_name)
             rbd_inst.clone(self.ioctx, self.rbd_name, snap_name, c_ioctx, dest_rbd_name)
+            return APIResponse.success()
         except Exception as err:
-            raise Exception('clone snap failed. '+ str(err))
+            return APIResponse.error(code=400, msg=str(err))
 
 

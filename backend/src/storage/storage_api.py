@@ -2,6 +2,7 @@ from src.storage.entity.cluster_manager import Cluster
 from src.storage.entity.pool_manager import Pool
 from src.storage.entity.rbd_manager import RbdManager
 from src.utils.response import APIResponse
+from src.image.snapshot.snapshot import SnapShot
 from src.storage.entity.path import CEPH_PATH
 
 error_info = {
@@ -194,3 +195,23 @@ def create_rbd(pool_name: str, rbd_name: str, size: int):
             return APIResponse.error(code=400, msg=description)
     finally:
         ioctx.close()
+
+
+def clone(pool_name: str, rbd_name: str, snap_name: str, dest_pool_name: str, dest_rbd_name: str):
+    snap = SnapShot(pool_name, rbd_name)
+    return snap.clone(snap_name, dest_pool_name, dest_rbd_name)
+
+
+def create_snap(pool_name: str, rbd_name: str, snap_name: str):
+    snap = SnapShot(pool_name, rbd_name)
+    return snap.create_snap(snap_name)
+
+
+def delete_snap(pool_name: str, rbd_name: str, snap_name: str):
+    snap = SnapShot(pool_name, rbd_name)
+    return snap.delete_snap(snap_name)
+
+
+def query_snaps(pool_name: str, rbd_name: str, snap_name: str):
+    snap = SnapShot(pool_name, rbd_name)
+    return snap.query_snaps(snap_name)
