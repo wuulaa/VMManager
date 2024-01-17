@@ -21,10 +21,12 @@ def network_detail():
     get detail of a network
     """
     network_name = request.values.get(consts.P_NETWORK_NAME)
+    print("############# ")
+    print(network_name)
     return network_api.network_detail(network_name).json()
 
 
-@network_bp.route("/network/ethernets")
+@network_bp.route("/network/ports")
 def list_ethernets():
     """
     list all virtual interfaces
@@ -32,7 +34,7 @@ def list_ethernets():
     return network_api.list_interfaces().json()
 
 
-@network_bp.route("/network/detailEthernet")
+@network_bp.route("/network/detailPort")
 def detailEthernet():
     """
     get a all virtual interfaces detail

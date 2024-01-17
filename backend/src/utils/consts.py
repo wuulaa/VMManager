@@ -10,9 +10,9 @@ P_MEMORY_SIZE = "memory_size"
 
 P_CHILD_NAME = "child_name"
 
-P_NETWORK_ADDRESS = "ip_address"
+P_NETWORK_ADDRESS = "network_address"
 P_NETWORK_NAME = "network_name"
-P_IP_ADDRESS = "network_address"
+P_IP_ADDRESS = "ip_address"
 P_BRIDGE_NAME = "bridge_name"
 P_PORT_NAME = "port_name"
 P_TYPE = "type"

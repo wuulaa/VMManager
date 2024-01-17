@@ -75,10 +75,11 @@ class NetworkService:
         """
         
         # write interface db
-        network = db.get_network_by_name(network_name)
+        network = db.get_network_by_name(session, network_name)
         if network is None:
             raise Exception(f'cannot find a network which name={name}')
-        interface: Interface = db.create_interface(name=name,
+        interface: Interface = db.create_interface(session,
+                                           name=name,
                                            network_name=network_name,
                                            ip_address=ip_address,
                                            gateway=gateway,
@@ -98,7 +99,7 @@ class NetworkService:
             interface_uuid (str): interface uuid
             slave_name (str): slave node name
         """
-        interface: Interface = db.get_interface_by_uuid(interface_uuid)
+        interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
         name: str = interface.name
         
         from src.guest.api import SlaveAPI, GuestAPI
@@ -149,7 +150,7 @@ class NetworkService:
         guest_api = GuestAPI()
         
         
-        interface: Interface = db.get_interface_by_uuid(interface_uuid)
+        interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
         port_name: str = interface.name
         slave_address: str = slave_api.get_slave_address_by_uuid(interface.slave_uuid).get_data()
         url = "http://"+ slave_address
@@ -177,9 +178,15 @@ class NetworkService:
     @enginefacade.transactional
     def delete_interface(self, session, interface_uuid: str=None, name: str = None):
         if interface_uuid:
-            interface: Interface = db.get_interface_by_uuid(interface_uuid)
+            interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
         elif name:
-            interface: Interface = db.get_interface_by_name(name)
+            interface: Interface = db.get_interface_by_name(session, name)
+            
+    
+        if interface is None:
+            return APIResponse.error(code=400, msg=f'cannot find a interface which name={name}, uuid={interface_uuid}')
+        
+        interface_uuid = interface.uuid
         
         # 1. in bound unbound the interace
         if interface.status != "unbound":
@@ -192,24 +199,26 @@ class NetworkService:
     
     
     @enginefacade.transactional
-    def modify_interface(self, session, interface_uuid: str, name: str, ip_addr: str, gateway:str):
+    def modify_interface(self, session, interface_uuid: str = None, name: str = None, ip_addr: str = None, gateway:str =None):
         """
         modify interface, currently supports ip and gateway only,
         make sure to pass them both
         """
-        from src.guest.api import SlaveAPI, GuestAPI
-        slave_api = SlaveAPI()
+        from src.guest.api import GuestAPI
         guest_api = GuestAPI()
         
         
         if interface_uuid:
-            interface: Interface = db.get_interface_by_uuid(interface_uuid)
+            interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
         elif name:
-            interface: Interface = db.get_interface_by_name(name)
+            interface: Interface = db.get_interface_by_name(session, name)
+            
+        if interface is None:
+            return APIResponse.error(code=400, msg=f'cannot find a interface which name={name}, uuid = {interface_uuid}')
         
-        remove = False
+        remove_domain_ip = False
         if gateway is None and ip_addr is None:
-            remove = True
+            remove_domain_ip = True
         else:
             if gateway is None:
                 gateway = interface.gateway
@@ -227,7 +236,7 @@ class NetworkService:
             if domain_status == 1:
                 # if domain is running, directly change the ip/gateway
                 self.set_domain_ip(session, interface.guest_uuid,
-                                   interface.name, ip_addr, gateway, remove)
+                                   interface.name, ip_addr, gateway, remove_domain_ip)
             else:
                 # else set interface as modified, ip change would apply after starting domain
                 db.update_interface_modified(session, interface.uuid, True)
@@ -270,7 +279,7 @@ class NetworkService:
             name (str): name of the network
             ip_address (str): address of the network, eg: 1.2.3.4/24
         """
-        network: Network = db.create_network(name=name, ip_address=ip_address)
+        network: Network = db.create_network(session, name=name, ip_address=ip_address)
         return APIResponse.success(network.uuid)
     
     
@@ -283,9 +292,9 @@ class NetworkService:
         Args:
             name (str): network name
         """
-        network: Network = db.get_network_by_name(name)
+        network: Network = db.get_network_by_name(session, name)
         if network is None:
-            raise Exception(f'cannot find a network which name={name}')
+            return APIResponse.error(code=400, msg=f'cannot find a network which name={name}')
         interfaces: list[Interface] = network.interfaces
         for interface in interfaces:
             self.delete_interface(session, interface.uuid)
@@ -338,7 +347,7 @@ class NetworkService:
         this only includes interface db and unbind operations.
 
         """
-        interface: Interface = db.get_interface_by_name(interface_name)
+        interface: Interface = db.get_interface_by_name(session, interface_name)
         if interface.status != "bound_in_use" or interface.guest_uuid is None:
             return APIResponse.error(401, "interface not used by domain")
         self.unbind_interface_port(session, interface.uuid)
@@ -408,10 +417,14 @@ class NetworkService:
     @enginefacade.transactional
     def network_detail(self, session, network_name: str):
         network: Network = db.get_network_by_name(session, network_name)
+        if network is None:
+            return APIResponse.error(code=400, msg=f'cannot find a network which name={network_name}')
         return APIResponse.success(network.to_dict())
     
     
     @enginefacade.transactional
     def interface_detail(self, session, interface_name: str):
         interface: Interface = db.get_interface_by_name(session, interface_name)
+        if interface is None:
+            return APIResponse.error(code=400, msg=f'cannot find a interface which name={interface_name}')
         return APIResponse.success(interface.to_dict())

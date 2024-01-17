@@ -35,8 +35,8 @@ class NetworkAPI():
     
     
     def create_network(self, name, network_address) -> APIResponse:
-        return network_service.create_network(name=name,
-                                              ip_address=network_address)
+        return network_service.create_network(name,
+                                              network_address)
     
     def delete_network(self, name) -> APIResponse:
         return network_service.delete_network(name=name)

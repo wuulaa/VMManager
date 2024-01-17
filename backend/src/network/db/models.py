@@ -19,15 +19,14 @@ class Network(Base):
                                       unique=True,
                                       comment="network name")
     address: Mapped[str] = mapped_column(String(64),
-                                      unique=True,
-                                      comment="network address ,eg: 1.2.3.4/24")
+                                        unique=True,
+                                        comment="network address ,eg: 1.2.3.4/24")
     interfaces: Mapped[List["Interface"]] = relationship(back_populates="network")
     
     def __init__(self, name: str, address: str):
-        if name is not None and self.address is not None:
-            self.name = name
-            self.address = address
-            self.uuid = self._gen_uuid()
+        self.name = name
+        self.address = address
+        self.uuid = self._gen_uuid()
    
 
 
