@@ -363,24 +363,35 @@ class NetworkService:
             response: requests.Response = requests.post(url + "/removeStaticIP/", data)
             return APIResponse.deserialize_response(response.json())
         
-    
-    def list_networks(self):
-        network_list: list[Network] = db.get_network_list()
+        
+    @enginefacade.transactional
+    def list_networks(self, session):
+        network_list: list[Network] = db.get_network_list(session)
         res = [network.to_dict() for network in network_list]
         return APIResponse.success(res)
     
     
-    def list_interfaces(self):
-        interface_list: list[Interface] = db.get_interface_list()
+    @enginefacade.transactional
+    def list_interfaces(self, session):
+        interface_list: list[Interface] = db.get_interface_list(session)
         res = [interface.to_dict() for interface in interface_list]
         return APIResponse.success(res)
     
     
-    def network_detail(self, network_name: str):
-        network: Network = db.get_network_by_name(network_name)
+    @enginefacade.transactional
+    def list_domain_interfaces(self, session, domain_uuid)-> APIResponse:
+        interfaces: list[Interface] = db.condition_select(session, Interface, values={"guest_uuid" : domain_uuid})
+        res = [interface.to_dict() for interface in interfaces]
+        return APIResponse.success(res)
+    
+    
+    @enginefacade.transactional
+    def network_detail(self, session, network_name: str):
+        network: Network = db.get_network_by_name(session, network_name)
         return APIResponse.success(network.to_dict())
     
     
-    def interface_detail(self, interface_name: str):
-        interface: Interface = db.get_interface_by_name(interface_name)
+    @enginefacade.transactional
+    def interface_detail(self, session, interface_name: str):
+        interface: Interface = db.get_interface_by_name(session, interface_name)
         return APIResponse.success(interface.to_dict())

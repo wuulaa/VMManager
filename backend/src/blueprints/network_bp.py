@@ -10,7 +10,7 @@ network_api = NetworkAPI()
 @network_bp.route("/network/list")
 def list():
     """
-    list add networks
+    list all networks
     """
     return network_api.list_networks().json()
 

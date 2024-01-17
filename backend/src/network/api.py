@@ -63,6 +63,10 @@ class NetworkAPI():
         return network_service.list_interfaces()
     
     
+    def list_domain_interfaces(self, domain_uuid)-> APIResponse:
+        return network_service.list_domain_interfaces(domain_uuid=domain_uuid)
+    
+    
     def network_detail(self, network_name: str) -> APIResponse:
         return network_service.network_detail(network_name)
     

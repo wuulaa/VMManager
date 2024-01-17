@@ -162,6 +162,17 @@ def detach_nic():
     return guestAPI.detach_nic(domain_name, slave_name, interface_name, int(flags)).json()
 
 
+@guest_bp.route("/detachNic", methods=["POST"])
+def list_nic():
+    """
+    list nics of domain
+    """
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+  
+    return guestAPI.list_nic(domain_name, slave_name).json()
+
+
 @guest_bp.route("/addVNC", methods=["POST"])
 def add_vnc():
     """

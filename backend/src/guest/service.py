@@ -210,6 +210,11 @@ class GuestService():
         response = networkapi.detach_interface_from_domain(domain_uuid, interface_name)
         return response
     
+    @enginefacade.transactional
+    def list_nic(self, session, domain_name: str, slave_name: str):
+        domain_uuid = db.get_domain_uuid_by_name(session, domain_name, slave_name)
+        return networkapi.list_domain_interfaces(domain_uuid)
+    
     
     @enginefacade.transactional
     def set_domain_vcpu(self, session, domain_name, slave_name, cpu_num, flags):
