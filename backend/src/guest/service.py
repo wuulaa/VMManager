@@ -340,4 +340,16 @@ class SlaveService():
             uuid = db.get_slave_uuid_by_name(session, slave_name)
             addr = db.get_slave_address_by_uuid(session, uuid)
             return APIResponse.success(data=addr)
+        
+    @enginefacade.transactional
+    def init_slave_db(self, session):
+        slaves = CONF['slaves']
+        res = []
+        for key, value in slaves.items():
+            slave_name = key
+            slave_addr = value
+            create_res =self.create_slave(session, slave_name, slave_addr).get_data()
+            res.append(create_res)
+        return APIResponse.success(data=res)
+        
     

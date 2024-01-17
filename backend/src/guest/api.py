@@ -125,5 +125,8 @@ class SlaveAPI():
     
     def get_slave_address_by_name(self, name: str) -> APIResponse:
         return slaveService.get_slave_address(slave_name=name)
+    
+    def init_slave_db(self) -> APIResponse:
+        return slaveService.init_slave_db()
 
     

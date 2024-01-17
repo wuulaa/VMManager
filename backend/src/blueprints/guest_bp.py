@@ -2,12 +2,13 @@ from flask import Blueprint
 from flask import request
 import requests
 from src.domain_xml.xml_init import create_initial_xml
-from src.guest.api import GuestAPI
+from src.guest.api import GuestAPI, SlaveAPI
 from src.utils.response import APIResponse
 from src.utils import consts
 guest_bp = Blueprint("guest-bp", __name__, url_prefix="/kvm/guest")
 
 guestAPI = GuestAPI()
+slaveAPI = SlaveAPI()
 
 @guest_bp.route("/test")
 def guest():
@@ -305,3 +306,6 @@ def set_memory():
     return guestAPI.set_domain_memory(domain_name, slave_name, memory_size, flag).json()
 
 
+@guest_bp.route("initSlaves", methods=["POST"])
+def init_slaves():
+    return slaveAPI.init_slave_db().json()
