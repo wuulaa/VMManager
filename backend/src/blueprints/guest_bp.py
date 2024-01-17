@@ -51,13 +51,6 @@ def delete_domain():
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     return guestAPI.delete_domain(domain_name, slave_name).json()
 
-@guest_bp.route("/clone", methods=["POST"])
-def clone():
-    pass
-
-@guest_bp.route("/migrate", methods=["POST"])
-def migrate(): 
-    pass
 
 @guest_bp.route("/start", methods=["POST"])
 def start():
@@ -118,24 +111,6 @@ def batch_restart_domain():
     domains_name_list = request.values.get(consts.P_DOMAINS_NAME_LIST)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     return guestAPI.batch_restart_domains(domains_name_list, slave_name).json()
-
-#to do
-# @guest_bp.route("/clone", methods=["POST"])
-# def clone():
-#     child_name = request.values.get("childName")
-#     domain_name = request.values.get(consts.P_DOMAIN_NAME)
-#     slave_name = request.values.get(consts.P_SLAVE_NAME)
-#     return guestAPI.clone_domain(domain_name, child_name, slave_name)
-
-
-@guest_bp.route("/addDevice", methods=["POST"])
-def add_device():
-    pass
-
-
-@guest_bp.route("/attachDick", methods=["POST"])
-def attach_disk():
-    pass
 
 
 @guest_bp.route("/attachNic", methods=["POST"])
@@ -225,10 +200,20 @@ def monitor_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     return guestAPI.monitor(domain_name, slave_name).json()
-    
 
-@guest_bp.route("/createList")
-def create_list():
+
+@guest_bp.route("/clone", methods=["POST"])
+def clone():
+    pass
+    
+    
+@guest_bp.route("/migrate", methods=["POST"])
+def migrate():
+    pass
+
+
+@guest_bp.route("/attachDick", methods=["POST"])
+def attach_disk():
     pass
 
 
@@ -237,8 +222,8 @@ def detach_disk():
     pass
 
 
-@guest_bp.route("/detail")
-def detail():
+@guest_bp.route("/diskCopy", methods=["POST"])
+def disk_copy():
     pass
 
 
@@ -262,79 +247,8 @@ def disk_copy_recover():
     pass
 
 
-@guest_bp.route("/display", methods=["POST"])
-def display():
-    pass
-
-
-@guest_bp.route("/file", methods=["POST"])
-def file():
-    pass
-
-
-@guest_bp.route("/list")
-def list_guest():
-    pass
-
-
-@guest_bp.route("/mergesnapshot", methods=["POST"])
-def merge_snapshot():
-    pass
-
-
-
-@guest_bp.route("/modify/vncPasswd", methods=["POST"])
-def modify_vnc_passwd():
-    pass
-
-
-@guest_bp.route("/mountCdrom", methods=["POST"])
-def mount_cdrom():
-    pass
-
-
-@guest_bp.route("/mountDisk", methods=["POST"])
-def mount_disk():
-    pass
-
-
-@guest_bp.route("/mountLun", methods=["POST"])
-def mount_lun():
-    pass
-
-
-@guest_bp.route("/mountUsb", methods=["POST"])
-def mount_usb():
-    pass
-
-
-@guest_bp.route("/move", methods=["POST"])
-def move():
-    pass
-
-
-@guest_bp.route("/pause", methods=["POST"])
-def pause():
-    pass
-
-
-@guest_bp.route("/putDevice", methods=["POST"])
-def put_device():
-    pass
-
-
-@guest_bp.route("/putDiskBus", methods=["POST"])
-def put_disk_bus():
-    pass
-
-
-@guest_bp.route("/putEthernet", methods=["POST"])
-def put_ethernet():
-    pass
-
-
-@guest_bp.route("/putName", methods=["POST"])
-def put_name():
+@guest_bp.route("/snapshotAdd", methods=["POST"])
+def add_snapshot():
     pass
 
 
@@ -343,14 +257,35 @@ def put_snapshot_name():
     pass
 
 
+@guest_bp.route("/snapshotDetail", methods=["POST"])
+def snapshot_detail():
+    pass
+
+
+@guest_bp.route("/snapshotDel", methods=["POST"])
+def del_snapshot():
+    pass
+
+
+@guest_bp.route("/snapshotRestore", methods=["POST"])
+def restore_snapshot():
+    pass
+
+
+@guest_bp.route("/snapshotSave", methods=["POST"])
+def save_snapshot():
+    pass
+
+
+@guest_bp.route("/snapshotToImage", methods=["POST"])
+def snapshot_to_image():
+    pass
+
+
 @guest_bp.route("/reboot", methods=["POST"])
 def reboot():
     pass
 
-
-@guest_bp.route("/setAutoRestart", methods=["POST"])
-def set_auto_restart():
-    pass
 
 
 @guest_bp.route("/setCPU", methods=["POST"])
@@ -368,9 +303,5 @@ def set_memory():
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     return guestAPI.set_domain_memory(domain_name, slave_name, memory_size, flag).json()
-
-@guest_bp.route("/sflow")
-def sflow():
-    pass
 
 

@@ -21,8 +21,6 @@ def network_detail():
     get detail of a network
     """
     network_name = request.values.get(consts.P_NETWORK_NAME)
-    print("############# ")
-    print(network_name)
     return network_api.network_detail(network_name).json()
 
 
