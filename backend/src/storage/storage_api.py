@@ -212,6 +212,6 @@ def delete_snap(pool_name: str, rbd_name: str, snap_name: str):
     return snap.delete_snap(snap_name)
 
 
-def query_snaps(pool_name: str, rbd_name: str, snap_name: str):
+def query_snaps(pool_name: str, rbd_name: str):
     snap = SnapShot(pool_name, rbd_name)
-    return snap.query_snaps(snap_name)
+    return snap.query_snaps()
