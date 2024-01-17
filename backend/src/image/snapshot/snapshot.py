@@ -188,5 +188,16 @@ class SnapShot():
             return APIResponse.success()
         except Exception as err:
             return APIResponse.error(code=400, msg=str(err))
+        
+    def rollback_to_snap(self, snap_name: str):
+        try:
+            if not self.is_snap_exits(snap_name):
+                return APIResponse.error(code=400, msg='snap not exists.')
+            image_inst = self.get_image()
+            image_inst.rollback_to_snap(snap_name)
+            return APIResponse.success()
+        except Exception as err:
+            return APIResponse.error(code=400, msg=str(err))
+
 
 
