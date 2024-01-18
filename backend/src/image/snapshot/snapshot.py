@@ -38,7 +38,7 @@ class SnapShot():
                 try:
                     snap = next(snapGenerator)
                     if(snap.get("name")==snap_name):
-                        return APIResponse.success(snap)
+                        return APIResponse.success(data=snap)
                 except StopIteration:
                     break
             return APIResponse.error(code=400, msg="snapshot " + snap_name + "isn't exsit.")

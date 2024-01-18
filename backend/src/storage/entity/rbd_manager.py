@@ -69,10 +69,13 @@ class RbdManager(object):
         except Exception as err:
             return str(err)
 
-    def resize_rbd(self, rbd_name: str, size):
-        '''resize rbd'''
+    def resize_rbd(self, rbd_name: str, size: int):
+        '''
+        resize rbd
+        size: bytes
+        '''
         try:
-            return self.ioctx.trunc(rbd_name, size)
+            self.get_image_inst(rbd_name).resize(size)
         except Exception as err:
             return str(err)
 
@@ -105,9 +108,12 @@ class RbdManager(object):
             return "success"
         except Exception as err:
             return str(err)
-        
-    def delete_test(self, rbd_name: str):
+    
+    def rename_rbd(self, ioctx: rados.Ioctx, rbd_name: str, new_name: str):
+        '''rename a RBD Image'''
+        rbd_inst = rbd.RBD()
         try:
-            return self.ioctx.remove_object(rbd_name)
+            rbd_inst.rename(ioctx, rbd_name, new_name)
+            return "success"
         except Exception as err:
             return str(err)

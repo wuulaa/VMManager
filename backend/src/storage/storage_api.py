@@ -215,3 +215,33 @@ def query_snaps(pool_name: str, rbd_name: str):
 def rollback_to_snap(pool_name: str, rbd_name: str, snap_name: str):
     snap = SnapShot(pool_name, rbd_name)
     return snap.rollback_to_snap(snap_name)
+
+
+def rename_rbd(pool_name: str, rbd_name: str, new_name: str):
+    ioctx = pool.get_ioctx_by_name(pool_name)
+    rbd_instance = RbdManager(ioctx)
+    try:
+        rbd_instance.rename_rbd(ioctx, rbd_name, new_name)
+        return APIResponse.success()
+    except Exception as err:
+        return APIResponse.err(code=400, msg=str(err))
+    finally:
+        ioctx.close()
+    
+
+def resize_rbd(pool_name: str, rbd_name: str, size: str):
+    ioctx = pool.get_ioctx_by_name(pool_name)
+    rbd_instance = RbdManager(ioctx)
+    try:
+        rbd_instance.resize_rbd(ioctx, rbd_name, size)
+        return APIResponse.success()
+    except Exception as err:
+        return APIResponse.err(code=400, msg=str(err))
+    finally:
+        ioctx.close()
+    
+
+def info_snap(pool_name: str, rbd_name: str, snap_name: str):
+    snap = SnapShot(pool_name, rbd_name)
+    return snap.get_snap_info(snap_name)
+    
