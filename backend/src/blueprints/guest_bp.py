@@ -218,7 +218,7 @@ def migrate():
     pass
 
 
-@guest_bp.route("/attachDick", methods=["POST"])
+@guest_bp.route("/attachDisk", methods=["POST"])
 def attach_disk():
     pass
 

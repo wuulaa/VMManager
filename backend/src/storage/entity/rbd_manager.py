@@ -16,14 +16,14 @@ class RbdManager(object):
         try:
             return rbd.RBD()
         except Exception as err:
-            return "get rbd object failed."+str(err)
+            raise Exception("get rbd object failed."+str(err))
         
     def get_image_inst(self, rbd_name):
         '''get Image object'''
         try:
             return rbd.Image(self.ioctx, rbd_name)
         except Exception as err:
-            return "get image object failed."+str(err)
+            raise Exception("get image object failed."+str(err))
 
     def write_full_rbd(self, rbd_name: str, data: bytes):
         '''
@@ -38,7 +38,7 @@ class RbdManager(object):
         try:
             return self.ioctx.write_full(rbd_name, data)
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
 
     def read_rbd(self, rbd_name: str, offset, length):
         '''
@@ -52,22 +52,19 @@ class RbdManager(object):
             image = self.get_image_inst(rbd_name)
             return image.read(offset, length)
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
 
     def remove_rbd(self, rbd_name: str):
         '''delete rbd'''
         rbd_inst = rbd.RBD()
-        try:
-            return rbd_inst.remove(self.ioctx, rbd_name)
-        except Exception as err:
-            return str(err)
+        return rbd_inst.remove(self.ioctx, rbd_name)
 
     def append_rbd(self, rbd_name: str, data: bytes):
         '''append data to a rbd'''
         try:
             return self.ioctx.aio_append(rbd_name, data)
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
 
     def resize_rbd(self, rbd_name: str, size: int):
         '''
@@ -77,7 +74,7 @@ class RbdManager(object):
         try:
             self.get_image_inst(rbd_name).resize(size)
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
 
     def xattr_write(self, rbd_name: str, xattr_name: str, data: bytes):
         '''write metadata into RBD with <key, value>,
@@ -85,14 +82,14 @@ class RbdManager(object):
         try:
             return self.ioctx.set_xattr(rbd_name, xattr_name, data)
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
 
     def xattr_get(self, rbd_name: str, xattr_name: str):
         '''read metadata of RBD'''
         try:
             return self.ioctx.get_xattr(rbd_name, xattr_name)
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
 
     def list_rbd(self):
         '''list RBD objects'''
@@ -107,7 +104,7 @@ class RbdManager(object):
             rbd_inst.create(ioctx, volume_name, size)
             return "success"
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
     
     def rename_rbd(self, ioctx: rados.Ioctx, rbd_name: str, new_name: str):
         '''rename a RBD Image'''
@@ -116,4 +113,4 @@ class RbdManager(object):
             rbd_inst.rename(ioctx, rbd_name, new_name)
             return "success"
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))

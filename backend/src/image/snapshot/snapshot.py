@@ -77,7 +77,7 @@ class SnapShot():
         try:
             return image.is_protected_snap(snap_name)
         except Exception as err:
-            raise Exception('check snap protected failed.')
+            raise Exception('check snap protected failed.' + str(err))
         finally:
             if image is not None:  
                 image.close()
@@ -88,7 +88,7 @@ class SnapShot():
             if not self.is_snap_protected(snap_name):
                 image.protect_snap(snap_name)
         except Exception as err:
-            raise Exception('protect snap failed.')
+            raise Exception('protect snap failed.' + str(err))
         finally:
             if image is not None:  
                 image.close()
@@ -101,7 +101,7 @@ class SnapShot():
             if self.is_snap_protected(snap_name):
                 image.unprotect_snap(snap_name)
         except Exception as err:
-            raise Exception('unprotect snap failed.')
+            raise Exception('unprotect snap failed.' + str(err))
         finally:
             if image is not None:  
                 image.close()

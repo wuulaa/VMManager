@@ -16,21 +16,21 @@ class Pool(object):
         try:
             return self.cluster.open_ioctx(pool_name)
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
 
     def get_ioctx_by_id(self, pool_id: str):
         '''connect pool by pool_id'''
         try:
             return self.cluster.open_ioctx2(pool_id)
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
 
     def close_ioctx(ioctx: rados.Ioctx):
         '''close pool connect'''
         try:
             ioctx.close()
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
 
     def list_pools(self):
         '''list available pools'''
@@ -38,7 +38,7 @@ class Pool(object):
             pools = self.cluster.list_pools()
             return pools
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
 
     def exists_pool(self, pool_name: str):
         '''check pool'''
@@ -48,7 +48,7 @@ class Pool(object):
             else:
                 return False
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
 
     def create_pool(self, pool_name: str):
         '''create pool'''
@@ -58,7 +58,7 @@ class Pool(object):
             self.cluster.create_pool(pool_name)
             return "success"
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
 
     def delete_pool(self, pool_name: str):
         '''delete pool'''
@@ -66,5 +66,5 @@ class Pool(object):
             self.cluster.delete_pool(pool_name)
             return "success"
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
         

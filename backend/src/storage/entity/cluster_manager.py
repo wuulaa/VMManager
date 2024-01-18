@@ -18,21 +18,21 @@ class Cluster(object):
         try:
             return rados.Rados(conffile=self.conf)
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
 
     def connect_cluster(self):
         '''connect Ceph cluster'''
         try:
             self.cluster.connect()
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
 
     def close_cluster(self):
         '''close connect'''
         try:
             self.cluster.shutdown()
         except Exception as err:
-            return str(err)
+            raise Exception(str(err))
         
     def get_cluster_info(self):
         '''read usage info about the cluster'''
