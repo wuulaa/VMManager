@@ -1,4 +1,5 @@
 import requests
+import ipaddress
 from src.utils.response import APIResponse
 from src.utils.singleton import singleton
 from src.domain_xml.device import interface as interface_xml
@@ -25,39 +26,42 @@ class NetworkService:
         so that Internet could be accessed via master node. 
         '''
         # TODO: should write db?
-        
-        slave_count: int = CONF.getint("slaves", "slaveCount")
-        bridge_prefix: str = CONF.get("network", "bridge_prefix")
-        master_ip: str = CONF.get("master", "master").split(":")[0]
-        
-        master_bridge_name = bridge_prefix + "_center"
-        slave_bridge_name = bridge_prefix + "_slave"
-        
-        # 1. create master bridge and nat network
-        netapi.create_bridge(bridge_name=master_bridge_name)
-        netapi.create_ovs_nat_network(network_address, master_bridge_name)
-        netapi.init_iptables()
+        try:
+            slave_count: int = CONF.getint("slaves", "slaveCount")
+            bridge_prefix: str = CONF.get("network", "bridge_prefix")
+            master_ip: str = CONF.get("master", "master").split(":")[0]
+            
+            master_bridge_name = bridge_prefix + "_center"
+            slave_bridge_name = bridge_prefix + "_slave"
+            
+            # 1. create master bridge and nat network
+            netapi.create_bridge(bridge_name=master_bridge_name)
+            netapi.create_ovs_nat_network(network_address, master_bridge_name)
+            netapi.init_iptables()
 
-        # 2. create slave bridges and add vxlan ports
-        for i in range(1, slave_count + 1):
-            slave_address: str = CONF.get("slaves", f"slave{i}")
-            slave_ip: str = slave_address.split(":")[0]
-            url = "http://"+ slave_address
+            # 2. create slave bridges and add vxlan ports
+            for i in range(1, slave_count + 1):
+                slave_address: str = CONF.get("slaves", f"slave{i}")
+                slave_ip: str = slave_address.split(":")[0]
+                url = "http://"+ slave_address
+                
+                data = {
+                    consts.P_BRIDGE_NAME: slave_bridge_name
+                }
+                response = requests.post(url + "/createBridge/", data)
+                
+                data = {
+                    consts.P_BRIDGE_NAME: slave_bridge_name,
+                    consts.P_PORT_NAME: "vxlan",
+                    consts.P_REMOTE_IP: master_ip
+                }
+                response = APIResponse(requests.post(url + "/addVxlanPort/", data))
+                netapi.add_vxlan_port_to_bridge(master_bridge_name, f"vxlan_{i}", slave_ip)
             
-            data = {
-                consts.P_BRIDGE_NAME: slave_bridge_name
-            }
-            response = requests.post(url + "/createBridge/", data)
-            
-            data = {
-                consts.P_BRIDGE_NAME: slave_bridge_name,
-                consts.P_PORT_NAME: "vxlan",
-                consts.P_REMOTE_IP: master_ip
-            }
-            response = APIResponse(requests.post(url + "/addVxlanPort/", data))
-            netapi.add_vxlan_port_to_bridge(master_bridge_name, f"vxlan_{i}", slave_ip)
+            return APIResponse.success()
         
-        return APIResponse.success()
+        except Exception as e:
+            return APIResponse.error(400, str(e))
     
     
     @enginefacade.transactional
@@ -75,19 +79,26 @@ class NetworkService:
         """
         
         # write interface db
-        network = db.get_network_by_name(session, network_name)
+        network: Network = db.get_network_by_name(session, network_name)
         if network is None:
-            raise Exception(f'cannot find a network which name={name}')
-        interface: Interface = db.create_interface(session,
-                                           name=name,
-                                           network_name=network_name,
-                                           ip_address=ip_address,
-                                           gateway=gateway,
-                                           mac=mac,
-                                           inerface_type=inerface_type
-                                           )
-        uuid = interface.uuid
-        return APIResponse.success(data={"interface_uuid": uuid})
+            return APIResponse.error(400, f'cannot find a network which name={name}')
+        
+        if not is_ip_in_network(ip_address, network.address):
+            return APIResponse.error(400, f'interface address is not within network')
+        
+        try:
+            interface: Interface = db.create_interface(session,
+                                            name=name,
+                                            network_name=network_name,
+                                            ip_address=ip_address,
+                                            gateway=gateway,
+                                            mac=mac,
+                                            inerface_type=inerface_type
+                                            )
+            uuid = interface.uuid
+            return APIResponse.success(data={"interface_uuid": uuid})
+        except Exception as e:
+            return APIResponse.error(400, str(e))
         
     
     @enginefacade.transactional
@@ -99,43 +110,47 @@ class NetworkService:
             interface_uuid (str): interface uuid
             slave_name (str): slave node name
         """
-        interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
-        name: str = interface.name
+        try:
+            interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
+            name: str = interface.name
+            
+            from src.guest.api import SlaveAPI, GuestAPI
+            slave_api = SlaveAPI()
+            guest_api = GuestAPI()
+            
+            # 1. create ovs port in slave
+            slave_address: str = slave_api.get_slave_address_by_name(slave_name).get_data()
+            slave_uuid: str = slave_api.get_slave_by_name(name).get_data().uuid
+            slave_bridge_name = CONF.get("network", "bridge_prefix") + "_slave"
+            
+            url = "http://"+ slave_address
+            
+            # add real port
+            data = {
+                    consts.P_BRIDGE_NAME: slave_bridge_name,
+                    consts.P_PORT_NAME: name,
+                    consts.P_TYPE: "internal"
+                }
+            response: requests.Response = requests.post(url + "/addPort/", data)
+            
+            # generate interface xml
+            mac = interface.mac
+            xml = interface_xml.create_direct_ovs_interface(name, mac).get_xml_string()
+            
+            # 2. create port in db
+            port: OVSPort = db.create_port(session, name, interface_uuid, "internal")
+            port_uuid = port.uuid
+            
+            # 3. set interface slave uuid, port uuid, xml and status in db.
+            db.update_interface_port(session, interface_uuid, port_uuid)
+            db.update_interface_status(session, interface_uuid, "bound_unuse")
+            db.update_interface_slave_uuid(session, interface_uuid, slave_uuid)
+            db.update_interface_xml(session, interface_uuid, xml)
+            
+            return APIResponse.success()
         
-        from src.guest.api import SlaveAPI, GuestAPI
-        slave_api = SlaveAPI()
-        guest_api = GuestAPI()
-        
-        # 1. create ovs port in slave
-        slave_address: str = slave_api.get_slave_address_by_name(slave_name).get_data()
-        slave_uuid: str = slave_api.get_slave_by_name(name).get_data().uuid
-        slave_bridge_name = CONF.get("network", "bridge_prefix") + "_slave"
-        
-        url = "http://"+ slave_address
-        
-        # add real port
-        data = {
-                consts.P_BRIDGE_NAME: slave_bridge_name,
-                consts.P_PORT_NAME: name,
-                consts.P_TYPE: "internal"
-            }
-        response: requests.Response = requests.post(url + "/addPort/", data)
-        
-        # generate interface xml
-        mac = interface.mac
-        xml = interface_xml.create_direct_ovs_interface(name, mac).get_xml_string()
-        
-        # 2. create port in db
-        port: OVSPort = db.create_port(session, name, interface_uuid, "internal")
-        port_uuid = port.uuid
-        
-        # 3. set interface slave uuid, port uuid, xml and status in db.
-        db.update_interface_port(session, interface_uuid, port_uuid)
-        db.update_interface_status(session, interface_uuid, "bound_unuse")
-        db.update_interface_slave_uuid(session, interface_uuid, slave_uuid)
-        db.update_interface_xml(session, interface_uuid, xml)
-        
-        return APIResponse.success()
+        except Exception as e:
+            raise e
         
         
     @enginefacade.transactional
@@ -149,53 +164,59 @@ class NetworkService:
         slave_api = SlaveAPI()
         guest_api = GuestAPI()
         
-        
-        interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
-        port_name: str = interface.name
-        slave_address: str = slave_api.get_slave_address_by_uuid(interface.slave_uuid).get_data()
-        url = "http://"+ slave_address
-        slave_bridge_name = CONF.get("network", "bridge_prefix") + "_slave"
-        
-        # 1. delete ovs-port in slave
-        data = {
-                consts.P_BRIDGE_NAME: slave_bridge_name,
-                consts.P_PORT_NAME: port_name,
-            }
-        response: requests.Response = requests.post(url + "/delPort/", data)
-        
-        # 2. write port db
-        db.delete_port(session, interface.port_uuid)
-        
-        # 3. write interface db
-        db.update_interface_port(session, interface_uuid, None)
-        db.update_interface_status(session, interface_uuid, "un_bound")
-        db.update_interface_slave_uuid(session, interface_uuid, None)
-        db.update_interface_xml(session, interface_uuid, None)
-        
-        return APIResponse.success()
+        try:
+            interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
+            port_name: str = interface.name
+            slave_address: str = slave_api.get_slave_address_by_uuid(interface.slave_uuid).get_data()
+            url = "http://"+ slave_address
+            slave_bridge_name = CONF.get("network", "bridge_prefix") + "_slave"
+            
+            # 1. delete ovs-port in slave
+            data = {
+                    consts.P_BRIDGE_NAME: slave_bridge_name,
+                    consts.P_PORT_NAME: port_name,
+                }
+            response: requests.Response = requests.post(url + "/delPort/", data)
+            
+            # 2. write port db
+            db.delete_port(session, interface.port_uuid)
+            
+            # 3. write interface db
+            db.update_interface_port(session, interface_uuid, None)
+            db.update_interface_status(session, interface_uuid, "un_bound")
+            db.update_interface_slave_uuid(session, interface_uuid, None)
+            db.update_interface_xml(session, interface_uuid, None)
+            
+            return APIResponse.success()
+        except Exception as e:
+            raise e
         
         
     @enginefacade.transactional
     def delete_interface(self, session, interface_uuid: str=None, name: str = None):
-        if interface_uuid:
-            interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
-        elif name:
-            interface: Interface = db.get_interface_by_name(session, name)
+        try:
+            if interface_uuid:
+                interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
+            elif name:
+                interface: Interface = db.get_interface_by_name(session, name)
+                
+        
+            if interface is None:
+                return APIResponse.error(code=400, msg=f'cannot find a interface which name={name}, uuid={interface_uuid}')
             
-    
-        if interface is None:
-            return APIResponse.error(code=400, msg=f'cannot find a interface which name={name}, uuid={interface_uuid}')
+            interface_uuid = interface.uuid
+            
+            # 1. in bound unbound the interace
+            if interface.status != "unbound":
+                self.unbind_interface_port(session, interface_uuid)
+            
+            # 2. delete in db
+            db.delete_interface_by_uuid(session, interface_uuid)
+            
+            return APIResponse.success()
         
-        interface_uuid = interface.uuid
-        
-        # 1. in bound unbound the interace
-        if interface.status != "unbound":
-            self.unbind_interface_port(session, interface_uuid)
-        
-        # 2. delete in db
-        db.delete_interface_by_uuid(session, interface_uuid)
-        
-        return APIResponse.success()
+        except Exception as e:
+            return APIResponse.error(400, str(e))
     
     
     @enginefacade.transactional
@@ -207,41 +228,44 @@ class NetworkService:
         from src.guest.api import GuestAPI
         guest_api = GuestAPI()
         
-        
-        if interface_uuid:
-            interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
-        elif name:
-            interface: Interface = db.get_interface_by_name(session, name)
-            
-        if interface is None:
-            return APIResponse.error(code=400, msg=f'cannot find a interface which name={name}, uuid = {interface_uuid}')
-        
-        remove_domain_ip = False
-        if gateway is None and ip_addr is None:
-            remove_domain_ip = True
-        else:
-            if gateway is None:
-                gateway = interface.gateway
-            if ip_addr is None:
-                ip_addr = interface.ip_address
-            
-        # 1. update in db
-        db.update_interface_ip(session, interface.uuid, ip_addr)
-        db.update_interface_gateway(session, interface.uuid, gateway)
-        # 2. check if is used in domain
-        if interface.guest_uuid is not None:
+        try:
+            if interface_uuid:
+                interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
+            elif name:
+                interface: Interface = db.get_interface_by_name(session, name)
                 
-            domain_status = guest_api.get_domain_status(interface.guest_uuid).get_data()
-        
-            if domain_status == 1:
-                # if domain is running, directly change the ip/gateway
-                self.set_domain_ip(session, interface.guest_uuid,
-                                   interface.name, ip_addr, gateway, remove_domain_ip)
+            if interface is None:
+                return APIResponse.error(code=400, msg=f'cannot find a interface which name={name}, uuid = {interface_uuid}')
+            
+            remove_domain_ip = False
+            if gateway is None and ip_addr is None:
+                remove_domain_ip = True
             else:
-                # else set interface as modified, ip change would apply after starting domain
-                db.update_interface_modified(session, interface.uuid, True)
+                if gateway is None:
+                    gateway = interface.gateway
+                if ip_addr is None:
+                    ip_addr = interface.ip_address
                 
-        return APIResponse.success()
+            # 1. update in db
+            db.update_interface_ip(session, interface.uuid, ip_addr)
+            db.update_interface_gateway(session, interface.uuid, gateway)
+            # 2. check if is used in domain
+            if interface.guest_uuid is not None:
+                    
+                domain_status = guest_api.get_domain_status(interface.guest_uuid).get_data()
+            
+                if domain_status == 1:
+                    # if domain is running, directly change the ip/gateway
+                    self.set_domain_ip(session, interface.guest_uuid,
+                                    interface.name, ip_addr, gateway, remove_domain_ip)
+                else:
+                    # else set interface as modified, ip change would apply after starting domain
+                    db.update_interface_modified(session, interface.uuid, True)
+                    
+            return APIResponse.success()
+        
+        except Exception as e:
+            return APIResponse.error(400, str(e))
     
     
     @enginefacade.transactional
@@ -279,8 +303,12 @@ class NetworkService:
             name (str): name of the network
             ip_address (str): address of the network, eg: 1.2.3.4/24
         """
-        network: Network = db.create_network(session, name=name, ip_address=ip_address)
-        return APIResponse.success(network.uuid)
+        try:
+            network: Network = db.create_network(session, name=name, ip_address=ip_address)
+            return APIResponse.success(network.uuid)
+        
+        except Exception as e:
+            return APIResponse.error(400, str(e))
     
     
     @enginefacade.transactional
@@ -292,14 +320,18 @@ class NetworkService:
         Args:
             name (str): network name
         """
-        network: Network = db.get_network_by_name(session, name)
-        if network is None:
-            return APIResponse.error(code=400, msg=f'cannot find a network which name={name}')
-        interfaces: list[Interface] = network.interfaces
-        for interface in interfaces:
-            self.delete_interface(session, interface.uuid)
-        db.delete_network_by_name(session, name)
-        return APIResponse.success()
+        try:
+            network: Network = db.get_network_by_name(session, name)
+            if network is None:
+                return APIResponse.error(code=400, msg=f'cannot find a network which name={name}')
+            interfaces: list[Interface] = network.interfaces
+            for interface in interfaces:
+                self.delete_interface(session, interface.uuid)
+            db.delete_network_by_name(session, name)
+            return APIResponse.success()
+        
+        except Exception as e:
+            return APIResponse.error(400, str(e))
     
     
     def create_network_routing(self, session, addrA, addrB, parent_addr):
@@ -315,6 +347,8 @@ class NetworkService:
     @enginefacade.transactional
     def get_interface_xml(self, session, name: str):
         interface: Interface = db.get_interface_by_name(session, name)
+        if interface is None:
+            return APIResponse.error(400, f"cannot find interface with name = {name}")
         return APIResponse.success(interface.xml)
         
         
@@ -325,19 +359,21 @@ class NetworkService:
         this only includes db and bind operation, ip is not really set.
         Note that domain ip could be acutally set when domain is running.
         """
-        from src.guest.api import SlaveAPI, GuestAPI
-        slave_api = SlaveAPI()
+        from src.guest.api import GuestAPI
         guest_api = GuestAPI()
         
+        try:
+            interface: Interface = db.get_interface_by_name(session, interface_name)
+            if interface.status == "bound_in_use" or interface.guest_uuid is not None:
+                return APIResponse.error(401, "interface already in use")
+            slave_name = guest_api.get_domain_slave_name(domain_uuid)
+            
+            self.bind_interface_to_port(session, interface.uuid, slave_name)
+            db.update_interface_guest_uuid(session, interface.uuid, domain_uuid)
+            return APIResponse.success()
         
-        interface: Interface = db.get_interface_by_name(session, interface_name)
-        if interface.status == "bound_in_use" or interface.guest_uuid is not None:
-            return APIResponse.error(401, "interface already in use")
-        slave_name = guest_api.get_domain_slave_name(domain_uuid)
-        
-        self.bind_interface_to_port(session, interface.uuid, slave_name)
-        db.update_interface_guest_uuid(session, interface.uuid, domain_uuid)
-        return APIResponse.success()
+        except Exception as e:
+            return APIResponse.error(400, str(e))
         
     
     @enginefacade.transactional
@@ -347,12 +383,16 @@ class NetworkService:
         this only includes interface db and unbind operations.
 
         """
-        interface: Interface = db.get_interface_by_name(session, interface_name)
-        if interface.status != "bound_in_use" or interface.guest_uuid is None:
-            return APIResponse.error(401, "interface not used by domain")
-        self.unbind_interface_port(session, interface.uuid)
-        db.update_interface_guest_uuid(session, interface.uuid, None)
-        return APIResponse.success()
+        try:
+            interface: Interface = db.get_interface_by_name(session, interface_name)
+            if interface.status != "bound_in_use" or interface.guest_uuid is None:
+                return APIResponse.error(401, "interface not used by domain")
+            self.unbind_interface_port(session, interface.uuid)
+            db.update_interface_guest_uuid(session, interface.uuid, None)
+            return APIResponse.success()
+        
+        except Exception as e:
+            return APIResponse.error(400, str(e))
     
     
     def set_domain_ip(self, session,
@@ -370,27 +410,30 @@ class NetworkService:
         slave_api = SlaveAPI()
         guest_api = GuestAPI()
         
-        
-        slave_name = guest_api.get_domain_slave_name(domain_uuid).get_data()
-        slave_address: str = slave_api.get_slave_address_by_name(slave_name).get_data()
-        url = "http://"+ slave_address
-        
-        if remove == False:
-            data = {
-                    consts.P_DOMAIN_UUID: domain_uuid,
-                    consts.P_NETWORK_ADDRESS: network_addr,
-                    consts.P_GATEWAY: gateway,
-                    consts.P_INTERFACE_NAME: interface_name
-                }
-            response: requests.Response = requests.post(url + "/setStaticIP/", data)
-            return APIResponse.deserialize_response(response.json())
-        else:
-            data = {
-                    consts.P_DOMAIN_UUID: domain_uuid,
-                    consts.P_INTERFACE_NAME: interface_name
-                }
-            response: requests.Response = requests.post(url + "/removeStaticIP/", data)
-            return APIResponse.deserialize_response(response.json())
+        try:
+            slave_name = guest_api.get_domain_slave_name(domain_uuid).get_data()
+            slave_address: str = slave_api.get_slave_address_by_name(slave_name).get_data()
+            url = "http://"+ slave_address
+            
+            if remove == False:
+                data = {
+                        consts.P_DOMAIN_UUID: domain_uuid,
+                        consts.P_NETWORK_ADDRESS: network_addr,
+                        consts.P_GATEWAY: gateway,
+                        consts.P_INTERFACE_NAME: interface_name
+                    }
+                response: requests.Response = requests.post(url + "/setStaticIP/", data)
+                return APIResponse.deserialize_response(response.json())
+            else:
+                data = {
+                        consts.P_DOMAIN_UUID: domain_uuid,
+                        consts.P_INTERFACE_NAME: interface_name
+                    }
+                response: requests.Response = requests.post(url + "/removeStaticIP/", data)
+                return APIResponse.deserialize_response(response.json())
+            
+        except Exception as e:
+            return APIResponse.error(400, str(e))
         
         
     @enginefacade.transactional
@@ -428,3 +471,27 @@ class NetworkService:
         if interface is None:
             return APIResponse.error(code=400, msg=f'cannot find a interface which name={interface_name}')
         return APIResponse.success(interface.to_dict())
+    
+    
+    ####################
+    # helper functions #
+    ####################
+    
+def is_ip_in_network(ip_address_str: str, network_address_str: str) -> bool:
+    """
+    detarmine whether a ip address is within a network address
+
+    Args:
+        ip_address_str (str): eg: 20.0.0.11/24
+        network_address_str (str): eg: 20.0.0.0/24
+
+    """
+    try:
+        ip_network = ipaddress.IPv4Network(network_address_str, strict=False)
+        ip = ipaddress.IPv4Interface(ip_address_str)
+
+        return ip.ip in ip_network
+    except ValueError as e:
+        print(f"Error: {e}")
+        return False
+    
