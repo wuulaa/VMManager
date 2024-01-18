@@ -21,29 +21,6 @@ class SnapShot():
     def get_rbd(self):
         return RbdManager(self.ioctx).get_rbd_inst()
     
-    def get_snap_info(self, snap_name: str):
-        '''
-            snap = dict{
-            id:
-            size:
-            name:
-            }
-        '''
-        image = self.get_image()
-        try:
-            snapIterator = image.list_snaps()
-            snapGenerator = snapIterator.__iter__()
-            while True:
-                try:
-                    snap = next(snapGenerator)
-                    if(snap.get("name")==snap_name):
-                        return APIResponse.success(data=snap)
-                except StopIteration:
-                    break
-            return APIResponse.error(code=400, msg="snapshot " + snap_name + "isn't exsit.")
-        except Exception as err:
-            return APIResponse.error(code=400, msg=str(err))
-    
     def query_snaps(self):
         image = self.get_image()
         try:
@@ -56,10 +33,10 @@ class SnapShot():
                 except StopIteration:
                     break
                 except Exception as err:
-                    return APIResponse.error(code=400, msg=str(err))
-            return APIResponse.success(data=snaps)
+                    return str(err)
+            return snaps
         except Exception as err:
-            return APIResponse.error(code=400, msg=str(err))
+            return str(err)
         finally:
             if image is not None:  
                 image.close()
@@ -86,7 +63,7 @@ class SnapShot():
     
     def is_snap_exits(self, snap_name):
         try:
-            snaps = self.query_snaps().get_data()
+            snaps = self.query_snaps()
             if snaps is None:
                 return False
             if snap_name in snaps:
@@ -95,30 +72,6 @@ class SnapShot():
         except Exception as err:
             raise Exception(str(err))
     
-    def create_snap(self, snap_name):
-        image = self.get_image()
-        try:
-            if self.is_snap_exits(snap_name):
-                return APIResponse.error(code=400, msg = "snapshot " + snap_name + " already exists.")
-            image.create_snap(snap_name)
-            return APIResponse.success()
-        except Exception as err:
-            return APIResponse.error(code=400, msg=str(err))
-        finally:
-            if image is not None:  
-                image.close()
-    
-    def delete_snap(self, snap_name):
-        image = self.get_image()
-        try:
-            image.remove_snap(snap_name)
-            return APIResponse.success()
-        except Exception as err:
-            return APIResponse.error(code=400, msg=str(err))
-        finally:
-            if image is not None:  
-                image.close()
-
     def is_snap_protected(self, snap_name):
         image = self.get_image()
         try:
@@ -171,29 +124,4 @@ class SnapShot():
     def batch_create_snaps(self, snap_name_list: list):
         for name in snap_name_list:
             self.create_snap(name)
-
-    def clone(self, snap_name, dest_pool_name, dest_rbd_name):
-        try:
-            if not self.is_snap_exits(snap_name):
-                return APIResponse.error(code=400, msg='snap not exists.')
-            if not self.is_snap_protected(snap_name):
-                self.protect_snap(snap_name)
-            rbd_inst = self.get_rbd()
-            c_ioctx = pool.get_ioctx_by_name(dest_pool_name)
-            rbd_inst.clone(self.ioctx, self.rbd_name, snap_name, c_ioctx, dest_rbd_name)
-            return APIResponse.success()
-        except Exception as err:
-            return APIResponse.error(code=400, msg=str(err))
-        
-    def rollback_to_snap(self, snap_name: str):
-        try:
-            if not self.is_snap_exits(snap_name):
-                return APIResponse.error(code=400, msg='snap not exists.')
-            image_inst = self.get_image()
-            image_inst.rollback_to_snap(snap_name)
-            return APIResponse.success()
-        except Exception as err:
-            return APIResponse.error(code=400, msg=str(err))
-
-
-
+ 

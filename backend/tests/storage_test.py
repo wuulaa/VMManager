@@ -2,7 +2,6 @@ import sys
 import os
 from src.storage.storage_api import *
 from src.utils.connect import *
-from src.image.snapshot.snapshot import SnapShot
 
 # conn = get_connected(User="root@172.16.2.83")
 conn = libvirt.open("qemu:///system")
@@ -120,8 +119,8 @@ def create_snap_test():
 # create_snap_test()
 
 def query_snaps_test():
-    print(query_snaps("volume-pool", "python-image", "snap1").json())
-# query_snaps_test()
+    print(query_snaps("volume-pool", "python-image").json())
+query_snaps_test()
 
 def delete_snap_test():
     print(delete_snap("volume-pool", "python-image", "snap1").json())
@@ -129,6 +128,6 @@ def delete_snap_test():
 
 def info_snap_test():
     print(info_snap("volume-pool", "python-image", "snap1").json())
-# info_snap_test()
+info_snap_test()
     
 

@@ -26,7 +26,8 @@ def query_rbds(pool_name: str):
     except Exception as err:
         return APIResponse.error(code=400,msg=str(err))
     finally:
-        ioctx.close()
+        if ioctx is not None:
+            ioctx.close()
 
 
 def exist_rbd(pool_name:str ,rbd_name:str):
@@ -98,7 +99,8 @@ def write_full_rbd(pool_name: str, rbd_name: str, object_name: str, data: bytes)
     except Exception as err:
         return APIResponse.error(code=400, msg=str(err))
     finally:
-        ioctx.close()
+        if ioctx is not None:
+            ioctx.close()
 
 
 def append_rbd(pool_name: str, rbd_name: str, data: bytes):
@@ -121,7 +123,8 @@ def append_rbd(pool_name: str, rbd_name: str, data: bytes):
     except Exception as err:
         return APIResponse.error(code=400, msg=str(err))
     finally:
-        ioctx.close()
+        if ioctx is not None:
+            ioctx.close()
 
 
 def read_rbd(pool_name: str, rbd_name: str, offset=0, length=8192):
@@ -143,7 +146,8 @@ def read_rbd(pool_name: str, rbd_name: str, offset=0, length=8192):
     except Exception as err:
         return APIResponse.error(code=400, msg=str(err))
     finally: 
-        ioctx.close()
+        if ioctx is not None:
+            ioctx.close()
 
 
 def delete_rbd(pool_name: str, rbd_name: str):
@@ -166,7 +170,8 @@ def delete_rbd(pool_name: str, rbd_name: str):
     except Exception as err:
         return APIResponse.error(code=400, msg=str(err))
     finally:
-        ioctx.close()
+        if ioctx is not None:
+            ioctx.close()
 
 
 def create_rbd(pool_name: str, rbd_name: str, size: int):
@@ -189,32 +194,68 @@ def create_rbd(pool_name: str, rbd_name: str, size: int):
         else:
             return APIResponse.error(code=400, msg=description)
     finally:
-        ioctx.close()
+        if ioctx is not None:
+            ioctx.close()
 
 
 def clone(pool_name: str, rbd_name: str, snap_name: str, dest_pool_name: str, dest_rbd_name: str):
     snap = SnapShot(pool_name, rbd_name)
-    return snap.clone(snap_name, dest_pool_name, dest_rbd_name)
+    try:
+        if not snap.is_snap_exits(snap_name):
+            return APIResponse.error(code=400, msg='snap not exists.')
+        if not snap.is_snap_protected(snap_name):
+            snap.protect_snap(snap_name)
+        rbd_inst = snap.get_rbd()
+        c_ioctx = pool.get_ioctx_by_name(dest_pool_name)
+        rbd_inst.clone(snap.ioctx, snap.rbd_name, snap_name, c_ioctx, dest_rbd_name)
+        return APIResponse.success()
+    except Exception as err:
+        return APIResponse.error(code=400, msg=str(err))
 
 
 def create_snap(pool_name: str, rbd_name: str, snap_name: str):
     snap = SnapShot(pool_name, rbd_name)
-    return snap.create_snap(snap_name)
+    image = snap.get_image()
+    try:
+        if snap.is_snap_exits(snap_name):
+            return APIResponse.error(code=400, msg = "snapshot " + snap_name + " already exists.")
+        image.create_snap(snap_name)
+        return APIResponse.success()
+    except Exception as err:
+        return APIResponse.error(code=400, msg=str(err))
+    finally:
+        if image is not None:  
+            image.close()
 
 
 def delete_snap(pool_name: str, rbd_name: str, snap_name: str):
     snap = SnapShot(pool_name, rbd_name)
-    return snap.delete_snap(snap_name)
+    image = snap.get_image()
+    try:
+        image.remove_snap(snap_name)
+        return APIResponse.success()
+    except Exception as err:
+        return APIResponse.error(code=400, msg=str(err))
+    finally:
+        if image is not None:  
+            image.close()
 
 
 def query_snaps(pool_name: str, rbd_name: str):
     snap = SnapShot(pool_name, rbd_name)
-    return snap.query_snaps()
+    return APIResponse.success(data=snap.query_snaps())
 
 
 def rollback_to_snap(pool_name: str, rbd_name: str, snap_name: str):
     snap = SnapShot(pool_name, rbd_name)
-    return snap.rollback_to_snap(snap_name)
+    try:
+        if not snap.is_snap_exits(snap_name):
+            return APIResponse.error(code=400, msg='snap not exists.')
+        image_inst = snap.get_image()
+        image_inst.rollback_to_snap(snap_name)
+        return APIResponse.success()
+    except Exception as err:
+        return APIResponse.error(code=400, msg=str(err))
 
 
 def rename_rbd(pool_name: str, rbd_name: str, new_name: str):
@@ -226,7 +267,8 @@ def rename_rbd(pool_name: str, rbd_name: str, new_name: str):
     except Exception as err:
         return APIResponse.err(code=400, msg=str(err))
     finally:
-        ioctx.close()
+        if ioctx is not None:
+            ioctx.close()
     
 
 def resize_rbd(pool_name: str, rbd_name: str, size: str):
@@ -238,10 +280,34 @@ def resize_rbd(pool_name: str, rbd_name: str, size: str):
     except Exception as err:
         return APIResponse.err(code=400, msg=str(err))
     finally:
-        ioctx.close()
+        if ioctx is not None:
+            ioctx.close()
     
 
 def info_snap(pool_name: str, rbd_name: str, snap_name: str):
     snap = SnapShot(pool_name, rbd_name)
-    return snap.get_snap_info(snap_name)
+    '''
+        snap = dict{
+        id:
+        size:
+        name:
+        }
+    '''
+    image = snap.get_image()
+    try:
+        snapIterator = image.list_snaps()
+        snapGenerator = snapIterator.__iter__()
+        while True:
+            try:
+                snap = next(snapGenerator)
+                if(snap.get("name")==snap_name):
+                    return APIResponse.success(data=snap)
+            except StopIteration:
+                break
+        return APIResponse.error(code=400, msg="snapshot " + snap_name + "isn't exsit.")
+    except Exception as err:
+        return APIResponse.error(code=400, msg=str(err))
+    finally:
+        if image is not None:
+            image.close()
     
