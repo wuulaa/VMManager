@@ -41,7 +41,6 @@ def NOT_NULL(dict: dict):
     return check
 
 class GuestAPI():
-    @NOT_NULL({"domain_name", "slave_name"})
     def create_domain(self, domain_name: str, slave_name: str, **kwargs):
         return guestService.create_domain(domain_name, slave_name, **kwargs)
 
@@ -55,7 +54,7 @@ class GuestAPI():
         return guestService.destroy_domain(domain_name, slave_name)
 
     def pause_domain(self, domain_name: str, slave_name: str):
-        return guestService.pause_domain(domain_name, slave_name)(domain_name, slave_name)
+        return guestService.pause_domain(domain_name, slave_name)
 
     def resume_domain(self, domain_name: str, slave_name: str):
         return guestService.resume_domain(domain_name, slave_name)
