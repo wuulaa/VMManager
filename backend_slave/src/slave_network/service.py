@@ -10,7 +10,7 @@ def delete_bridge(bridge_name: str):
     
 
 def add_port_to_bridge(bridge_name: str, port_name: str, *interface_attribute_tuples):
-    return netapi.add_port_to_bridge(bridge_name, port_name, interface_attribute_tuples)
+    return netapi.add_port_to_bridge(bridge_name, port_name, *interface_attribute_tuples)
 
 
 def add_vxlan_port_to_bridge(bridge_name: str, port_name: str, remote_ip: str):

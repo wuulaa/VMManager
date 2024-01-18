@@ -4,8 +4,11 @@ from src.utils.response import APIResponse
 network_service = NetworkService()
 class NetworkAPI():
     
-    def create_top_network(network_address: str):
+    def create_top_network(self, network_address: str) -> APIResponse:
         return network_service.create_top_network(network_address=network_address)
+    
+    def delete_top_network(self, network_address: str) -> APIResponse:
+        return network_service.delete_top_network(network_address=network_address)
     
     def create_interface(self,
                          name: str,

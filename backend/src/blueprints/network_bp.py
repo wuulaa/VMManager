@@ -93,7 +93,20 @@ def virtual_del():
     return network_api.delete_network(network_name).json()
 
 
+@network_bp.route("/network/createTop", methods=["POST"])
+def create_top():
+    """
+    create top bridges and nat network
+    """
+    network_addr = request.values.get(consts.P_NETWORK_ADDRESS)
+    return network_api.create_top_network(network_addr).json()
 
 
-
+@network_bp.route("/network/deleteTop", methods=["POST"])
+def delete_top():
+    """
+    delete top bridges and nat network
+    """
+    network_addr = request.values.get(consts.P_NETWORK_ADDRESS)
+    return network_api.delete_top_network(network_addr).json()
 

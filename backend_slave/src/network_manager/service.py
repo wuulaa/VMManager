@@ -94,6 +94,10 @@ def init_iptables():
     return nat.append_drop_to_forward()
     
 
+def uninit_iptables():
+    return nat.delete_drop_from_forward()
+
+
 def create_route(netA: str, netB: str, parent: str):
     return nat.create_route_networks(netA, netB, parent)
     

@@ -169,16 +169,16 @@ class OVSBridge(BaseOVS):
         attrs = [('type', tunnel_type)]
 
         options = collections.OrderedDict()
-        vxlan_uses_custom_udp_port = (
-            tunnel_type == TYPE_VXLAN and vxlan_udp_port != VXLAN_UDP_PORT)
-        if vxlan_uses_custom_udp_port:
-            options['dst_port'] = str(vxlan_udp_port)
-        options['df_default'] = str(dont_fragment).lower()
+        # vxlan_uses_custom_udp_port = (
+        #     tunnel_type == TYPE_VXLAN and vxlan_udp_port != VXLAN_UDP_PORT)
+        # if vxlan_uses_custom_udp_port:
+        #     options['dst_port'] = str(vxlan_udp_port)
+        # options['df_default'] = str(dont_fragment).lower()
         options['remote_ip'] = remote_ip
         if local_ip is not None:
             options['local_ip'] = local_ip
-        options['in_key'] = 'flow'
-        options['out_key'] = 'flow'
+        # options['in_key'] = 'flow'
+        # options['out_key'] = 'flow'
 
         # if not self.is_hw_offload_enabled:
         #     options['egress_pkt_mark'] = '0'

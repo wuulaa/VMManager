@@ -20,7 +20,7 @@ class NetworkService:
                            network_address: str):
         '''
         This is an initial function which creates top level network.
-        All ovs bridges are created in master and slaves.
+        All related ovs bridges are created in master and slaves.
         Vxlan ports are set so that master and slave could be connected.
         NAT network using iptables is set in master node, 
         so that Internet could be accessed via master node. 
@@ -31,16 +31,17 @@ class NetworkService:
             bridge_prefix: str = CONF.get("network", "bridge_prefix")
             master_ip: str = CONF.get("master", "master").split(":")[0]
             
-            master_bridge_name = bridge_prefix + "_center"
+            master_bridge_name = bridge_prefix + "_master"
             slave_bridge_name = bridge_prefix + "_slave"
             
             # 1. create master bridge and nat network
             netapi.create_bridge(bridge_name=master_bridge_name)
             netapi.create_ovs_nat_network(network_address, master_bridge_name)
             netapi.init_iptables()
-
+            
             # 2. create slave bridges and add vxlan ports
             for i in range(1, slave_count + 1):
+                
                 slave_address: str = CONF.get("slaves", f"slave{i}")
                 slave_ip: str = slave_address.split(":")[0]
                 url = "http://"+ slave_address
@@ -48,15 +49,56 @@ class NetworkService:
                 data = {
                     consts.P_BRIDGE_NAME: slave_bridge_name
                 }
-                response = requests.post(url + "/createBridge/", data)
+                response1 = requests.post(url + "/createBridge", data)
                 
+                # master and slave cannot use the same remote ip
                 data = {
                     consts.P_BRIDGE_NAME: slave_bridge_name,
-                    consts.P_PORT_NAME: "vxlan",
+                    consts.P_PORT_NAME: f"vxlan_slave_{i}",
                     consts.P_REMOTE_IP: master_ip
                 }
-                response = APIResponse(requests.post(url + "/addVxlanPort/", data))
-                netapi.add_vxlan_port_to_bridge(master_bridge_name, f"vxlan_{i}", slave_ip)
+                response2 = APIResponse(requests.post(url + "/addVxlanPort", data))
+                
+                netapi.add_vxlan_port_to_bridge(master_bridge_name, f"vxlan_master_{i}", slave_ip)
+                
+            
+            return APIResponse.success()
+        
+        except Exception as e:
+            return APIResponse.error(400, str(e))
+        
+    
+    @enginefacade.transactional
+    def delete_top_network(self, session,
+                           network_address: str):
+        '''
+        This is an destruction function which destroys top level network.
+        All related ovs bridges are destroyed in master and slaves.
+        NAT network using iptables is removed in master node, 
+        '''
+        try:
+            slave_count: int = CONF.getint("slaves", "slaveCount")
+            bridge_prefix: str = CONF.get("network", "bridge_prefix")
+            master_ip: str = CONF.get("master", "master").split(":")[0]
+            
+            master_bridge_name = bridge_prefix + "_master"
+            slave_bridge_name = bridge_prefix + "_slave"
+            
+            # 1. delete master bridge and nat network
+            netapi.delete_bridge(bridge_name=master_bridge_name)
+            netapi.delete_ovs_nat_network(network_address)
+            netapi.uninit_iptables()
+
+            # 2. delete slave bridges
+            for i in range(1, slave_count + 1):
+                slave_address: str = CONF.get("slaves", f"slave{i}")
+                url = "http://"+ slave_address
+                
+                data = {
+                    consts.P_BRIDGE_NAME: slave_bridge_name
+                }
+                response = requests.post(url + "/deleteBridge", data)
+                
             
             return APIResponse.success()
         
