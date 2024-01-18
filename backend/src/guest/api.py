@@ -114,6 +114,12 @@ class SlaveAPI():
     def create_slave(self, slave_name: str, slave_address) -> APIResponse:
         return slaveService.create_slave(slave_name, slave_address)
     
+    def delete_slave(self, slave_name: str) -> APIResponse:
+        return slaveService.delete_slave(slave_name=slave_name)
+    
+    def slave_detail(self, slave_name: str) -> APIResponse:
+        return slaveService.slave_detail(slave_name=slave_name)
+    
     def get_slave_by_uuid(self, uuid: str) -> APIResponse:
         return slaveService.get_slave_by_uuid(uuid)
     
@@ -128,5 +134,8 @@ class SlaveAPI():
     
     def init_slave_db(self) -> APIResponse:
         return slaveService.init_slave_db()
+    
+    def get_slave_guests(self, name: str) -> APIResponse:
+        return slaveService.get_slave_guests(name=name)
 
     

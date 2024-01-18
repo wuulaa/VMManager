@@ -32,3 +32,5 @@ P_PASSWD = "passwd"
 P_FLAGS = "flags"
 P_VNC = "vnc"
 P_SPICE = "spice"
+
+P_ADDRESS = "address"

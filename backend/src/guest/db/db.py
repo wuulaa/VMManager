@@ -44,8 +44,8 @@ def get_domain_list(session):
 
 @enginefacade.auto_session
 def delete_domain_by_uuid(session, uuid: str):
-    guest = db.select_by_uuid(Guest, uuid)
-    return db.delete( session, guest)
+    guest = db.select_by_uuid(session, Guest, uuid)
+    return db.delete(session, guest)
 
 @enginefacade.auto_session
 def get_domain_slave_name(session, domain_uuid: str):
@@ -64,6 +64,19 @@ def create_slave(session, name: str, address: str):
     slave = Slave(name, address)
     db.insert(session, slave)
     return slave
+
+
+@enginefacade.auto_session
+def delete_slave(session, name: str):
+    slave = db.select_by_name(session, Slave, name)
+    return db.delete(session, slave)
+
+
+@enginefacade.auto_session
+def get_slave_guests(session, name: str):
+    guests: list[Guest] = db.condition_select(session, Guest, values={"slave_name": name})
+    return guests
+
 
 @enginefacade.auto_session
 def get_slave_by_uuid(session, uuid: str):

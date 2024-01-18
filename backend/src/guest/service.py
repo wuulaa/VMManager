@@ -320,6 +320,25 @@ class SlaveService():
        slave = db.create_slave(session, slave_name, slave_address)
        if slave:
            return APIResponse.success(data=slave.uuid)
+    
+       
+    @enginefacade.transactional
+    def delete_slave(self, session, slave_name: str):
+        slave = db.get_slave_by_name(session, slave_name)
+        if slave is None:
+            return APIResponse.error(code=400, msg=f"Cannot find a slave where name = {slave_name}")
+        db.delete_slave(session, slave_name)
+        return APIResponse.success()
+    
+    
+    @enginefacade.transactional
+    def slave_detail(self, session, slave_name: str):
+        slave = db.get_slave_by_name(session, slave_name)
+        if slave is None:
+            return APIResponse.error(code=400, msg=f"Cannot find a slave where name = {slave_name}")
+        data = slave.to_dict()
+        return APIResponse.success(data)
+    
        
     @enginefacade.transactional
     def get_slave_by_uuid(self, session, uuid: str):
@@ -340,6 +359,14 @@ class SlaveService():
             uuid = db.get_slave_uuid_by_name(session, slave_name)
             addr = db.get_slave_address_by_uuid(session, uuid)
             return APIResponse.success(data=addr)
+    
+        
+    @enginefacade.transactional
+    def get_slave_guests(self, session, name: str):
+       guests = db.get_slave_guests(session, name)
+       data = [guest.uuid for guest in guests]
+       return APIResponse.success(data=data)
+   
         
     @enginefacade.transactional
     def init_slave_db(self, session):

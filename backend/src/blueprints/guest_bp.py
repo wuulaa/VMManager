@@ -8,7 +8,6 @@ from src.utils import consts
 guest_bp = Blueprint("guest-bp", __name__, url_prefix="/kvm/guest")
 
 guestAPI = GuestAPI()
-slaveAPI = SlaveAPI()
 
 @guest_bp.route("/test")
 def guest():
@@ -305,7 +304,3 @@ def set_memory():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     return guestAPI.set_domain_memory(domain_name, slave_name, memory_size, flag).json()
 
-
-@guest_bp.route("initSlaves", methods=["POST"])
-def init_slaves():
-    return slaveAPI.init_slave_db().json()
