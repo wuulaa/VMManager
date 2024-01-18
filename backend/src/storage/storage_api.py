@@ -1,9 +1,7 @@
-from src.storage.entity.cluster_manager import Cluster
-from src.storage.entity.pool_manager import Pool
 from src.storage.entity.rbd_manager import RbdManager
 from src.utils.response import APIResponse
 from src.image.snapshot.snapshot import SnapShot
-from src.storage.entity.path import CEPH_PATH
+from src.storage.conf import pool
 
 error_info = {
     1:"pool isn't exist.",
@@ -11,9 +9,6 @@ error_info = {
     3:"rbd already exist.",
     400:"unknown exception"
 }
-
-cluster = Cluster(CEPH_PATH)
-pool = Pool(cluster)
 
 def query_rbds(pool_name: str):
     '''

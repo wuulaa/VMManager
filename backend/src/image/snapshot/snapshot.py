@@ -1,9 +1,6 @@
-import src.storage.storage_api as storage_api
 from src.storage.entity.rbd_manager import RbdManager
 from src.utils.response import APIResponse
-
-cluster = storage_api.cluster
-pool = storage_api.pool
+from src.storage.conf import pool
 
 class SnapShot():
     def __init__(self, pool_name: str, rbd_name: str) -> None:
