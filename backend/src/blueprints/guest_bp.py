@@ -82,6 +82,12 @@ def resume_domain():
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     return guestAPI.resume_domain(domain_name, slave_name).json()
 
+@guest_bp.route("/reboot", methods=["POST"])
+def reboot():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.reboot_domain(domain_name, slave_name).json()
+
 @guest_bp.route("/batchStartDomains", methods=["POST"])
 def batch_start_domain():
     domains_name_list = request.values.get(consts.P_DOMAINS_NAME_LIST)
@@ -280,12 +286,6 @@ def save_snapshot():
 @guest_bp.route("/snapshotToImage", methods=["POST"])
 def snapshot_to_image():
     pass
-
-
-@guest_bp.route("/reboot", methods=["POST"])
-def reboot():
-    pass
-
 
 
 @guest_bp.route("/setCPU", methods=["POST"])

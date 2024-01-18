@@ -59,6 +59,12 @@ def start_domain():
     res = guestAPI.start_domain(domain_name)
     return res.json()
 
+@guest_bp.route("/rebootDomain/", methods=["POST"])
+def reboot_domain():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    res = guestAPI.reboot_domain(domain_name)
+    return res.json()
+
 @guest_bp.route("/batchStartDomains/", methods=["POST"])
 def start_domains():
     domain_name_list = request.values.get(consts.P_DOMAINS_NAME_LIST)

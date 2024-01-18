@@ -19,6 +19,10 @@ def start_domain(domain_name: str):
     uuid = guest_manager.get_uuid_by_name(connection, domain_name)
     return guest_manager.start_domain(connection, uuid)
 
+def reboot_domain(domain_name: str):
+    uuid = guest_manager.get_uuid_by_name(connection, domain_name)
+    return guest_manager.restart_domain(connection, uuid)
+
 def rename_domain(domain_name: str, new_name: str):
     uuid = guest_manager.get_uuid_by_name(connection, domain_name)
     return guest_manager.rename_domain(connection, uuid, new_name)

@@ -1,7 +1,9 @@
-from src.volume.api import API
+from functools import wraps
 from src.guest.service import GuestService, SlaveService
 from src.utils.response import APIResponse
+from src.utils.config import CONF
 import libvirt
+import inspect
 
 status = {
     0:"nostate",
@@ -13,15 +15,40 @@ status = {
     6:"crashed",
     7:"pmsuspended"
 }
+
+err_code = {
+    0:"param error"
+}
 guestService = GuestService()
 slaveService = SlaveService()
 
-class GuestAPI():
+def NOT_NULL(dict: dict):
+    def check(func):
+        sig = inspect.signature(func)
+        parameters = sig.parameters  #参数列表的有序字典
+        @wraps(func)
+        def decorator(*args, **kwargs):
+            flag =False
+            str = ""
+            for key in dict:
+                if not key in parameters or parameters[key] is None:
+                    flag = True
+                    str = str + str(key)
+            if flag:
+                return APIResponse.error(code=0, msg="These params are None. " + str)
+            return func(*args, **kwargs)
+        return decorator
+    return check
 
+class GuestAPI():
+    @NOT_NULL({"domain_name", "slave_name"})
     def create_domain(self, domain_name: str, slave_name: str, **kwargs):
         return guestService.create_domain(domain_name, slave_name, **kwargs)
 
     def shutdown_domain(self, domain_name: str, slave_name: str):
+        url = CONF['slaves'][slave_name]
+        if url is None:
+            return APIResponse.error(code=0, msg = str(slave_name) + "isn't exsit.")
         return guestService.shutdown_domain(domain_name, slave_name)
 
     def destroy_domain(self, domain_name: str, slave_name: str):
@@ -32,6 +59,9 @@ class GuestAPI():
 
     def resume_domain(self, domain_name: str, slave_name: str):
         return guestService.resume_domain(domain_name, slave_name)
+    
+    def reboot_domain(self, domain_name: str, slave_name: str):
+        return guestService.reboot_domain(domain_name, slave_name)
 
     def start_domain(self, domain_name: str, slave_name: str):
         return guestService.start_domain(domain_name, slave_name)
@@ -40,7 +70,6 @@ class GuestAPI():
         return guestService.batch_start_domains(domains_name_list, slave_name)
 
     def batch_pause_domains(self, domains_name_list, slave_name: str):
-
         return guestService.batch_pause_domains(domains_name_list, slave_name)
     
     def batch_shutdown_domains(self, domains_name_list, slave_name: str):

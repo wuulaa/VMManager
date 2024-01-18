@@ -80,6 +80,16 @@ class GuestService():
         if(response.code == 0):
             db.status_update(session, uuid, status=status[1])
         return response
+    
+    @enginefacade.transactional
+    def reboot_domain(self, session, domain_name: str, slave_name: str):
+        uuid = db.get_domain_uuid_by_name(domain_name, slave_name)
+        data = {"uuid": uuid}
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/rebootDomain/", data=data).json())
+        if(response.code == 0):
+            db.status_update(session, uuid, status=status[1])
+        return response
 
     @enginefacade.transactional
     def start_domain(self, session, domain_name: str, slave_name: str):
