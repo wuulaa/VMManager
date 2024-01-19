@@ -8,6 +8,7 @@ from src.utils.sqlalchemy import enginefacade
 from src.utils.response import APIResponse
 from src.network.api import NetworkAPI
 from src.domain_xml.device import graphics
+from src.domain_xml.device.disk import create_cdrom_builder
 import src.utils.consts as consts 
 import requests
 
@@ -33,9 +34,10 @@ class GuestService():
         rbdXML = RbdVolumeXMLBuilder()
         device = rbdXML.construct(domain_name)
         guest.devices.disk.append(device)
+        guest.devices.disk.append(create_cdrom_builder(source_path="/home/kvm/images/ubuntu-22.04.3-live-server-arm64.iso", target_dev="sda"))
         url = CONF['slaves'][slave_name]
-        data = {consts.P_DOMAIN_XML : guest.get_xml_string(), consts.P_DOMAIN_NAME : domain_name}
-        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/addDomain/", data=data).json())
+        xml = {consts.P_DOMAIN_XML : guest.get_xml_string(), consts.P_DOMAIN_NAME : domain_name}
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/addDomain/", data=xml).json())
         if(response.code == 0):
             uuid = response.get_data()['uuid']
             db.create_guest(session, uuid, domain_name, slave_name, **kwargs)
@@ -288,8 +290,7 @@ class GuestService():
         if vnc:
             xml = graphics.create_vnc_viewer(port, passwd).get_xml_string()
         else:
-            xml = graphics.create_spice_viewer(port, passwd).get_xml_string()
-            
+            xml = graphics.create_spice_viewer(port, passwd).get_xml_string() 
         data = {
             consts.P_DOMAIN_NAME : domain_name,
             consts.P_DEVICE_XML: xml,
@@ -330,8 +331,7 @@ class SlaveService():
        slave = db.create_slave(session, slave_name, slave_address)
        if slave:
            return APIResponse.success(data=slave.uuid)
-    
-       
+      
     @enginefacade.transactional
     def delete_slave(self, session, slave_name: str):
         slave = db.get_slave_by_name(session, slave_name)
@@ -339,7 +339,6 @@ class SlaveService():
             return APIResponse.error(code=400, msg=f"Cannot find a slave where name = {slave_name}")
         db.delete_slave(session, slave_name)
         return APIResponse.success()
-    
     
     @enginefacade.transactional
     def slave_detail(self, session, slave_name: str):
@@ -349,7 +348,6 @@ class SlaveService():
         data = slave.to_dict()
         return APIResponse.success(data)
     
-       
     @enginefacade.transactional
     def get_slave_by_uuid(self, session, uuid: str):
        slave = db.get_slave_by_uuid(session, uuid)
@@ -369,15 +367,13 @@ class SlaveService():
             uuid = db.get_slave_uuid_by_name(session, slave_name)
             addr = db.get_slave_address_by_uuid(session, uuid)
             return APIResponse.success(data=addr)
-    
-        
+      
     @enginefacade.transactional
     def get_slave_guests(self, session, name: str):
        guests = db.get_slave_guests(session, name)
        data = [guest.uuid for guest in guests]
        return APIResponse.success(data=data)
    
-        
     @enginefacade.transactional
     def init_slave_db(self, session):
         slaves = CONF['slaves']
@@ -389,4 +385,12 @@ class SlaveService():
             res.append(create_res)
         return APIResponse.success(data=res)
         
-    
+    @enginefacade.transactional
+    def attach_domain_disk(self, session, domain_name, slave_name):
+        data = {consts.P_DOMAIN_NAME : domain_name}
+        url = CONF['slave'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDisk/", data=data).json())
+        if(response.code == 0):
+            uuid = db.get_domain_uuid_by_name(session, domain_name, slave_name)
+            db.update_guest(session, uuid, values={})
+        return response

@@ -161,6 +161,12 @@ def monitor():
     res: APIResponse = guestAPI.monitor(domain_name)
     return res.json()
 
+@guest_bp.route("/attachDisk/", methods=["POST"])
+def monitor():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    res: APIResponse = guestAPI.monitor(domain_name)
+    return res.json()
+
 # @guest_bp.route("/cloneDomain/", methods=["POST"])
 # def clone_domain():
 #     domain_name = request.values.get(consts.P_DOMAIN_NAME)

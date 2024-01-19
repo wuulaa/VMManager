@@ -220,6 +220,9 @@ def migrate():
 
 @guest_bp.route("/attachDisk", methods=["POST"])
 def attach_disk():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    return guestAPI.
     pass
 
 

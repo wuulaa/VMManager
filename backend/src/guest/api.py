@@ -135,6 +135,9 @@ class GuestAPI():
     def get_domain_status(session, domain_uuid: str):
         return guestService.get_domain_status(domain_uuid)
     
+    def attach_disk(session, domain_name: str, slave_name: str):
+        return guestService.attach_domain_disk(domain_name, slave_name)
+    
     
 
 class SlaveAPI():
