@@ -60,6 +60,7 @@ class VolumeService():
         dev_order = self._get_dev_order(session, guest_uuid)
         volume.dev_order = dev_order
         volume.guest_uuid = guest_uuid
+        return volume
 
     @enginefacade.transactional
     def remove_volume_from_guest(self, session, volume_uuid: str):
@@ -80,7 +81,7 @@ class VolumeService():
         pool = db.select_by_uuid(session, Pool, pool_uuid)
         if pool is None:
             raise Exception(f'cannot find a pool which UUID is {pool_uuid}')
-        elif not self._is_pool_enough_space(session, pool, allocation):
+        elif not self._is_pool_enough_space(pool, allocation):
             raise Exception(f'Pool {pool.name} is not enough space')
 
         response = volume_driver.create(volume_name, allocation)
@@ -120,7 +121,7 @@ class VolumeService():
         elif dest_pool is None:
             raise Exception(f'cannot find a pool '
                             f'which UUID is {dest_pool_uuid}')
-        elif not self._is_pool_enough_space(session, dest_pool, src_volume.allocation):
+        elif not self._is_pool_enough_space(dest_pool, src_volume.allocation):
             raise Exception(f'Pool {dest_pool.name} is not enough space')
 
         # 2. 创建 snapshot
