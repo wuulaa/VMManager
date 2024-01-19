@@ -180,7 +180,7 @@ def add_spice():
     return guestAPI.add_spice(domain_name, slave_name, port, passwd, int(flags)).json()
 
 
-@guest_bp.route("/changePasswd", methods=["POST"])
+@guest_bp.route("/setGraphicPasswd", methods=["POST"])
 def change_graphic_passwd():
     """
     change passwd for vnc or spice
@@ -208,6 +208,18 @@ def monitor_domain():
     return guestAPI.monitor(domain_name, slave_name).json()
 
 
+@guest_bp.route("/setUserPasswd")
+def set_user_passwd():
+    """
+    set domain user passwd, domain should be running
+    """
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    user_name = request.values.get(consts.P_USER_NAME)
+    passwd = request.values.get(consts.P_PASSWD)
+    return guestAPI.set_user_passwd(domain_name, slave_name, user_name, passwd).json()
+
+
 @guest_bp.route("/clone", methods=["POST"])
 def clone():
     pass
@@ -222,7 +234,6 @@ def migrate():
 def attach_disk():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
-    return guestAPI.
     pass
 
 

@@ -34,3 +34,5 @@ P_VNC = "vnc"
 P_SPICE = "spice"
 
 P_ADDRESS = "address"
+P_USER_NAME = "user_name"
+P_PASSWD = "passwd"

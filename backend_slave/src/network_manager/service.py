@@ -110,7 +110,7 @@ def set_guest_ip_ubuntu(uuid: str,
                         ip_address: str,
                         gateway: str,
                         interface_name: str,
-                        dns: str = "114.114.114.114",
+                        dns: str = "8.8.8.8",
                         file_path: str = "/etc/netplan/01-network-manager-all.yaml"):
     """
     set static ip for domain, domain must be running.

@@ -129,6 +129,9 @@ class GuestAPI():
     def monitor(self, domain_name: str, slave_name: str):
         return guestService.monitor(domain_name, slave_name)
     
+    def set_user_passwd(self, domain_name: str, slave_name: str, user_name: str, passwd: str):
+        return guestService.set_user_passwd(domain_name, slave_name, user_name, passwd)
+        
     def get_domain_slave_name(session, domain_uuid: str):
         return guestService.get_domain_slave_name(domain_uuid)
     

@@ -41,7 +41,7 @@ class BaseOVS:
                 raise e
 
     def add_bridge(self, bridge_name: str, datapath_type=OVS_DATAPATH_SYSTEM, secure_mode=False):
-        ovs_bridge = OVSBridge(bridge_name, self.ovsdb, datapath_type=datapath_type)
+        ovs_bridge = OVSBridge(bridge_name, self.ovsdb)
         ovs_bridge.create(secure_mode=secure_mode)
         return ovs_bridge
 

@@ -317,6 +317,22 @@ class GuestService():
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/monitor/", data=data).json())
         if response.code != 0:
             return APIResponse.error(msg=response.msg)
+        return response
+        
+        
+    def set_user_passwd(self, domain_name: str, slave_name: str, user_name: str, passwd: str):
+        data = {
+            consts.P_DOMAIN_NAME : domain_name,
+            consts.P_USER_NAME: user_name,
+            consts.P_PASSWD: passwd
+        }
+        url = CONF['slave'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/setUserPasswd/", data=data).json())
+        if response.code != 0:
+            return APIResponse.error(msg=response.msg)
+        return response
+    
+    
     
     def get_domain_slave_name(session, domain_uuid: str):
         return APIResponse.success(db.get_domain_slave_name(session, domain_uuid))

@@ -26,3 +26,5 @@ P_PARENT = "parent"
 
 P_DEVICE_XML = "device_xml"
 P_FLAGS = "flags"
+P_USER_NAME = "user_name"
+P_PASSWD = "passwd"

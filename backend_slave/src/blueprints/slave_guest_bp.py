@@ -161,8 +161,16 @@ def monitor():
     res: APIResponse = guestAPI.monitor(domain_name)
     return res.json()
 
+@guest_bp.route("/setUserPasswd/", methods=["POST"])
+def set_user_passwd():
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    user_name = request.values.get(consts.P_USER_NAME)
+    passwd = request.values.get(consts.P_PASSWD)
+    res: APIResponse = guestAPI.set_user_passwd(domain_name, user_name, passwd)
+    return res.json()
+
 @guest_bp.route("/attachDisk/", methods=["POST"])
-def monitor():
+def attach_disk():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     res: APIResponse = guestAPI.monitor(domain_name)
     return res.json()

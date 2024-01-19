@@ -302,6 +302,15 @@ def get_domain_monitor_status(conn: libvirt.virConnect, domain_uuid: str):
         return APIResponse.success(res)
     except libvirt.libvirtError as err:
         return APIResponse.error(code=400, msg=str(err))
+    
+
+def set_user_passwd(conn: libvirt.virConnect, domain_uuid: str, user_name: str, passwd: str):
+    try:
+        domain = conn.lookupByUUIDString(domain_uuid)
+        domain.setUserPassword(user_name, passwd)
+        return APIResponse.success()
+    except libvirt.libvirtError as e:
+        return APIResponse.error(code=400, msg=str(e))
 
 
 def batch_start_domains(conn: libvirt.virConnect, domain_uuid_list):

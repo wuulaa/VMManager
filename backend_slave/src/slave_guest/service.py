@@ -100,6 +100,10 @@ def set_domain_memory(domain_name: str, memory_size: int, flags):
     uuid = guest_manager.get_uuid_by_name(connection, domain_name)
     return device_manager.set_domain_memory(connection, uuid, memory_size, flags)
 
-def monitor(self, domain_name: str):
+def monitor(domain_name: str):
     uuid = guest_manager.get_uuid_by_name(connection, domain_name)
     return guest_manager.get_domain_monitor_status(connection, uuid)
+
+def set_user_passwd(domain_name: str, user_name: str, passwd: str):
+    uuid = guest_manager.get_uuid_by_name(connection, domain_name)
+    return guest_manager.set_user_passwd(connection, uuid, user_name, passwd)
