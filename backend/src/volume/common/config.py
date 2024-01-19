@@ -2,10 +2,12 @@ from src.utils import config
 
 CONF = config.CONF
 
+
 class RbdSettings(object):
     # module
     pool_driver = 'src.volume.driver.pool.rbd_pool.RbdPool'
     volume_driver = 'src.volume.driver.volume.rbd_volume.RbdVolume'
+    snap_driver = 'src.volume.driver.volume.rbd_volume.RbdSnapshot'
     xml_builder = 'src.volume.xml.volume.rbd_builder.RbdVolumeXMLBuilder'
 
 

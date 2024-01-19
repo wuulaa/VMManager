@@ -65,43 +65,42 @@ class PoolService():
             db.condition_update(session, Pool, uuid,
                                 {'allocation': new_size})
         else:
-            raise Exception(
-                "The new capacity is smaller than the used capacity")
+            raise Exception("The new capacity is"
+                            "smaller than the used capacity")
 
 
-# session = enginefacade.get_session()
-# service = PoolService()
-# pool1 = service.create_pool(session,
-#                             pool_name="libvirt_pool",
-#                             allocation=20*1024*1024,
-#                             owner="ZYQ")
-# print(pool1.to_dict())
+# with enginefacade.get_session() as session:
+#     service = PoolService()
+#     pool1 = service.create_pool(session,
+#                                 pool_name="libvirt_pool",
+#                                 allocation=20*1024*1024,
+#                                 owner="ZYQ")
+#     print(pool1.to_dict())
 
-# libvirt_pool = service.get_pool_by_name(session, "libvirt_pool")
-# print(libvirt_pool.to_dict())
+#     libvirt_pool = service.get_pool_by_name(session, "libvirt_pool")
+#     print(libvirt_pool.to_dict())
 
 
-# pool2 = service.create_pool(session,
-#                             pool_name='pool2',
-#                             allocation=20*1024*1024,
-#                             owner='XXX')
-# selected_pool = service.get_pool_by_uuid(session, pool2.uuid)
+#     pool2 = service.create_pool(session,
+#                                 pool_name='pool2',
+#                                 allocation=20*1024*1024,
+#                                 owner='XXX')
+#     selected_pool = service.get_pool_by_uuid(session, pool2.uuid)
 
-# pool_list = service.list_pools(session)
-# print(f'pool_list have {str(len(pool_list))} pools:')
-# for pool in pool_list:
-#     print(pool.to_dict())
+#     pool_list = service.list_pools(session)
+#     print(f'pool_list have {str(len(pool_list))} pools:')
+#     for pool in pool_list:
+#         print(pool.to_dict())
 
-# service.delete_pool_by_condition(session, libvirt_pool.to_dict())
+#     service.delete_pool_by_condition(session, libvirt_pool.to_dict())
 
-# service.delete_pool_by_uuid(session, pool2.uuid)
+#     service.delete_pool_by_uuid(session, pool2.uuid)
 
-# print('After delete...')
+#     print('After delete...')
 
-# pool_list = service.list_pools(session)
-# print(f'pool_list have {str(len(pool_list))} pools:')
-# for pool in pool_list:
-#     print(pool.to_dict())
+#     pool_list = service.list_pools(session)
+#     print(f'pool_list have {str(len(pool_list))} pools:')
+#     for pool in pool_list:
+#         print(pool.to_dict())
 
-# session.commit()
-# session.close()
+    # session.commit()

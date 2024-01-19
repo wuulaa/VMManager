@@ -39,7 +39,7 @@ def transactional(func):
             if (len(args) > 1 and isinstance(args[1], Session)):
                 _is_new_session = False
                 res = func(*args, **kwargs)
-                args[1].flush()  # session.flush()
+                args[1].flush()     # session.flush()
             else:
                 session = get_session()
                 session.begin()
@@ -62,7 +62,7 @@ def auto_session(func):
             if (len(args) > 0 and isinstance(args[0], Session)):
                 _is_new_session = False
                 res = func(*args, **kwargs)
-                args[0].flush()  # session.flush()
+                args[0].flush()     # session.flush()
             else:
                 session = get_session()
                 session.begin()

@@ -7,12 +7,12 @@ from . import enginefacade
 
 
 @enginefacade.auto_session
-def batch_insert(session, instance_list: List):
+def batch_insert(session, instance_list: List[DeclarativeBase]):
     session.add_all(instance_list)
 
 
 @enginefacade.auto_session
-def batch_delete(session, instance_list):
+def batch_delete(session, instance_list: List[DeclarativeBase]):
     for instance in instance_list:
         session.delete(instance=instance)
 
