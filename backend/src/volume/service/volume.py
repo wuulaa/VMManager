@@ -7,6 +7,7 @@ from src.utils.sqlalchemy import enginefacade
 from src.volume import db
 from src.volume.common import config
 from src.volume.db.models import Pool, Volume, Snapshot
+from src.volume.xml.volume.rbd_builder import RbdVolumeXMLBuilder
 
 CONF = config.CONF
 
@@ -46,6 +47,28 @@ class VolumeService():
 
     def _is_pool_enough_space(self, session, pool: Pool, allocation: int):
         return True if (allocation < pool.allocation - pool.usage) else False
+
+    @enginefacade.transactional
+    def add_volume_to_guest(self, session, volume_uuid: str, guest_uuid: str):
+        volume = db.select_by_uuid(session, Volume, volume_uuid)
+        if volume is None:
+            raise Exception(f'cannot find a volume'
+                            f'which UUID is {volume_uuid}')
+        elif volume.guest_uuid is not None:
+            raise Exception(f'this volume is used by {volume.guest_uuid}')
+
+        dev_order = self._get_dev_order(session, guest_uuid)
+        volume.dev_order = dev_order
+        volume.guest_uuid = guest_uuid
+
+    @enginefacade.transactional
+    def remove_volume_from_guest(self, session, volume_uuid: str):
+        volume = db.select_by_uuid(session, Volume, volume_uuid)
+        if volume is None:
+            raise Exception(f'cannot find a volume'
+                            f'which UUID is {volume_uuid}')
+        volume.guest_uuid = None
+        volume.dev_order = None
 
     @enginefacade.transactional
     def create_volume(self,
@@ -191,6 +214,15 @@ class VolumeService():
     @enginefacade.transactional
     def get_volume_by_name(self, session, pool_uuid: str, name: str):
         return db.select_volume_by_name(session, pool_uuid, name)
+
+    @enginefacade.transactional
+    def get_volume_xml(self, session, volume_uuid: str) -> str:
+        volume = db.select_by_uuid(session, Volume, volume_uuid)
+        if volume.guest_uuid is None:
+            raise Exception(
+                f'Volume {volume.name} hasn\'t distribution to any guest')
+        xml = RbdVolumeXMLBuilder.construct(volume.name, volume.dev_order)
+        return xml
 
     @enginefacade.transactional
     def list_volumes(self, session, pool_uuid: str = None):
