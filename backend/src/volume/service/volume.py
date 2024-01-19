@@ -125,7 +125,7 @@ class VolumeService():
             raise Exception(f'Pool {dest_pool.name} is not enough space')
 
         # 2. 创建 snapshot
-        snap_name = f'{src_volume.name}_{str(datetime.datetime.now().replace(" ", "_"))}'
+        snap_name = f'{src_volume.name}_{str(datetime.datetime.now().timestamp())}'
         snap_response = snap_driver.create(src_volume.name, snap_name)
 
         if snap_response.is_success():
