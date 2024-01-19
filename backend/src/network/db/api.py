@@ -99,6 +99,12 @@ def update_interface_modified(session, uuid, ip_modified: bool):
 
 
 @enginefacade.auto_session
+def update_interface_removed(session, uuid, removed: bool):
+    condition_update(session, Interface, uuid, {"remove_from_domain": removed})
+    return select_by_uuid(session, Interface, uuid)
+
+
+@enginefacade.auto_session
 def get_interface_list(session):
     return condition_select(session, Interface)
     

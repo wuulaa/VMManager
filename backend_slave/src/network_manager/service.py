@@ -162,7 +162,6 @@ def remove_guest_ip_ubuntu(uuid: str, interface_name: str = None, file_path: str
     file_handle = qa.get_file_handle(res)
     read_content = qa.guest_read_file(domain, file_handle)
     content = qa.decode_file_read_res(read_content)
-    print(content)
     yaml_data = yaml.safe_load(content)
     if ("network" in yaml_data and "ethernets" in yaml_data["network"]
         and interface_name in yaml_data["network"]["ethernets"]):

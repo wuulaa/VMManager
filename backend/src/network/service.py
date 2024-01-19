@@ -9,6 +9,7 @@ from src.network import db
 from src.utils.sqlalchemy import enginefacade
 from src.utils.config import CONF
 from src.utils import consts
+from faker import Faker
 
 
 
@@ -104,6 +105,59 @@ class NetworkService:
         
         except Exception as e:
             return APIResponse.error(400, str(e))
+        
+        
+    @enginefacade.transactional
+    def create_network(self, session, name, ip_address):
+        """
+        create virtual network,
+        this only needs to write db
+        
+        Args:
+            name (str): name of the network
+            ip_address (str): address of the network, eg: 1.2.3.4/24
+        """
+        try:
+            if is_network_ip_used(ip_address):
+                return APIResponse.error(code=400, msg="network ip has been used")
+            network: Network = db.create_network(session, name=name, ip_address=ip_address)
+            return APIResponse.success(network.uuid)
+        
+        except Exception as e:
+            return APIResponse.error(400, str(e))
+    
+    
+    @enginefacade.transactional
+    def delete_network(self, session, name):
+        """
+        delete virtual network,
+        all virtual interfaces of the network would also be deleted
+
+        Args:
+            name (str): network name
+        """
+        try:
+            network: Network = db.get_network_by_name(session, name)
+            if network is None:
+                return APIResponse.error(code=400, msg=f'cannot find a network which name={name}')
+            interfaces: list[Interface] = network.interfaces
+            for interface in interfaces:
+                self.delete_interface(session, interface.uuid)
+            db.delete_network_by_name(session, name)
+            return APIResponse.success()
+        
+        except Exception as e:
+            return APIResponse.error(400, str(e))
+    
+    
+    def create_network_routing(self, session, addrA, addrB, parent_addr):
+        # TODO: db
+        netapi.create_route(addrA, addrB, parent_addr)
+    
+    
+    def delete_network_routing(self, session, addrA, addrB, parent_addr):
+        # TODO: db
+        netapi.delete_route(addrA, addrB, parent_addr)
     
     
     @enginefacade.transactional
@@ -116,6 +170,7 @@ class NetworkService:
                          inerface_type: str = "direct"):
         """
         create virtual interface.
+        if name or ip_address is none ,random name or address would be used
         this is a purely db function,
         real port is set during binding
         """
@@ -128,7 +183,19 @@ class NetworkService:
         if not is_ip_in_network(ip_address, network.address):
             return APIResponse.error(400, f'interface address is not within network')
         
+        if is_interface_ip_used(ip_address):
+            return APIResponse.error(400, f'interface address has been used')
+        
         try:
+            interfaces: list[Network] = db.get_interface_list()
+            used_names: list[str] = [interface.name for interface in interfaces]
+            ips: list[str] = [interface.address for interface in interfaces]
+            if name is None:
+                name = generage_unused_name(used_names)
+            if ip_address is None:
+                ip_address = generate_unique_ip(network.address, ips)
+                
+                
             interface: Interface = db.create_interface(session,
                                             name=name,
                                             network_name=network_name,
@@ -139,6 +206,103 @@ class NetworkService:
                                             )
             uuid = interface.uuid
             return APIResponse.success(data={"interface_uuid": uuid})
+        except Exception as e:
+            return APIResponse.error(400, str(e))
+        
+    
+        
+    @enginefacade.transactional
+    def delete_interface(self, session, interface_uuid: str=None, name: str = None):
+        try:
+            if interface_uuid:
+                interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
+            elif name:
+                interface: Interface = db.get_interface_by_name(session, name)
+                
+        
+            if interface is None:
+                return APIResponse.error(code=400, msg=f'cannot find a interface which name={name}, uuid={interface_uuid}')
+            
+            interface_uuid = interface.uuid
+            if interface.guest_uuid is not None:
+                return APIResponse.error(code=400, msg=f'interface is used by domain whose uuid={interface_uuid}')
+            
+            # 1.if in bound,  unbound the interace
+            if interface.status != "unbound":
+                self.unbind_interface_port(session, interface_uuid)
+            
+            # 2. delete in db
+            db.delete_interface_by_uuid(session, interface_uuid)
+            
+            return APIResponse.success()
+        
+        except Exception as e:
+            return APIResponse.error(400, str(e))
+        
+        
+    @enginefacade.transactional
+    def clone_interface(self, session, interface_uuid: str, new_ip = None):
+        """
+        clone a interface, if new_ip is None, a random available ip within the network would be selected.
+        this is also a purly db function
+
+        """
+        interface: Interface = db.get_interface_by_uuid(interface_uuid)
+        network: Network = db.get_network_by_uuid(interface.network_uuid)
+        if new_ip is not None:
+            if not is_ip_in_network(new_ip, network.address):
+                return APIResponse.error(code=400, msg="new ip is not within network scope")
+         
+        return self.create_interface(session, name=None, network_name=network.name,
+                              ip_address=new_ip, gateway=interface.gateway)
+    
+    
+    
+    @enginefacade.transactional
+    def modify_interface(self, session, interface_uuid: str = None, name: str = None, ip_addr: str = None, gateway:str =None):
+        """
+        modify interface, currently supports ip and gateway only,
+        make sure to pass them both
+        """
+        from src.guest.api import GuestAPI
+        guest_api = GuestAPI()
+        
+        try:
+            if interface_uuid:
+                interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
+            elif name:
+                interface: Interface = db.get_interface_by_name(session, name)
+                
+            if interface is None:
+                return APIResponse.error(code=400, msg=f'cannot find a interface which name={name}, uuid = {interface_uuid}')
+            
+            remove_domain_ip = False
+            if gateway is None and ip_addr is None:
+                remove_domain_ip = True
+            else:
+                if gateway is None:
+                    gateway = interface.gateway
+                if ip_addr is None:
+                    ip_addr = interface.ip_address
+                
+            # 1. update in db
+            db.update_interface_ip(session, interface.uuid, ip_addr)
+            db.update_interface_gateway(session, interface.uuid, gateway)
+            # 2. check if is used in domain
+            if interface.guest_uuid is not None:
+                    
+                domain_status = guest_api.get_domain_status(interface.guest_uuid).get_data()
+            
+                if domain_status == 1:
+                    # if domain is running, directly change the ip/gateway
+                    self.set_domain_ip(session, interface.guest_uuid,
+                                    interface.name, ip_addr, gateway, remove_domain_ip)
+                else:
+                    # else set interface as modified, ip change would apply after starting domain
+                    db.update_interface_modified(session, interface.uuid, True)
+                    
+            return APIResponse.success()
+        
         except Exception as e:
             return APIResponse.error(400, str(e))
         
@@ -232,82 +396,6 @@ class NetworkService:
             return APIResponse.success()
         except Exception as e:
             raise e
-        
-        
-    @enginefacade.transactional
-    def delete_interface(self, session, interface_uuid: str=None, name: str = None):
-        try:
-            if interface_uuid:
-                interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
-            elif name:
-                interface: Interface = db.get_interface_by_name(session, name)
-                
-        
-            if interface is None:
-                return APIResponse.error(code=400, msg=f'cannot find a interface which name={name}, uuid={interface_uuid}')
-            
-            interface_uuid = interface.uuid
-            
-            # 1. in bound unbound the interace
-            if interface.status != "unbound":
-                self.unbind_interface_port(session, interface_uuid)
-            
-            # 2. delete in db
-            db.delete_interface_by_uuid(session, interface_uuid)
-            
-            return APIResponse.success()
-        
-        except Exception as e:
-            return APIResponse.error(400, str(e))
-    
-    
-    @enginefacade.transactional
-    def modify_interface(self, session, interface_uuid: str = None, name: str = None, ip_addr: str = None, gateway:str =None):
-        """
-        modify interface, currently supports ip and gateway only,
-        make sure to pass them both
-        """
-        from src.guest.api import GuestAPI
-        guest_api = GuestAPI()
-        
-        try:
-            if interface_uuid:
-                interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
-            elif name:
-                interface: Interface = db.get_interface_by_name(session, name)
-                
-            if interface is None:
-                return APIResponse.error(code=400, msg=f'cannot find a interface which name={name}, uuid = {interface_uuid}')
-            
-            remove_domain_ip = False
-            if gateway is None and ip_addr is None:
-                remove_domain_ip = True
-            else:
-                if gateway is None:
-                    gateway = interface.gateway
-                if ip_addr is None:
-                    ip_addr = interface.ip_address
-                
-            # 1. update in db
-            db.update_interface_ip(session, interface.uuid, ip_addr)
-            db.update_interface_gateway(session, interface.uuid, gateway)
-            # 2. check if is used in domain
-            if interface.guest_uuid is not None:
-                    
-                domain_status = guest_api.get_domain_status(interface.guest_uuid).get_data()
-            
-                if domain_status == 1:
-                    # if domain is running, directly change the ip/gateway
-                    self.set_domain_ip(session, interface.guest_uuid,
-                                    interface.name, ip_addr, gateway, remove_domain_ip)
-                else:
-                    # else set interface as modified, ip change would apply after starting domain
-                    db.update_interface_modified(session, interface.uuid, True)
-                    
-            return APIResponse.success()
-        
-        except Exception as e:
-            return APIResponse.error(400, str(e))
     
     
     @enginefacade.transactional
@@ -323,67 +411,25 @@ class NetworkService:
         interfaces: list[Interface] = db.condition_select(session, Interface, values={"guest_uuid" : domain_uuid})
         for interface in interfaces:
             if interface.ip_modified:
+                # if interface.remove_from_domain:
+                #     self.set_domain_ip(session, domain_uuid, interface.name, None, None, True)
+                #     db.update_interface_guest_uuid(session, interface.uuid, None)
+                #     db.update_interface_modified(session, interface.uuid, False)
+                #     db.update_interface_removed(session, interface.uuid, False)
+                #     return APIResponse.success()
+                    
                 # if interface is modified, change domain static ip
                 addr = interface.ip_address
                 gateway = interface.gateway
-                if addr or gateway:
-                    self.set_domain_ip(session, domain_uuid, interface.name, addr, gateway, False)
-                else:
+                
+                if addr is None and gateway is None:
                     # if gateway and ip are both None, do remove static ip
                     self.set_domain_ip(session, domain_uuid, interface.name, None, None, True)
+                else:
+                    # else set ip
+                    self.set_domain_ip(session, domain_uuid, interface.name, addr, gateway, False)
                 db.update_interface_modified(session, interface.uuid, False)
         return APIResponse.success()
-    
-    
-    @enginefacade.transactional
-    def create_network(self, session, name, ip_address):
-        """
-        create virtual network,
-        this only needs to write db
-        
-        Args:
-            name (str): name of the network
-            ip_address (str): address of the network, eg: 1.2.3.4/24
-        """
-        try:
-            network: Network = db.create_network(session, name=name, ip_address=ip_address)
-            return APIResponse.success(network.uuid)
-        
-        except Exception as e:
-            return APIResponse.error(400, str(e))
-    
-    
-    @enginefacade.transactional
-    def delete_network(self, session, name):
-        """
-        delete virtual network,
-        all virtual interfaces of the network would also be deleted
-
-        Args:
-            name (str): network name
-        """
-        try:
-            network: Network = db.get_network_by_name(session, name)
-            if network is None:
-                return APIResponse.error(code=400, msg=f'cannot find a network which name={name}')
-            interfaces: list[Interface] = network.interfaces
-            for interface in interfaces:
-                self.delete_interface(session, interface.uuid)
-            db.delete_network_by_name(session, name)
-            return APIResponse.success()
-        
-        except Exception as e:
-            return APIResponse.error(400, str(e))
-    
-    
-    def create_network_routing(self, session, addrA, addrB, parent_addr):
-        # TODO: db
-        netapi.create_route(addrA, addrB, parent_addr)
-    
-    
-    def delete_network_routing(self, session, addrA, addrB, parent_addr):
-        # TODO: db
-        netapi.delete_route(addrA, addrB, parent_addr)
     
     
     @enginefacade.transactional
@@ -412,6 +458,8 @@ class NetworkService:
             
             self.bind_interface_to_port(session, interface.uuid, slave_name)
             db.update_interface_guest_uuid(session, interface.uuid, domain_uuid)
+            db.update_interface_status(session, interface.uuid, "bound_in_use")
+            
             return APIResponse.success()
         
         except Exception as e:
@@ -437,6 +485,41 @@ class NetworkService:
             return APIResponse.error(400, str(e))
     
     
+    @enginefacade.transactional
+    def set_domain_ip_final(self, session,
+                            interface_name,
+                            is_delete=False):
+        """
+        this function should be called in the last of the interface/ip chain
+        it sets/remove static ip configs within domain.
+        Several interface db would also be modified 
+        """
+        from src.guest.api import GuestAPI
+        guest_api = GuestAPI()
+        try:
+            interface: Interface = db.get_interface_by_name(session, interface_name)
+            domain_status = guest_api.get_domain_status(interface.guest_uuid).get_data()
+            if not is_delete :           
+                if domain_status == 1:
+                    # if domain is running, directly change the ip/gateway
+                    self.set_domain_ip(session, interface.guest_uuid,
+                                    interface.name, interface.ip_address, interface.gateway, False)
+                else:
+                    # else set interface as modified, ip change would apply after starting domain
+                    db.update_interface_modified(session, interface.uuid, True)
+            else:
+                if domain_status == 1:
+                    # if domain is running, directly remove the ip/gateway
+                    self.set_domain_ip(session, interface.guest_uuid,
+                                    interface.name, None, None, True)
+                else:
+                    pass
+                    
+        except Exception as e:
+            return APIResponse.error(400, str(e))
+    
+    
+    @enginefacade.transactional
     def set_domain_ip(self, session,
                       domain_uuid: str,
                       interface_name: str,
@@ -445,7 +528,7 @@ class NetworkService:
                       remove: bool = False) -> APIResponse:
         """
         actually set domain's ip via qga, no db operations are involed.
-        parameter remove controls wether its a remove operation
+        parameter 'remove' controls wether its a remove operation
         note that domain must be running.
         """
         from src.guest.api import SlaveAPI, GuestAPI
@@ -537,3 +620,52 @@ def is_ip_in_network(ip_address_str: str, network_address_str: str) -> bool:
         print(f"Error: {e}")
         return False
     
+    
+def is_interface_ip_used(ip_address: str) -> bool:
+    """
+    check db and see if ip has been used by interface
+    """
+    interfaces: list[Interface] = db.get_interface_list()
+    ips: list[str] = [interface.ip_address for interface in interfaces]
+    if ip_address in ips:
+        return True
+    else:
+        return False
+    
+
+def is_network_ip_used(network_address: str) -> bool:
+    """
+    check db and see if network ip has been used
+    """
+    networks: list[Network] = db.get_network_list()
+    ips: list[str] = [network.address for network in networks]
+    if network_address in ips:
+        return True
+    else:
+        return False
+    
+    
+def generate_unique_ip(network_str: str, used_ips: list[str])-> str:
+    """
+    get a ip of the network , and it's not in the used_ip list
+    """
+    network = ipaddress.IPv4Network(network_str, strict=False)
+    available_ips = [str(ip) for ip in network.hosts()]
+    unused_ips = set(available_ips) - set(used_ips)
+
+    # 如果有未使用的 IP 地址，则返回第一个未使用的 IP
+    if unused_ips:
+        return unused_ips.pop()
+    else:
+        return None
+   
+    
+def generage_unused_name(old_name_list: list[str]):
+    """
+    get a name , and it's not in the list
+    """
+    faker = Faker()
+    while True:
+        name: str = faker.name()
+        if old_name_list.count(name) < 1:
+            return name.replace(" ","")

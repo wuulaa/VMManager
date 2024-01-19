@@ -208,11 +208,13 @@ class GuestService():
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(msg=response.msg)
-        return response
+        res = networkapi.set_ip_in_domain(interface_name, False)
+        return res
     
     
     @enginefacade.transactional
     def detach_nic(self, session, domain_name, slave_name, interface_name, flags):
+        networkapi.set_ip_in_domain(interface_name, True)
         xml = networkapi.get_interface_xml(interface_name)
         data = {
             consts.P_DOMAIN_NAME : domain_name,

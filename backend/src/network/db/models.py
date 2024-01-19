@@ -87,6 +87,10 @@ class Interface(Base):
                                              default=False,
                                              comment="If interface ip is modified when domain is shutdown")
     
+    remove_from_domain: Mapped[Boolean] = mapped_column(Boolean,
+                                             default=False,
+                                             comment="Should interface be removed from domain is shutdown")
+    
     network: Mapped["Network"] = relationship(back_populates="interfaces")
     
     def __init__(self,

@@ -57,6 +57,9 @@ class NetworkAPI():
         return network_service.remove_interface_from_domain(interface_name=interface_name,
                                                        domain_uuid=domain_uuid)
     
+    def set_ip_in_domain(self, interface_name: str, is_delete: bool = False) -> APIResponse: 
+        return network_service.set_domain_ip_final(interface_name, is_delete)
+    
         
     def list_networks(self) -> APIResponse:
         return network_service.list_networks()
