@@ -20,6 +20,7 @@ def select_volume_by_name(session, pool_uuid: str, name: str):
                                        'name': name})
     return volumes[0] if len(volumes) > 0 else None
 
+
 @enginefacade.auto_session
 def select_snap_by_volume_uuid(session, volume_uuid: str):
     return condition_select(session,

@@ -2,7 +2,11 @@ import copy
 from functools import wraps
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+from src.utils import config
 
+CONF = config.CONF
+CONNECTION = CONF['database']['connection']
+ECHO = True if CONF['database']['echo'].lower == 'true' else False
 
 _engine = None
 
@@ -10,8 +14,8 @@ _engine = None
 def get_engine():
     global _engine
     if (_engine is None):
-        _engine = create_engine(
-            'mysql+pymysql://vm_manager:kunpeng920@localhost/vm_db', echo=True)
+        _engine = create_engine(url=CONF['database']['connection'],
+                                echo=ECHO)
     return _engine
 
 

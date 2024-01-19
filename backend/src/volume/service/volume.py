@@ -45,14 +45,14 @@ class VolumeService():
                 return index
         return length
 
-    def _is_pool_enough_space(self, session, pool: Pool, allocation: int):
+    def _is_pool_enough_space(self, pool: Pool, allocation: int):
         return True if (allocation < pool.allocation - pool.usage) else False
 
     @enginefacade.transactional
     def add_volume_to_guest(self, session, volume_uuid: str, guest_uuid: str):
         volume = db.select_by_uuid(session, Volume, volume_uuid)
         if volume is None:
-            raise Exception(f'cannot find a volume'
+            raise Exception(f'cannot find a volume '
                             f'which UUID is {volume_uuid}')
         elif volume.guest_uuid is not None:
             raise Exception(f'this volume is used by {volume.guest_uuid}')
@@ -65,7 +65,7 @@ class VolumeService():
     def remove_volume_from_guest(self, session, volume_uuid: str):
         volume = db.select_by_uuid(session, Volume, volume_uuid)
         if volume is None:
-            raise Exception(f'cannot find a volume'
+            raise Exception(f'cannot find a volume '
                             f'which UUID is {volume_uuid}')
         volume.guest_uuid = None
         volume.dev_order = None
@@ -99,7 +99,7 @@ class VolumeService():
             pool.usage += allocation
             return volume
         else:
-            raise Exception(f'volume {volume_name} creation failed:'
+            raise Exception(f'volume {volume_name} creation failed: '
                             f'{response.get_msg()}')
 
     @enginefacade.transactional
@@ -115,17 +115,16 @@ class VolumeService():
         dest_pool = db.select_by_uuid(session, Pool, dest_pool_uuid)
 
         if src_volume is None:
-            raise Exception(
-                f'cannot find a volume which UUID is {src_volume_uuid}')
+            raise Exception(f'cannot find a volume '
+                            f'which UUID is {src_volume_uuid}')
         elif dest_pool is None:
-            raise Exception(
-                f'cannot find a pool which UUID is {dest_pool_uuid}')
+            raise Exception(f'cannot find a pool '
+                            f'which UUID is {dest_pool_uuid}')
         elif not self._is_pool_enough_space(session, dest_pool, src_volume.allocation):
             raise Exception(f'Pool {dest_pool.name} is not enough space')
 
         # 2. 创建 snapshot
-        # snap_name = f'{src_volume.name}_{str(datetime.datetime.now().replace(' ', '_'))}'
-        snap_name = f'{src_volume.name}'
+        snap_name = f'{src_volume.name}_{str(datetime.datetime.now().replace(" ", "_"))}'
         snap_response = snap_driver.create(src_volume.name, snap_name)
 
         if snap_response.is_success():
@@ -148,14 +147,14 @@ class VolumeService():
             dest_pool.usage += src_volume.allocation
             return dest_volume
         else:
-            raise Exception(f'volume {dest_volume_name} clone failed:'
+            raise Exception(f'volume {dest_volume_name} clone failed: '
                             f'{clone_response.get_msg()}')
 
     @enginefacade.transactional
     def create_from_snap(self, session, snap_uuid: str, volume_name: str):
         snapshot = db.select_by_uuid(session, Snapshot, snap_uuid)
         if snapshot is None:
-            raise Exception(f'cannot find a snapshot'
+            raise Exception(f'cannot find a snapshot '
                             f'which UUID is {snap_uuid}')
 
         response = volume_driver.clone(src_volume_name=snapshot.volume.name,
@@ -170,14 +169,14 @@ class VolumeService():
             db.insert(session, cloned_volume)
             return cloned_volume
         else:
-            raise Exception(f'volume {volume_name} creation failed:'
+            raise Exception(f'volume {volume_name} creation failed: '
                             f'{response.get_msg()}')
 
     @enginefacade.transactional
     def delete_volume_by_uuid(self, session, volume_uuid: str):
         volume = db.select_by_uuid(session, Volume, volume_uuid)
         if volume is None:
-            raise Exception(f'cannot find a volume'
+            raise Exception(f'cannot find a volume '
                             f'which UUID is {volume_uuid}')
 
         response = volume_driver.delete(volume.name)
@@ -185,7 +184,7 @@ class VolumeService():
             volume.pool.usage -= volume.allocation
             db.delete(session, volume)
         else:
-            raise Exception(f'volume {volume.name} deletion failed:'
+            raise Exception(f'volume {volume.name} deletion failed: '
                             f'{response.get_msg()}')
 
     @enginefacade.transactional
@@ -196,7 +195,7 @@ class VolumeService():
 
         volume = db.select_volume_by_name(session, pool_uuid, volume_name)
         if volume is None:
-            raise Exception(f'cannot find a volume named {volume_name}'
+            raise Exception(f'cannot find a volume named {volume_name} '
                             f'in Pool {pool.name}')
 
         response = volume_driver.delete(volume.name)
@@ -204,7 +203,7 @@ class VolumeService():
             pool.usage -= volume.allocation
             db.delete(session, volume)
         else:
-            raise Exception(f'volume {volume.name} deletion failed:'
+            raise Exception(f'volume {volume.name} deletion failed: '
                             f'{response.get_msg()}')
 
     @enginefacade.transactional
@@ -219,10 +218,10 @@ class VolumeService():
     def get_volume_xml(self, session, volume_uuid: str) -> str:
         volume = db.select_by_uuid(session, Volume, volume_uuid)
         if volume.guest_uuid is None:
-            raise Exception(
-                f'Volume {volume.name} hasn\'t distribution to any guest')
-        xml = RbdVolumeXMLBuilder.construct(volume.name, volume.dev_order)
-        return xml
+            raise Exception(f'Volume {volume.name} hasn\'t '
+                            f'distribution to any guest')
+        disk = RbdVolumeXMLBuilder().construct(volume.name, volume.dev_order)
+        return disk.get_xml_string()
 
     @enginefacade.transactional
     def list_volumes(self, session, pool_uuid: str = None):
@@ -234,11 +233,10 @@ class VolumeService():
         if volume.usage <= new_size:
             response = volume_driver.resize(volume.name, new_size)
             if response.is_success():
-                db.condition_update(session, Pool, uuid, {
-                                    'allocation': new_size})
+                db.condition_update(session, Pool, uuid, {'allocation': new_size})
         else:
-            raise Exception("The new capacity is smaller "
-                            "than the used capacity")
+            raise Exception('The new capacity is smaller '
+                            'than the used capacity')
 
 
 class SnapshotService():
@@ -249,7 +247,7 @@ class SnapshotService():
                         snap_name: str):
         volume = db.select_by_uuid(session, Volume, volume_uuid)
         if volume is None:
-            raise Exception(f'cannot find a volume'
+            raise Exception(f'cannot find a volume '
                             f'which UUID is {volume_uuid}')
 
         response = snap_driver.create(volume.name, snap_name)
@@ -259,21 +257,21 @@ class SnapshotService():
             db.insert(session, snapshot)
             return snapshot
         else:
-            raise Exception(f'snapshot {snap_name} creation failed:'
+            raise Exception(f'snapshot {snap_name} creation failed: '
                             f'{response.get_msg()}')
 
     @enginefacade.transactional
     def delete_snapshot_by_uuid(self, session, snap_uuid: str):
         snapshot = db.select_by_uuid(session, Snapshot, snap_uuid)
         if snapshot is None:
-            raise Exception(f'cannot find a snapshot'
+            raise Exception(f'cannot find a snapshot '
                             f'which UUID is {snap_uuid}')
         response = snap_driver.delete(snapshot.volume.name, snapshot.name)
 
         if response.is_success():
             db.delete(session, snapshot)
         else:
-            raise Exception(f'snapshot {snapshot.name} deletion failed:'
+            raise Exception(f'snapshot {snapshot.name} deletion failed: '
                             f'{response.get_msg()}')
 
     @enginefacade.transactional
