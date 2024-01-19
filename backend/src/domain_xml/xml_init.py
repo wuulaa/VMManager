@@ -8,11 +8,12 @@ from src.domain_xml.device.graphics import create_vnc_viewer
 from src.domain_xml.device.input import DeviceInput
 from src.domain_xml.domain.guest import Guest, DomainDevices
 
-def create_initial_xml(domain_name: str):
+def create_initial_xml(domain_name: str, uuid: str):
     guest = Guest()
 
     # set guest basic values
     guest.domain_name = domain_name
+    guest.uuid = uuid
     guest.type = "kvm"
     guest.memoryUnit = "KiB"
     guest.memory = 1048576

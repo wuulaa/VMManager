@@ -234,12 +234,20 @@ def migrate():
 def attach_disk():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
-    pass
+    size = request.values.get(consts.P_MEMORY_SIZE)
+    volume_name = request.values.get(consts.P_VOLUME_NAME)
+    volume_uuid = request.values.get(consts.P_VOLUME_UUID)
+    flags = request.values.get(consts.P_FLAGS)
+    return guestAPI.attach_disk(domain_name, slave_name, volume_name, volume_uuid, size,flags)
 
 
 @guest_bp.route("/detachDisk", methods=["POST"])
 def detach_disk():
-    pass
+    domain_name = request.values.get(consts.P_DOMAIN_NAME)
+    slave_name = request.values.get(consts.P_SLAVE_NAME)
+    volume_uuid = request.values.get(consts.P_VOLUME_UUID)
+    flags = request.values.get(consts.P_FLAGS)
+    return guestAPI.detach_disk(domain_name, slave_name, volume_uuid, flags)
 
 
 @guest_bp.route("/diskCopy", methods=["POST"])

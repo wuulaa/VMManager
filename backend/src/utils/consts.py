@@ -25,6 +25,8 @@ P_GATEWAY = "gateway"
 P_MAC = "mac"
 
 P_PARENT = "parent"
+P_VOLUME_UUID = "volume_uuid"
+P_VOLUME_NAME = "volume_name"
 
 P_DEVICE_XML = "device_xml"
 P_PORT = "port"
@@ -36,3 +38,5 @@ P_SPICE = "spice"
 P_ADDRESS = "address"
 P_USER_NAME = "user_name"
 P_PASSWD = "passwd"
+
+P_POOL_UUID = "d38681d3-07fd-41c7-b457-1667ef9354c7"

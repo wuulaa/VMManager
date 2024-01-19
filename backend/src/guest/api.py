@@ -138,8 +138,11 @@ class GuestAPI():
     def get_domain_status(session, domain_uuid: str):
         return guestService.get_domain_status(domain_uuid)
     
-    def attach_disk(session, domain_name: str, slave_name: str):
-        return guestService.attach_domain_disk(domain_name, slave_name)
+    def attach_disk(session, domain_name: str, slave_name: str, volume_name, volume_uuid: str = None, size: int = 10*1024*1024*1024, flags: int = libvirt.VIR_DOMAIN_VCPU_CONFIG):
+        return guestService.attach_domain_disk(domain_name, slave_name, volume_name, volume_uuid, size, flags)
+    
+    def detach_disk(session, domain_name: str, slave_name: str, volume_uuid, flags: int = libvirt.VIR_DOMAIN_VCPU_CONFIG):
+        return guestService.detach_domain_disk(domain_name, slave_name, volume_uuid, flags)
     
     
 
