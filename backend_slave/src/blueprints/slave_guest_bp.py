@@ -52,7 +52,6 @@ def set_auto_start_domain():
     res = guestAPI.set_auto_start_domain(domain_name)
     return res.json()
 
-
 @guest_bp.route("/startDomain/", methods=["POST"])
 def start_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
