@@ -7,6 +7,8 @@ from src.domain_xml.device.char import DeviceSerial, DeviceConsole, CharSource, 
 from src.domain_xml.device.graphics import create_vnc_viewer
 from src.domain_xml.device.input import DeviceInput
 from src.domain_xml.domain.guest import Guest, DomainDevices
+from src.volume.xml.volume.rbd_builder import RbdVolumeXMLBuilder
+from src.domain_xml.device.disk import create_cdrom_builder
 
 def create_initial_xml(domain_name: str):
     guest = Guest()
@@ -124,3 +126,10 @@ def create_initial_xml(domain_name: str):
 
     guest.emulator = "/usr/bin/qemu-system-aarch64"
     return guest
+
+guest: Guest = create_initial_xml("template1")
+rbdXMLBuilder = RbdVolumeXMLBuilder()
+guest.devices.disk.append(rbdXMLBuilder.construct(volume_name="template1"))
+guest.devices.disk.append(create_cdrom_builder(source_path="/home/kvm/images/ubuntu-22.04.3-live-server-arm64.iso", target_dev="sda"))
+print(guest.get_xml_string())
+

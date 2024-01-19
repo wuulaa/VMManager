@@ -232,6 +232,7 @@ def delete_snap(pool_name: str, rbd_name: str, snap_name: str):
     snap = SnapShot(pool_name, rbd_name)
     image = snap.get_image()
     try:
+        snap.unprotect_snap(snap_name)
         image.remove_snap(snap_name)
         return APIResponse.success()
     except Exception as err:
