@@ -486,6 +486,3 @@ class SlaveService():
             uuid = guestDB.get_domain_uuid_by_name(session, domain_name, slave_name)
             guestDB.update_guest(session, uuid, values={})
         return response
-    
-service = GuestService()
-service.create_domain("test_2024_1_22_3", "test")
