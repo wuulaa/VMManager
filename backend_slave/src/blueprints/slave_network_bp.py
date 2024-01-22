@@ -119,9 +119,9 @@ def init_set_static_ip():
 
     """
     domain_UUID = request.values.get(consts.P_DOMAIN_UUID)
-    ipaddresses = request.values.get(consts.P_IP_ADDRESSES)
-    gateways = request.values.get(consts.P_GATEWAYS)
-    interface_names = request.values.get(consts.P_INTERFACE_NAMES)
+    ipaddresses = request.values.get(consts.P_IP_ADDRESSES).split(',')
+    gateways = request.values.get(consts.P_GATEWAYS).split(',')
+    interface_names = request.values.get(consts.P_INTERFACE_NAMES).split(',')
     res = service.init_set_guest_ips_ubuntu(domain_UUID, ipaddresses, gateways, interface_names)
     return res.json()
 

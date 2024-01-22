@@ -107,9 +107,9 @@ def delete_route(netA: str, netB: str, parent: str):
 
 
 def init_set_guest_ips_ubuntu(uuid: str,
-                        ip_addresses: list[str],
-                        gateways: list[str],
-                        interface_names: list[str],
+                        ip_addresses: list,
+                        gateways: list,
+                        interface_names: list,
                         dns: str = "8.8.8.8",
                         file_path: str = "/etc/netplan/01-network-manager-all.yaml"):
     """

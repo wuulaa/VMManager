@@ -31,10 +31,6 @@ class NetworkAPI():
     def modify_interface(self, interface_name: str, ip_addr: str, gateway:str) -> APIResponse:
         return network_service.modify_interface(interface_uuid=None, name=interface_name,
                                                 ip_addr=ip_addr, gateway=gateway)
-        
-        
-    def domain_ip_modified(self, domain_uuid) -> APIResponse:
-        return network_service.domain_ip_modified(domain_uuid=domain_uuid)
     
     
     def create_network(self, name, network_address) -> APIResponse:
@@ -57,8 +53,9 @@ class NetworkAPI():
         return network_service.remove_interface_from_domain(interface_name=interface_name,
                                                        domain_uuid=domain_uuid)
     
-    def set_ip_in_domain(self, interface_name: str, is_delete: bool = False) -> APIResponse: 
-        return network_service.set_domain_ip_final(interface_name, is_delete)
+    
+    def init_set_domain_static_ip(self, domain_uuid):
+        return network_service.init_set_domain_static_ip(domain_uuid=domain_uuid)
     
         
     def list_networks(self) -> APIResponse:

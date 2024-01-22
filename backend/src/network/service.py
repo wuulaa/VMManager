@@ -451,9 +451,9 @@ class NetworkService:
             
             data = {
                     consts.P_DOMAIN_UUID: domain_uuid,
-                    consts.P_IP_ADDRESSES: ips,
-                    consts.P_GATEWAYS: gateways,
-                    consts.P_INTERFACE_NAMES: veth_names
+                    consts.P_IP_ADDRESSES: ",".join(ips),
+                    consts.P_GATEWAYS: ",".join(gateways),
+                    consts.P_INTERFACE_NAMES: ",".join(veth_names)
                     }
             response: requests.Response = requests.post(url + "/setStaticIP/", data)
             return APIResponse.success()
