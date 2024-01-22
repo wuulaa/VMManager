@@ -1,3 +1,4 @@
+from typing import Optional
 from src.utils.response import APIResponse
 from .service.pool import PoolService
 from .service.volume import VolumeService, SnapshotService
@@ -47,116 +48,161 @@ class PoolAPI(object):
 
 class VolumeAPI(object):
 
-    def add_volume_to_guest(self, volume_uuid: str,
-                            guest_uuid: str,
-                            return_xml: bool = False):
+    def add_disk_to_guest(self,
+                          volume_uuid: str,
+                          guest_uuid: str,
+                          rt_flag: Optional[int] = 0):
         try:
-            response = APIResponse.success('The volume is successfully'
+            response = APIResponse.success('The disk is successfully'
                                            'added to the client.')
             volume = volume_service.add_volume_to_guest(volume_uuid, guest_uuid)
-            if return_xml:
-                response.set_data(volume.get_xml_string())
-            else:
+            if rt_flag == 0:
                 response.set_data(volume)
+            elif rt_flag == 1:
+                # disk
+                data = {'volume_uuid': volume.uuid,
+                        'disk': volume.get_device()}
+                response.set_data(data)
+            elif rt_flag == 2:
+                response.set_data(volume.get_xml_string())
             return response
         except Exception as e:
             return APIResponse.error(400, e)
 
-    def remove_volume_from_guest(self, volume_uuid: str):
+    def remove_disk_from_guest(self, volume_uuid: str):
         try:
             volume_service.remove_volume_from_guest(volume_uuid)
             return APIResponse.success('The volume has been removed')
         except Exception as e:
             return APIResponse.error(400, e)
 
-    def create_volume(self,
-                      pool_uuid: str,
-                      volume_name: str,
-                      allocation: int,
-                      guest_uuid: str,
-                      return_xml: bool = False):
+    def create_disk(self,
+                    pool_uuid: str,
+                    volume_name: str,
+                    allocation: int,
+                    guest_uuid: Optional[str] = None,
+                    rt_flag: Optional[int] = 0):
         try:
+            import pdb
+            pdb.set_trace()
             response = APIResponse.success()
             volume = volume_service.create_volume(pool_uuid, volume_name,
                                                   allocation, guest_uuid)
-            if return_xml:
-                response.set_data(volume.get_xml_string())
-            else:
+            if rt_flag == 0:
                 response.set_data(volume)
+            elif rt_flag == 1:
+                # disk
+                data = {'volume_uuid': volume.uuid,
+                        'disk': volume.get_device()}
+                response.set_data(data)
+            elif rt_flag == 2:
+                response.set_data(volume.get_xml_string())
             return response
         except Exception as e:
             return APIResponse.error(400, e)
 
-    def create_from_snap(self,
-                         snap_uuid: str,
-                         volume_name: str,
-                         return_xml: bool = False):
+    def create_disk_from_snap(self,
+                              snap_uuid: str,
+                              volume_name: str,
+                              guest_uuid: Optional[str] = None,
+                              rt_flag: Optional[int] = 0):
         try:
             response = APIResponse.success()
-            volume = volume_service.create_from_snap(snap_uuid, volume_name)
-            if return_xml:
-                response.set_data(volume.get_xml_string())
-            else:
+            volume = volume_service.create_from_snap(snap_uuid,
+                                                     volume_name,
+                                                     guest_uuid=guest_uuid)
+            if rt_flag == 0:
                 response.set_data(volume)
+            elif rt_flag == 1:
+                # disk
+                data = {'volume_uuid': volume.uuid,
+                        'disk': volume.get_device()}
+                response.set_data(data)
+            elif rt_flag == 2:
+                response.set_data(volume.get_xml_string())
             return response
         except Exception as e:
             return APIResponse.error(400, e)
 
-    def clone_volume(self,
-                     src_volume_uuid: str,
-                     dest_pool_uuid: str,
-                     dest_volume_name: str,
-                     return_xml: bool = False):
+    def clone_disk(self,
+                   src_volume_uuid: str,
+                   dest_pool_uuid: str,
+                   dest_volume_name: str,
+                   guest_uuid: Optional[str] = None,
+                   rt_flag: Optional[int] = 0):
         try:
             response = APIResponse.success()
             dest_volume = volume_service.clone_volume(src_volume_uuid,
                                                       dest_pool_uuid,
-                                                      dest_volume_name)
-            if return_xml:
-                response.set_data(dest_volume.get_xml_string())
-            else:
+                                                      dest_volume_name,
+                                                      guest_uuid=guest_uuid)
+            if rt_flag == 0:
                 response.set_data(dest_volume)
+            elif rt_flag == 1:
+                # disk
+                data = {'volume_uuid': dest_volume.uuid,
+                        'disk': dest_volume.get_device()}
+                response.set_data(data)
+            elif rt_flag == 2:
+                response.set_data(dest_volume.get_xml_string())
             return response
         except Exception as e:
             return APIResponse.error(400, e)
 
-    def delete_volume_by_uuid(self, uuid: str):
+    def delete_disk_by_uuid(self, uuid: str):
         try:
             volume_service.delete_volume_by_uuid(uuid)
             return APIResponse.success(msg='Volume deleted successfully')
         except Exception as e:
             return APIResponse.error(400, e)
 
-    def delete_volume_by_name(self, pool_uuid: str, volume_name: str):
+    def delete_disk_by_name(self, pool_uuid: str, volume_name: str):
         try:
             volume_service.delete_volume_by_name(pool_uuid, volume_name)
             return APIResponse.success(msg='Volume deleted successfully')
         except Exception as e:
             return APIResponse.error(400, e)
 
-    def get_volume_by_uuid(self, uuid: str, return_xml: bool = False):
+    def get_disk_by_uuid(self, uuid: str, rt_flag: Optional[int] = 0):
         try:
             response = APIResponse.success()
             volume = volume_service.get_volume_by_uuid(uuid)
-            if return_xml:
-                response.set_data(volume.get_xml_string())
-            else:
+            if rt_flag == 0:
                 response.set_data(volume)
+            elif rt_flag == 1:
+                # disk
+                data = {'volume_uuid': volume.uuid,
+                        'disk': volume.get_device()}
+                response.set_data(data)
+            elif rt_flag == 2:
+                response.set_data(volume.get_xml_string())
             return response
         except Exception as e:
             return APIResponse.error(400, e)
 
-    def get_volume_by_name(self, pool_uuid: str,
-                           volume_name: str,
-                           return_xml: bool = False):
+    def get_disk_by_name(self,
+                         pool_uuid: str,
+                         volume_name: str,
+                         rt_flag: Optional[int] = 0):
         try:
             response = APIResponse.success()
             volume = volume_service.get_volume_by_name(pool_uuid, volume_name)
-            if return_xml:
-                response.set_data(volume.get_xml_string())
-            else:
+            if rt_flag == 0:
                 response.set_data(volume)
-            return response
+            elif rt_flag == 1:
+                # disk
+                data = {'volume_uuid': volume.uuid,
+                        'disk': volume.get_device()}
+                response.set_data(data)
+            elif rt_flag == 2:
+                response.set_data(volume.get_xml_string())
+        except Exception as e:
+            return APIResponse.error(400, e)
+
+    def get_disk_xml(self, volume_uuid: str):
+        try:
+            xml = volume_service.get_volume_xml(volume_uuid)
+            return APIResponse.success(xml)
         except Exception as e:
             return APIResponse.error(400, e)
 
@@ -190,3 +236,24 @@ class SnapshotAPI(object):
             return APIResponse.success(snap_list)
         except Exception as e:
             return APIResponse.error(400, e)
+
+
+# POOL_UUID = 'd38681d3-07fd-41c7-b457-1667ef9354c7'
+# volume_api = VolumeAPI()
+# res = volume_api.create_disk(POOL_UUID, 'test2', 20480,
+#                              guest_uuid='288373f6-40e5-48dd-8bd6-960d6ae1e94e',
+#                              rt_flag=1)
+
+# print(res.is_success())
+# data = res.get_data()
+# print(str(res.data))
+# print(res.data['volume_uuid'])
+# print(res.data['disk'])
+# print(res.get_msg())
+# response = volume_api.clone_disk(src_volume_uuid='8388ad7f-e58b-4d94-bf41-6e95b23d0d4a',
+#                                  dest_pool_uuid=POOL_UUID,
+#                                  dest_volume_name='test',
+#                                  rt_flag=False)
+# print(response.is_success())
+# print(response.get_data())
+# print(response.get_msg())

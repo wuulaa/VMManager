@@ -114,7 +114,7 @@ class Volume(Base):
                  allocation: int = 20480,
                  parent_uuid: str = None,
                  guest_uuid: str = None,
-                 dev_order: int = 0):
+                 dev_order: int = None):
         if (name is not None and pool_uuid is not None):
             self.name = name
             self.pool_uuid = pool_uuid
@@ -125,12 +125,12 @@ class Volume(Base):
 
             self.uuid = self._gen_uuid()
 
-    def _get_device(self):
+    def get_device(self):
         return xml_builder().construct(volume_name=self.name,
                                        dev_order=self.dev_order)
 
     def get_xml_string(self):
-        return self._get_device().get_xml_string()
+        return self.get_device().get_xml_string()
 
 
 class Snapshot(Base):
