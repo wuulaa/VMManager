@@ -194,7 +194,7 @@ class GuestService():
     @enginefacade.transactional
     def delete_domain(self, session, domain_name, slave_name):
         data = {consts.P_DOMAIN_NAME : domain_name}
-        url = CONF['slave'][slave_name]
+        url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/delDomain/", data=data).json())
         if(response.code == 0):
             uuid = guestDB.get_domain_uuid_by_name(session, domain_name, slave_name)
@@ -205,13 +205,14 @@ class GuestService():
     def attach_nic(self, session, domain_name, slave_name, interface_name, flags):
         domain_uuid = guestDB.get_domain_uuid_by_name(session, domain_name, slave_name)
         response = networkapi.attach_interface_to_domain(domain_uuid, interface_name)
-        xml = networkapi.get_interface_xml(interface_name)
+        xml = networkapi.get_interface_xml(interface_name).get_data()
         data = {
             consts.P_DOMAIN_NAME : domain_name,
             consts.P_DEVICE_XML : xml,
             consts.P_FLAGS : flags
         }
-        url = CONF['slave'][slave_name]
+        url = CONF['slaves'][slave_name]
+        print(url)
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(msg=response.msg)
@@ -220,13 +221,13 @@ class GuestService():
     
     @enginefacade.transactional
     def detach_nic(self, session, domain_name, slave_name, interface_name, flags):
-        xml = networkapi.get_interface_xml(interface_name)
+        xml = networkapi.get_interface_xml(interface_name).get_data()
         data = {
             consts.P_DOMAIN_NAME : domain_name,
             consts.P_DEVICE_XML : xml,
             consts.P_FLAGS : flags
         }
-        url = CONF['slave'][slave_name]
+        url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/detachDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(msg=response.msg)
@@ -243,7 +244,7 @@ class GuestService():
     @enginefacade.transactional
     def set_domain_vcpu(self, session, domain_name, slave_name, cpu_num, flags):
         data = {consts.P_DOMAIN_NAME : domain_name, consts.P_CPU_NUM : cpu_num, consts.P_FLAGS : flags}
-        url = CONF['slave'][slave_name]
+        url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/setCPU/", data=data).json())
         if(response.code == 0):
             uuid = guestDB.get_domain_uuid_by_name(session, domain_name, slave_name)
@@ -253,7 +254,7 @@ class GuestService():
     @enginefacade.transactional
     def set_domain_memory(self, session, domain_name, slave_name, memory_size, flags):
         data = {consts.P_DOMAIN_NAME : domain_name, consts.P_MEMORY_SIZE : memory_size, consts.P_FLAGS : flags}
-        url = CONF['slave'][slave_name]
+        url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/setMemory", data=data).json())
         if(response.code == 0):
             uuid = guestDB.get_domain_uuid_by_name(session, domain_name, slave_name)
@@ -269,7 +270,7 @@ class GuestService():
             consts.P_DEVICE_XML: xml,
             consts.P_FLAGS : flags
         }
-        url = CONF['slave'][slave_name]
+        url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(msg=response.msg)
@@ -287,7 +288,7 @@ class GuestService():
             consts.P_DEVICE_XML: xml,
             consts.P_FLAGS : flags
         }
-        url = CONF['slave'][slave_name]
+        url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(msg=response.msg)
@@ -308,7 +309,7 @@ class GuestService():
             consts.P_DEVICE_XML: xml,
             consts.P_FLAGS : flags
         }
-        url = CONF['slave'][slave_name]
+        url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(msg=response.msg)
@@ -325,7 +326,7 @@ class GuestService():
         data = {
             consts.P_DOMAIN_NAME : domain_name,
         }
-        url = CONF['slave'][slave_name]
+        url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/monitor/", data=data).json())
         if response.code != 0:
             return APIResponse.error(msg=response.msg)
@@ -338,16 +339,18 @@ class GuestService():
             consts.P_USER_NAME: user_name,
             consts.P_PASSWD: passwd
         }
-        url = CONF['slave'][slave_name]
+        url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/setUserPasswd/", data=data).json())
         if response.code != 0:
             return APIResponse.error(msg=response.msg)
         return response
     
-    def get_domain_slave_name(session, domain_uuid: str):
+    @enginefacade.transactional
+    def get_domain_slave_name(self, session, domain_uuid: str):
         return APIResponse.success(guestDB.get_domain_slave_name(session, domain_uuid))
     
-    def get_domain_status(session, domain_uuid: str):
+    @enginefacade.transactional
+    def get_domain_status(self, session, domain_uuid: str):
         return APIResponse.success(guestDB.get_domain_status(session, domain_uuid))
     
     @enginefacade.transactional
@@ -370,7 +373,7 @@ class GuestService():
             consts.P_DEVICE_XML : xml,
             consts.P_FLAGS : flags
         }
-        url = CONF['slave'][slave_name]
+        url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(msg=response.msg)
@@ -388,7 +391,7 @@ class GuestService():
             consts.P_DEVICE_XML : xml,
             consts.P_FLAGS : flags
         }
-        url = CONF['slave'][slave_name]
+        url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/detachDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(msg=response.msg)
@@ -478,7 +481,7 @@ class SlaveService():
     @enginefacade.transactional
     def attach_domain_disk(self, session, domain_name, slave_name):
         data = {consts.P_DOMAIN_NAME : domain_name}
-        url = CONF['slave'][slave_name]
+        url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDisk/", data=data).json())
         if(response.code == 0):
             uuid = guestDB.get_domain_uuid_by_name(session, domain_name, slave_name)

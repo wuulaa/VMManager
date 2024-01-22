@@ -111,7 +111,7 @@ def init_set_guest_ips_ubuntu(uuid: str,
                         gateways: list,
                         interface_names: list,
                         dns: str = "8.8.8.8",
-                        file_path: str = "/etc/netplan/01-network-manager-all.yaml"):
+                        file_path: str = "/etc/netplan/00-installer-config.yaml"):
     """
     clear file and add all static ips provided.
     This function should be called as the init function to handle all static ips.
@@ -153,7 +153,7 @@ def set_guest_ip_ubuntu(uuid: str,
                         gateway: str,
                         interface_name: str,
                         dns: str = "8.8.8.8",
-                        file_path: str = "/etc/netplan/01-network-manager-all.yaml"):
+                        file_path: str = "/etc/netplan/00-installer-config.yaml"):
     """
     set static ip for domain, domain must be running.
     """
@@ -194,7 +194,7 @@ def set_guest_ip_ubuntu(uuid: str,
     return APIResponse.success()
 
 
-def remove_guest_ip_ubuntu(uuid: str, interface_name: str = None, file_path: str = "/etc/netplan/01-network-manager-all.yaml"):
+def remove_guest_ip_ubuntu(uuid: str, interface_name: str = None, file_path: str = "/etc/netplan/00-installer-config.yaml"):
     """
     remove static ip for domain, domain must be running.
     if no interface name is provided, remove all
@@ -239,7 +239,7 @@ network:
     return APIResponse.success()
     
 
-def retry_with_delay(func, *args, max_retries = 5, delay = 2):
+def retry_with_delay(func, *args, max_retries = 10, delay = 2):
     for attempt in range(1, max_retries + 1):
         try:
             result = func(*args)

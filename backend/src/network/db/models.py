@@ -67,7 +67,7 @@ class Interface(Base):
                                             unique=False,
                                             comment="ip gateway bond to the interface, could be null if net set yet")
     
-    xml: Mapped[str] = mapped_column(String(64),
+    xml: Mapped[str] = mapped_column(String(1024),
                                      nullable=True,
                                      comment="xml string of a NIC/interface")
     
@@ -156,10 +156,12 @@ class OVSPort(Base):
                                           comment="OVS port tag")
     
     slave_uuid: Mapped[str] = mapped_column(String(64),
+                                            nullable=True,
                                              comment="The UUID of slave this port belongs to.")
     
     interface_uuid: Mapped[str] = mapped_column(String(64),
-                                             comment="The UUID of interface this port is bound to.")
+                                                nullable=True,
+                                                comment="The UUID of interface this port is bound to.")
     
     port_type: Mapped[str] = mapped_column(Enum("internal", "vxlan"),
                                            default="internal",

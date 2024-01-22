@@ -50,12 +50,12 @@ def delete_domain_by_uuid(session, uuid: str):
 
 @enginefacade.auto_session
 def get_domain_slave_name(session, domain_uuid: str):
-    guest: Guest = db.select_by_uuid(session, domain_uuid)
+    guest: Guest = db.select_by_uuid(session, Guest, domain_uuid)
     return guest.slave_name
 
 @enginefacade.auto_session
 def get_domain_status(session, domain_uuid: str):
-    guest: Guest = db.select_by_uuid(session, domain_uuid)
+    guest: Guest = db.select_by_uuid(session, Guest, domain_uuid)
     return guest.status
 
     

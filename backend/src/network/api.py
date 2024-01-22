@@ -42,7 +42,7 @@ class NetworkAPI():
     
     
     def get_interface_xml(self, interface_name) -> APIResponse:
-        return network_service.get_interface_xml(interface_name)
+        return network_service.get_interface_xml(name=interface_name)
     
     
     def attach_interface_to_domain(self, domain_uuid: str, interface_name: str)-> APIResponse:

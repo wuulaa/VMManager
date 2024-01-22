@@ -3,10 +3,12 @@ import configparser
 from flask import Flask
 from src.blueprints.network_bp import network_bp
 from src.blueprints.guest_bp import guest_bp
+from src.blueprints.slave_bp import slave_bp
 
 app = Flask(__name__)
 app.register_blueprint(network_bp)
 app.register_blueprint(guest_bp)
+app.register_blueprint(slave_bp)
 
 
 @app.route("/")

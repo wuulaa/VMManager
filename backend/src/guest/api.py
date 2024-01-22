@@ -92,10 +92,10 @@ class GuestAPI():
     def delete_domain(self, domain_name: str, slave_name: str):
         return guestService.delete_domain(domain_name, slave_name)
     
-    def attach_nic(self, domain_name: str, slave_name: str, interface_name: str, flags: int):
+    def attach_nic(self, domain_name: str, slave_name: str, interface_name: str, flags: int)-> APIResponse:
         return guestService.attach_nic(domain_name, slave_name, interface_name, flags)
     
-    def detach_nic(self, domain_name: str, slave_name: str, interface_name: str, flags: int):
+    def detach_nic(self, domain_name: str, slave_name: str, interface_name: str, flags: int)->APIResponse:
         return guestService.detach_nic(domain_name, slave_name, interface_name, flags)
     
     def list_nic(self, domain_name: str, slave_name: str) -> APIResponse:

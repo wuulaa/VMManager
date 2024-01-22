@@ -29,7 +29,10 @@ class NetworkService:
         '''
         # TODO: should write db?
         try:
-            slave_count: int = CONF.getint("slaves", "slaveCount")
+            slaves = CONF['slaves']
+            slave_count: int = 0
+            for key in slaves.keys():
+                slave_count = slave_count + 1
             bridge_prefix: str = CONF.get("network", "bridge_prefix")
             master_ip: str = CONF.get("master", "master").split(":")[0]
             
@@ -42,9 +45,10 @@ class NetworkService:
             netapi.init_iptables()
             
             # 2. create slave bridges and add vxlan ports
-            for i in range(1, slave_count + 1):
+            i = 0
+            for key, value in slaves.items():
                 
-                slave_address: str = CONF.get("slaves", f"slave{i}")
+                slave_address: str = value
                 slave_ip: str = slave_address.split(":")[0]
                 url = "http://"+ slave_address
                 
@@ -60,8 +64,9 @@ class NetworkService:
                     consts.P_REMOTE_IP: master_ip
                 }
                 response2 = APIResponse(requests.post(url + "/addVxlanPort/", data))
-                
-                netapi.add_vxlan_port_to_bridge(master_bridge_name, f"vxlan_master_{i}", slave_ip)
+                i = i+1
+                # TODO: single machine cannot hava same vlan ports, uncomment this for real cluster
+                # netapi.add_vxlan_port_to_bridge(master_bridge_name, f"vxlan_master_{i}", slave_ip)
                 
             
             return APIResponse.success()
@@ -79,7 +84,10 @@ class NetworkService:
         NAT network using iptables is removed in master node, 
         '''
         try:
-            slave_count: int = CONF.getint("slaves", "slaveCount")
+            slaves = CONF['slaves']
+            slave_count: int = 0
+            for key in slaves.keys():
+                slave_count += 1
             bridge_prefix: str = CONF.get("network", "bridge_prefix")
             master_ip: str = CONF.get("master", "master").split(":")[0]
             
@@ -92,8 +100,8 @@ class NetworkService:
             netapi.uninit_iptables()
 
             # 2. delete slave bridges
-            for i in range(1, slave_count + 1):
-                slave_address: str = CONF.get("slaves", f"slave{i}")
+            for key, value in slaves.items():
+                slave_address: str = value
                 url = "http://"+ slave_address
                 
                 data = {
@@ -296,7 +304,7 @@ class NetworkService:
                     
                 domain_status = guest_api.get_domain_status(interface.guest_uuid).get_data()
             
-                if domain_status == 1:
+                if domain_status == "running":
                     # if domain is running, directly change the ip/gateway
                     self.set_domain_ip(session, interface.guest_uuid,
                                     interface.name, ip_addr, gateway, remove_domain_ip)
@@ -330,7 +338,7 @@ class NetworkService:
             
             # 1. create ovs port in slave
             slave_address: str = slave_api.get_slave_address_by_name(slave_name).get_data()
-            slave_uuid: str = slave_api.get_slave_by_name(name).get_data().uuid
+            slave_uuid: str = slave_api.get_slave_by_name(slave_name).get_data().uuid
             slave_bridge_name = CONF.get("network", "bridge_prefix") + "_slave"
             
             url = "http://"+ slave_address
@@ -416,7 +424,7 @@ class NetworkService:
                     consts.P_DOMAIN_UUID: domain_uuid
                 }
             response: requests.Response = requests.post(url + "/getInterfaceAddresses/", data)
-            res_dict: dict = APIResponse.deserialize_response(response.json())
+            res_dict: dict = response.json().get(data)
             interfaces: list[Interface] = db.condition_select(session, Interface, values={"guest_uuid" : domain_uuid})
             
             for interface in interfaces:
@@ -478,12 +486,12 @@ class NetworkService:
         """
         from src.guest.api import GuestAPI
         guest_api = GuestAPI()
-        
         try:
             interface: Interface = db.get_interface_by_name(session, interface_name)
             if interface.status == "bound_in_use" or interface.guest_uuid is not None:
                 return APIResponse.error(401, "interface already in use")
-            slave_name = guest_api.get_domain_slave_name(domain_uuid)
+            slave_name = guest_api.get_domain_slave_name(domain_uuid).get_data()
+
             
             self.bind_interface_to_port(session, interface.uuid, slave_name)
             db.update_interface_guest_uuid(session, interface.uuid, domain_uuid)

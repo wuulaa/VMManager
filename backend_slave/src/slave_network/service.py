@@ -55,7 +55,7 @@ def set_guest_ip_ubuntu(uuid: str,
                         gateway: str,
                         interface_name: str,
                         dns: str = "8.8.8.8",
-                        file_path: str = "/etc/netplan/01-network-manager-all.yaml"):
+                        file_path: str = "/etc/netplan/00-installer-config.yaml"):
     return netapi.retry_with_delay(netapi.set_guest_ip_ubuntu, uuid, ip_address, gateway, interface_name, dns, file_path)
 
 def init_set_guest_ips_ubuntu(uuid: str,
@@ -63,11 +63,11 @@ def init_set_guest_ips_ubuntu(uuid: str,
                         gateways: list,
                         interface_names: list,
                         dns: str = "8.8.8.8",
-                        file_path: str = "/etc/netplan/01-network-manager-all.yaml"):
+                        file_path: str = "/etc/netplan/00-installer-config.yaml"):
     return netapi.retry_with_delay(netapi.init_set_guest_ips_ubuntu, uuid, ip_addresses, gateways, interface_names, dns, file_path)
 
 
-def remove_domain_ip_ubuntu(uuid: str, interface_name: str=None, file_path: str = "/etc/netplan/01-network-manager-all.yaml"):
+def remove_domain_ip_ubuntu(uuid: str, interface_name: str=None, file_path: str = "/etc/netplan/00-installer-config.yaml"):
     return netapi.retry_with_delay(netapi.remove_guest_ip_ubuntu, uuid, interface_name, file_path)
 
 
