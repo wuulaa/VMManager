@@ -156,7 +156,7 @@ class Snapshot(Base):
             raise Exception('volume_uuid or snapshot name cannot be empty')
         self.volume_uuid = volume_uuid
         self.name = snap_name
-  
+
         self.uuid = self._gen_uuid()
 
 

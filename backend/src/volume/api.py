@@ -213,6 +213,13 @@ class VolumeAPI(object):
         except Exception as e:
             return APIResponse.error(400, e)
 
+    def rollback_to_snap(self, volume_uuid: str, snap_uuid: str):
+        try:
+            volume_service.rollback_to_snap(volume_uuid, snap_uuid)
+            return APIResponse.success('Rollback successfully')
+        except Exception as e:
+            return APIResponse.error(400, e)
+
 
 class SnapshotAPI(object):
 
@@ -230,6 +237,13 @@ class SnapshotAPI(object):
         except Exception as e:
             return APIResponse.error(400, e)
 
+    def get_snaptshot_info(self, snap_uuid: str = None):
+        try:
+            info = snap_service.get_snap_info(snap_uuid)
+            return APIResponse.success(data=info)
+        except Exception as e:
+            return APIResponse.error(400, e)
+
     def list_snapshots(self, volume_uuid: str = None):
         try:
             snap_list = snap_service.list_snapshots(volume_uuid)
@@ -240,9 +254,12 @@ class SnapshotAPI(object):
 
 # POOL_UUID = 'd38681d3-07fd-41c7-b457-1667ef9354c7'
 # volume_api = VolumeAPI()
-# res = volume_api.create_disk(POOL_UUID, 'test2', 20480,
-#                              guest_uuid='288373f6-40e5-48dd-8bd6-960d6ae1e94e',
-#                              rt_flag=1)
+# res = volume_api.rollback_to_snap(
+#     volume_uuid='8388ad7f-e58b-4d94-bf41-6e95b23d0d4a',
+#     snap_uuid='b59344fd-6051-43ea-9249-9d7910bf9fb6'
+# )
+# print(res.is_success())
+# print(res.get_msg())
 
 # print(res.is_success())
 # data = res.get_data()

@@ -38,6 +38,12 @@ class RbdVolume(VolumeDriver):
     def resize(volume_name: str, new_size: int):
         return APIResponse.success()
 
+    @staticmethod
+    def rollback(volume_name: str, snap_name: str):
+        return rbd.rollback_to_snap(POOL_NAME,
+                                    volume_name,
+                                    snap_name)
+
 
 class RbdSnapshot(SnapshotDriver):
     @staticmethod
@@ -47,3 +53,7 @@ class RbdSnapshot(SnapshotDriver):
     @staticmethod
     def delete(volume_name: str, snap_name: str):
         return rbd.delete_snap(POOL_NAME, volume_name, snap_name)
+
+    @staticmethod
+    def get_snap_info(volume_name: str, snap_name: str):
+        return rbd.info_snap(POOL_NAME, volume_name, snap_name)
