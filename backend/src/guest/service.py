@@ -1,7 +1,6 @@
 from src.domain_xml.xml_init import create_initial_xml
 from src.utils.config import CONF
 from src.volume.xml.volume.rbd_builder import RbdVolumeXMLBuilder
-from src.volume.api import API
 from src.guest.db import db as guestDB
 from src.utils.singleton import singleton
 from src.utils.sqlalchemy import enginefacade
@@ -9,8 +8,9 @@ from src.utils.response import APIResponse
 from src.network.api import NetworkAPI
 from src.domain_xml.device import graphics
 from src.domain_xml.device.disk import create_cdrom_builder
-from src.volume.api import VolumeAPI
+from src.volume.api import VolumeAPI, SnapshotAPI
 from src.utils.generator import UUIDGenerator
+from src.domain_xml.domain.guest import Guest, DomainDevices
 import src.utils.consts as consts 
 import requests
 
@@ -27,19 +27,25 @@ status = {
 
 vol_api = VolumeAPI()
 networkapi = NetworkAPI()
+generator =UUIDGenerator()
+snap_api = SnapshotAPI()
 
 class GuestService():
     @enginefacade.transactional
     def create_domain(self, session, domain_name: str, slave_name: str, **kwargs):
-        exist_uuids = guestDB.get_domain_list()
-        guest = create_initial_xml(domain_name)
-        vol_api.clone_volume()
+        exist_uuids =[]
+        for guest in guestDB.get_domain_list(session):
+            exist_uuids.append(guest.uuid)
+        guest_uuid = generator.get_uuid(exist_uuids)
+        guest: Guest = create_initial_xml(domain_name, guest_uuid)
+        response = vol_api.clone_disk("8388ad7f-e58b-4d94-bf41-6e95b23d0d4a", "d38681d3-07fd-41c7-b457-1667ef9354c7", domain_name, guest_uuid, rt_flag=1)
+        guest.devices.disk.append(response.get_data()["disk"])
+        print(guest.get_xml_string())       
 
-        vol_api.create_volume("a2d6b10a-8957-4648-8052-8371fb10f4e1", domain_name, 20*1024)
-        rbdXML = RbdVolumeXMLBuilder()
-        device = rbdXML.construct(domain_name)
-        guest.devices.disk.append(device)
-        guest.devices.disk.append(create_cdrom_builder(source_path="/home/kvm/images/ubuntu-22.04.3-live-server-arm64.iso", target_dev="sda"))
+        # rbdXML = RbdVolumeXMLBuilder()
+        # device = rbdXML.construct(domain_name)
+        # guest.devices.disk.append(device)
+        # guest.devices.disk.append(create_cdrom_builder(source_path="/home/kvm/images/ubuntu-22.04.3-live-server-arm64.iso", target_dev="sda"))
         url = CONF['slaves'][slave_name]
         xml = {consts.P_DOMAIN_XML : guest.get_xml_string(), consts.P_DOMAIN_NAME : domain_name}
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/addDomain/", data=xml).json())
@@ -118,6 +124,9 @@ class GuestService():
         data = {consts.P_DOMAINS_NAME_LIST : domains_name_list}
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/batchStartDomains/", data=data).json())
+        success_list = response.get_data()["success"]
+        for uuid in success_list:
+            guestDB.status_update(session, uuid, status[1])
         return response
 
     @enginefacade.transactional
@@ -208,13 +217,11 @@ class GuestService():
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(msg=response.msg)
-        res = networkapi.set_ip_in_domain(interface_name, False)
-        return res
+        return response
     
     
     @enginefacade.transactional
     def detach_nic(self, session, domain_name, slave_name, interface_name, flags):
-        networkapi.set_ip_in_domain(interface_name, True)
         xml = networkapi.get_interface_xml(interface_name)
         data = {
             consts.P_DOMAIN_NAME : domain_name,
@@ -371,7 +378,6 @@ class GuestService():
             return APIResponse.error(msg=response.msg)
         return response
     
-
     @enginefacade.transactional
     def detach_domain_disk(self, session, domain_name, slave_name, volume_uuid, flags):
         response = vol_api.get_volume_by_uuid(volume_uuid, return_xml = True)
@@ -389,6 +395,27 @@ class GuestService():
         if response.code != 0:
             return APIResponse.error(msg=response.msg)
         return vol_api.remove_volume_from_guest(volume_uuid)
+    
+    def add_disk_copy(self, volume_uuid, copy_name):
+        return vol_api.clone_volume(volume_uuid ,"d38681d3-07fd-41c7-b457-1667ef9354c7", copy_name)
+    
+    def del_disk_copy(self, volume_uuid):
+        return vol_api.delete_volume_by_uuid(volume_uuid)
+    
+    def get_disk_copys(self, volume_uuid):
+        return 
+    
+    def add_snapshot(self, volume_uuid, snap_name):
+        return snap_api.create_snapshot(volume_uuid, snap_name)
+    
+    def get_snapshot_info(self, snap_uuid):
+        return snap_api.get_snapshot_info(snap_uuid)
+    
+    def del_snapshot(self, snap_uuid):
+        return snap_api.delete_snapshot_by_uuid(snap_uuid)
+    
+    def rollback_to_snapshot(self, snap_uuid):
+        return snap_api.rollback_to_snapshot(snap_uuid)
 
 class SlaveService():
     @enginefacade.transactional
@@ -459,3 +486,6 @@ class SlaveService():
             uuid = guestDB.get_domain_uuid_by_name(session, domain_name, slave_name)
             guestDB.update_guest(session, uuid, values={})
         return response
+    
+service = GuestService()
+service.create_domain("test_2024_1_22_3", "test")

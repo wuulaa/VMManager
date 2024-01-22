@@ -26,7 +26,7 @@ def get_domain_detail():
     return 
 
 @guest_bp.route("/add", methods=["POST"])
-def add_domain():
+def create_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     return guestAPI.create_domain(domain_name, slave_name).json()
@@ -252,7 +252,9 @@ def detach_disk():
 
 @guest_bp.route("/diskCopy", methods=["POST"])
 def disk_copy():
-    pass
+    volume_uuid = request.values.get(consts.P_VOLUME_UUID)
+    copy_name = request.values.get(consts.P_COPY_NAME)
+    return guestAPI.add_disk_copy(volume_uuid, copy_name)
 
 
 @guest_bp.route("/diskCopyCancel", methods=["POST"])
@@ -262,12 +264,14 @@ def disk_copy_cancel():
 
 @guest_bp.route("/diskCopyDel", methods=["POST"])
 def disk_copy_del():
-    pass
+    volume_uuid = request.values.get(consts.P_VOLUME_UUID)
+    return guestAPI.del_disk_copy(volume_uuid)
 
 
 @guest_bp.route("/diskCopyList")
 def disk_copy_list():
-    pass
+    volume_uuid = request.values.get(consts.P_VOLUME_UUID)
+    return guestAPI.get_disk_copys(volume_uuid)
 
 
 @guest_bp.route("/diskCopyRecover", methods=["POST"])
@@ -277,7 +281,9 @@ def disk_copy_recover():
 
 @guest_bp.route("/snapshotAdd", methods=["POST"])
 def add_snapshot():
-    pass
+    volume_uuid = request.values.get(consts.P_VOLUME_UUID)
+    snap_name = request.values.get(consts.P_SNAP_NAME)    
+    return guestAPI.add_snapshot(volume_uuid, snap_name)
 
 
 @guest_bp.route("/putSnapshotName", methods=["POST"])
@@ -287,17 +293,20 @@ def put_snapshot_name():
 
 @guest_bp.route("/snapshotDetail", methods=["POST"])
 def snapshot_detail():
-    pass
-
+    snap_uuid = request.values.get(consts.P_SNAP_UUID)
+    return guestAPI.get_snap_info(snap_uuid)
+    
 
 @guest_bp.route("/snapshotDel", methods=["POST"])
 def del_snapshot():
-    pass
+    snap_uuid = request.values.get(consts.P_SNAP_UUID)
+    return guestAPI.del_snapshot(snap_uuid)
 
 
 @guest_bp.route("/snapshotRestore", methods=["POST"])
 def restore_snapshot():
-    pass
+    snap_uuid = request.values.get(consts.P_SNAP_UUID)
+    return guestAPI.rollback_to_snapshot(snap_uuid)
 
 
 @guest_bp.route("/snapshotSave", methods=["POST"])

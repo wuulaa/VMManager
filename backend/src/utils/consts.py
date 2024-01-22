@@ -39,4 +39,8 @@ P_ADDRESS = "address"
 P_USER_NAME = "user_name"
 P_PASSWD = "passwd"
 
+P_COPY_NAME = "copy_name"
+P_SNAP_NAME = "snap_name"
+P_SNAP_UUID = "snap_uuid"
+
 P_POOL_UUID = "d38681d3-07fd-41c7-b457-1667ef9354c7"

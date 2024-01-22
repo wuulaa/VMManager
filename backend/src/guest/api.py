@@ -132,17 +132,38 @@ class GuestAPI():
     def set_user_passwd(self, domain_name: str, slave_name: str, user_name: str, passwd: str):
         return guestService.set_user_passwd(domain_name, slave_name, user_name, passwd)
         
-    def get_domain_slave_name(session, domain_uuid: str):
+    def get_domain_slave_name(self, domain_uuid: str):
         return guestService.get_domain_slave_name(domain_uuid)
     
-    def get_domain_status(session, domain_uuid: str):
+    def get_domain_status(self, domain_uuid: str):
         return guestService.get_domain_status(domain_uuid)
     
-    def attach_disk(session, domain_name: str, slave_name: str, volume_name, volume_uuid: str = None, size: int = 10*1024*1024*1024, flags: int = libvirt.VIR_DOMAIN_VCPU_CONFIG):
+    def attach_disk(self, domain_name: str, slave_name: str, volume_name, volume_uuid: str = None, size: int = 10*1024*1024*1024, flags: int = libvirt.VIR_DOMAIN_VCPU_CONFIG):
         return guestService.attach_domain_disk(domain_name, slave_name, volume_name, volume_uuid, size, flags)
     
-    def detach_disk(session, domain_name: str, slave_name: str, volume_uuid, flags: int = libvirt.VIR_DOMAIN_VCPU_CONFIG):
+    def detach_disk(self, domain_name: str, slave_name: str, volume_uuid, flags: int = libvirt.VIR_DOMAIN_VCPU_CONFIG):
         return guestService.detach_domain_disk(domain_name, slave_name, volume_uuid, flags)
+    
+    def add_disk_copy(self, volume_uuid: str, copy_name: str):
+        return guestService.add_disk_copy(volume_uuid, copy_name)
+    
+    def del_disk_copy(self, volume_uuid: str):
+        return guestService.del_disk_copy(volume_uuid)
+    
+    def get_disk_copys(self, volume_uuid: str):
+        return 
+    
+    def add_snapshot(self, volume_uuid: str, snap_name: str):
+        return guestService.add_snapshot(volume_uuid, snap_name)
+    
+    def get_snap_info(self, snap_uuid: str):
+        return
+    
+    def del_snapshot(self, snap_uuid: str):
+        return guestService.del_snapshot(snap_uuid)
+    
+    def rollback_to_snapshot(self, snap_uuid: str):
+        return guestService.rollback_to_snapshot(snap_uuid)
     
     
 
