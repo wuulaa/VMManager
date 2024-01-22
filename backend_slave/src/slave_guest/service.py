@@ -5,7 +5,7 @@ from src.utils import connect
 connection = connect.get_libvirt_connection()
 
 def create_domain(config_xml: str):
-    return guest_manager.create_unpersistent_domain(connection, config_xml)
+    return guest_manager.create_persistent_domain(connection, config_xml)
 
 def shutdown_domain(domain_name: str):
     uuid = guest_manager.get_uuid_by_name(connection, domain_name)
