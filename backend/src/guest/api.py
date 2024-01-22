@@ -80,7 +80,7 @@ class GuestAPI():
     def batch_restart_domains(self, domains_name_list, slave_name: str):
         return guestService.batch_restart_domains(domains_name_list, slave_name)
 
-    def get_domains_list():
+    def get_domains_list(self):
         return guestService.get_domains_list()
 
     def rename_domain(self, domain_name: str, new_name: str, slave_name: str):

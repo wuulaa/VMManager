@@ -31,13 +31,13 @@ def update_guest(session, uuid: str, values: dict):
 
 @enginefacade.auto_session
 def status_update(session, uuid: str, status: str):
-    db.condition_update(session, uuid, {"status": status})
+    db.condition_update(session, Guest, uuid, values = {"status": status})
     guest: Guest = db.select_by_uuid(session, Guest, uuid)
     return guest
 
 @enginefacade.auto_session
 def get_domain_uuid_by_name(session, domain_name: str, slave_name: str):
-    return db.condition_select(session, Guest, values = {"name": domain_name, "slave_name": slave_name}).uuid
+    return db.condition_select(session, Guest, values = {"name": domain_name, "slave_name": slave_name})[0].uuid
 
 @enginefacade.auto_session
 def get_domain_list(session):

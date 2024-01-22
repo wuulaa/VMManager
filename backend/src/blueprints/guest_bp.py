@@ -18,7 +18,14 @@ def guest():
 def get_domains_list():
     response =APIResponse()
     response.set_code(0)
-    response.set_data(guestAPI.get_domains_list())
+    guest_list = []
+    for item in guestAPI.get_domains_list():
+        guest = {}
+        guest["domain_name"] = item.name
+        guest["domain_uuid"] = item.uuid
+        guest["slave_name"] = item.slave_name
+        guest_list.append(guest)
+    response.set_data(guest_list)
     return response.json()
 
 @guest_bp.route("/detail", methods=["GET"])
@@ -58,6 +65,7 @@ def start():
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     return guestAPI.start_domain(domain_name, slave_name).json()
 
+
 @guest_bp.route("/shutdown", methods=["POST"])
 def shutdown_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
@@ -68,7 +76,7 @@ def shutdown_domain():
 def destroy_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
-    return guestAPI.pause_domain(domain_name, slave_name).json()
+    return guestAPI.destroy_domain(domain_name, slave_name).json()
 
 @guest_bp.route("/pause", methods=["POST"])
 def pause_domain():
