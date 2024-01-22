@@ -116,4 +116,19 @@ def update_domain_device(conn: libvirt.virConnect,
         return APIResponse.success()
     except libvirt.libvirtError as err:
         return APIResponse.error(code=400, msg=str(err))
+    
+
+def get_domain_interface_addresses(conn: libvirt.virConnect, domain_uuid: str):
+    '''
+    get domain interface addressees using qga, returned as dict.
+    domain should be running
+    '''
+    try:
+        domain = conn.lookupByUUIDString(domain_uuid)
+        if domain is None:
+            return APIResponse.error(code=404, msg=error_info.get(404))
+        res = domain.interfaceAddresses(libvirt.VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_AGENT)
+        return APIResponse.success(res)
+    except libvirt.libvirtError as err:
+        return APIResponse.error(code=400, msg=str(err))
 

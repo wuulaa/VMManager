@@ -5,7 +5,7 @@ from src.slave_network import service
 network_bp = Blueprint("network-bp", __name__)
 
 
-@network_bp.post("/init")
+@network_bp.post("/init/")
 def init_cluster_network():
     ip_ddr = request.values.get(consts.P_NETWORK_ADDRESS)
     bridge_name = request.values.get(consts.P_BRIDGE_NAME)
@@ -14,21 +14,21 @@ def init_cluster_network():
     return res.json()
 
 
-@network_bp.post("/createBridge")
+@network_bp.post("/createBridge/")
 def add_bridge():
     bridge_name = request.values.get(consts.P_BRIDGE_NAME)
     res = service.create_bridge(bridge_name)
     return res.json()
 
 
-@network_bp.post("/deleteBridge")
+@network_bp.post("/deleteBridge/")
 def del_bridge():
     bridge_name = request.values.get(consts.P_BRIDGE_NAME)
     res = service.delete_bridge(bridge_name)
     return res.json()
 
 
-@network_bp.post("/addPort")
+@network_bp.post("/addPort/")
 def add_port():
     bridge_name = request.values.get(consts.P_BRIDGE_NAME)
     port_name = request.values.get(consts.P_PORT_NAME)
@@ -37,7 +37,7 @@ def add_port():
     return res.json()
 
 
-@network_bp.post("/delPort")
+@network_bp.post("/delPort/")
 def del_port():
     bridge_name = request.values.get(consts.P_BRIDGE_NAME)
     port_name = request.values.get(consts.P_PORT_NAME)
@@ -45,7 +45,7 @@ def del_port():
     return res.json()
 
 
-@network_bp.post("/addVxlanPort")
+@network_bp.post("/addVxlanPort/")
 def add_vxlan_port():
     bridge_name = request.values.get(consts.P_BRIDGE_NAME)
     port_name = request.values.get(consts.P_PORT_NAME)
@@ -54,7 +54,7 @@ def add_vxlan_port():
     return res.json()
 
 
-@network_bp.post("/setTag")
+@network_bp.post("/setTag/")
 def set_tag():
     bridge_name = request.values.get(consts.P_BRIDGE_NAME)
     port_name = request.values.get(consts.P_PORT_NAME)
@@ -63,7 +63,7 @@ def set_tag():
     return res.json()
 
 
-@network_bp.post("/removeTag")
+@network_bp.post("/removeTag/")
 def remove_tag():
     bridge_name = request.values.get(consts.P_BRIDGE_NAME)
     port_name = request.values.get(consts.P_PORT_NAME)
@@ -72,7 +72,7 @@ def remove_tag():
     return res.json()
 
 
-@network_bp.post("/addRoute")
+@network_bp.post("/addRoute/")
 def create_route():
     networkA = request.values.get(consts.P_NETWORKA)
     networkB = request.values.get(consts.P_NETWORKB)
@@ -81,7 +81,7 @@ def create_route():
     return res.json()
 
 
-@network_bp.post("/deleteRoute")
+@network_bp.post("/deleteRoute/")
 def delete_troute():
     networkA = request.values.get(consts.P_NETWORKA)
     networkB = request.values.get(consts.P_NETWORKB)
@@ -90,7 +90,7 @@ def delete_troute():
     return res.json()
 
 
-@network_bp.post("/setStaticIP")
+@network_bp.post("/setStaticIP/")
 def set_static_ip():
     """
     set a domain's interface static ip.
@@ -103,14 +103,31 @@ def set_static_ip():
         _type_: _description_
     """
     domain_UUID = request.values.get(consts.P_DOMAIN_UUID)
-    ipaddress = request.values.get(consts.P_NETWORK_ADDRESS)
+    ipaddress = request.values.get(consts.P_IP_ADDRESS)
     gateway = request.values.get(consts.P_GATEWAY)
     interface_name = request.values.get(consts.P_INTERFACE_NAME)
     res = service.set_guest_ip_ubuntu(domain_UUID, ipaddress, gateway, interface_name)
     return res.json()
 
 
-@network_bp.post("/removeStaticIP")
+@network_bp.post("/initSetStaticIP/")
+def init_set_static_ip():
+    """
+    set a domain's all interface static ip.
+    domain must be running while executing this func.
+    five atempts would be done in ten seconds if exception occurs
+
+    """
+    domain_UUID = request.values.get(consts.P_DOMAIN_UUID)
+    ipaddresses = request.values.get(consts.P_IP_ADDRESSES)
+    gateways = request.values.get(consts.P_GATEWAYS)
+    interface_names = request.values.get(consts.P_INTERFACE_NAMES)
+    res = service.init_set_guest_ips_ubuntu(domain_UUID, ipaddresses, gateways, interface_names)
+    return res.json()
+
+
+
+@network_bp.post("/removeStaticIP/")
 def remove_static_ip():
     """
     remove a domain static ip.

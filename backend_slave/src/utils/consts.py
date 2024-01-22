@@ -20,7 +20,9 @@ P_TAG = "tag"
 P_NETWORKA = "networkA"
 P_NETWORKB = "networkB"
 P_INTERFACE_NAME = "interface_name"
+P_INTERFACE_NAMES = "interface_names"
 P_GATEWAY = "gateway"
+P_GATEWAYS = "gateways"
 
 P_PARENT = "parent"
 
@@ -28,3 +30,6 @@ P_DEVICE_XML = "device_xml"
 P_FLAGS = "flags"
 P_USER_NAME = "user_name"
 P_PASSWD = "passwd"
+
+P_IP_ADDRESS = "ip_address"
+P_IP_ADDRESSES = "ip_addresses"

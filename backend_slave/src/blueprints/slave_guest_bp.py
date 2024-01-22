@@ -174,6 +174,14 @@ def attach_disk():
     res: APIResponse = guestAPI.monitor(domain_name)
     return res.json()
 
+
+@guest_bp.route("/getInterfaceAddresses/", methods=["POST"])
+def get_domain_ip_addressed():
+    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
+    res: APIResponse = guestAPI.get_domain_interface_addresses(domain_uuid)
+    return res.json()
+
+
 # @guest_bp.route("/cloneDomain/", methods=["POST"])
 # def clone_domain():
 #     domain_name = request.values.get(consts.P_DOMAIN_NAME)

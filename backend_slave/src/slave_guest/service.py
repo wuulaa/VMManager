@@ -107,3 +107,6 @@ def monitor(domain_name: str):
 def set_user_passwd(domain_name: str, user_name: str, passwd: str):
     uuid = guest_manager.get_uuid_by_name(connection, domain_name)
     return guest_manager.set_user_passwd(connection, uuid, user_name, passwd)
+
+def get_domain_interface_addresses(domain_uuid: str):
+    return device_manager.get_domain_interface_addresses(connection, domain_uuid)

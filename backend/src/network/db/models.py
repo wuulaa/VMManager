@@ -36,6 +36,10 @@ class Interface(Base):
     name: Mapped[str] = mapped_column(String(64),
                                       unique=True,
                                       comment="port name")
+    veth_name: Mapped[str] = mapped_column(String(64),
+                                      nullable=True,
+                                      comment="port name within the virtual machine")
+    
     uuid: Mapped[str] = mapped_column(String(64),
                                       unique=True,
                                       comment="interface UUID")

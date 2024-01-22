@@ -51,6 +51,12 @@ def update_interface_ip(session, uuid, new_ip):
 
 
 @enginefacade.auto_session
+def update_interface_veth_name(session, uuid, veth_name: str):
+    condition_update(session, Interface, uuid, {"veth_name": veth_name})
+    return select_by_uuid(session, Interface, uuid)
+
+
+@enginefacade.auto_session
 def update_interface_gateway(session, uuid, gateway):
     condition_update(session, Interface, uuid, {"gateway": gateway})
     return select_by_uuid(session, Interface, uuid)

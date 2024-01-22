@@ -1,5 +1,6 @@
 import requests
 import ipaddress
+import random
 from src.utils.response import APIResponse
 from src.utils.singleton import singleton
 from src.domain_xml.device import interface as interface_xml
@@ -50,7 +51,7 @@ class NetworkService:
                 data = {
                     consts.P_BRIDGE_NAME: slave_bridge_name
                 }
-                response1 = requests.post(url + "/createBridge", data)
+                response1 = requests.post(url + "/createBridge/", data)
                 
                 # master and slave cannot use the same remote ip
                 data = {
@@ -58,7 +59,7 @@ class NetworkService:
                     consts.P_PORT_NAME: f"vxlan_slave_{i}",
                     consts.P_REMOTE_IP: master_ip
                 }
-                response2 = APIResponse(requests.post(url + "/addVxlanPort", data))
+                response2 = APIResponse(requests.post(url + "/addVxlanPort/", data))
                 
                 netapi.add_vxlan_port_to_bridge(master_bridge_name, f"vxlan_master_{i}", slave_ip)
                 
@@ -98,7 +99,7 @@ class NetworkService:
                 data = {
                     consts.P_BRIDGE_NAME: slave_bridge_name
                 }
-                response = requests.post(url + "/deleteBridge", data)
+                response = requests.post(url + "/deleteBridge/", data)
                 
             
             return APIResponse.success()
@@ -194,6 +195,8 @@ class NetworkService:
                 name = generage_unused_name(used_names)
             if ip_address is None:
                 ip_address = generate_unique_ip(network.address, ips)
+            if mac is None:
+                mac = random_mac()
                 
                 
             interface: Interface = db.create_interface(session,
@@ -299,7 +302,8 @@ class NetworkService:
                                     interface.name, ip_addr, gateway, remove_domain_ip)
                 else:
                     # else set interface as modified, ip change would apply after starting domain
-                    db.update_interface_modified(session, interface.uuid, True)
+                    # db.update_interface_modified(session, interface.uuid, True)
+                    pass
                     
             return APIResponse.success()
         
@@ -399,37 +403,62 @@ class NetworkService:
     
     
     @enginefacade.transactional
-    def domain_ip_modified(self, session, domain_uuid):
-        """
-        Determine whether domain's interface ip is modified when domain is not running.
-        This function should be called only when staring the domain.
-        If modified, call funcs to change domain's static ip after starting the domain.
-        This function should be called after starting domain
-
-        """
-        # find domain's interfaces
-        interfaces: list[Interface] = db.condition_select(session, Interface, values={"guest_uuid" : domain_uuid})
-        for interface in interfaces:
-            if interface.ip_modified:
-                # if interface.remove_from_domain:
-                #     self.set_domain_ip(session, domain_uuid, interface.name, None, None, True)
-                #     db.update_interface_guest_uuid(session, interface.uuid, None)
-                #     db.update_interface_modified(session, interface.uuid, False)
-                #     db.update_interface_removed(session, interface.uuid, False)
-                #     return APIResponse.success()
-                    
-                # if interface is modified, change domain static ip
-                addr = interface.ip_address
-                gateway = interface.gateway
-                
-                if addr is None and gateway is None:
-                    # if gateway and ip are both None, do remove static ip
-                    self.set_domain_ip(session, domain_uuid, interface.name, None, None, True)
-                else:
-                    # else set ip
-                    self.set_domain_ip(session, domain_uuid, interface.name, addr, gateway, False)
-                db.update_interface_modified(session, interface.uuid, False)
-        return APIResponse.success()
+    def update_domain_veth_name(self, session, domain_uuid):
+        from src.guest.api import SlaveAPI, GuestAPI
+        slave_api = SlaveAPI()
+        guest_api = GuestAPI()
+        
+        try:
+            slave_name: str = guest_api.get_domain_slave_name(domain_uuid).get_data()
+            slave_address: str = slave_api.get_slave_address_by_name(slave_name).get_data()
+            url = "http://"+ slave_address
+            data = {
+                    consts.P_DOMAIN_UUID: domain_uuid
+                }
+            response: requests.Response = requests.post(url + "/getInterfaceAddresses/", data)
+            res_dict: dict = APIResponse.deserialize_response(response.json())
+            interfaces: list[Interface] = db.condition_select(session, Interface, values={"guest_uuid" : domain_uuid})
+            
+            for interface in interfaces:
+                mac = interface.mac
+                for key, info in res_dict:
+                    if "hwaddr" in info and info.get('hwaddr') == mac:
+                        db.update_interface_veth_name(session, interface.uuid, key)
+            
+            return APIResponse.success()
+                        
+        except Exception as e:
+            raise e
+        
+        
+    @enginefacade.transactional
+    def init_set_domain_static_ip(self, session, domain_uuid):
+        from src.guest.api import SlaveAPI, GuestAPI
+        slave_api = SlaveAPI()
+        guest_api = GuestAPI()
+        try:
+            slave_name: str = guest_api.get_domain_slave_name(domain_uuid).get_data()
+            slave_address: str = slave_api.get_slave_address_by_name(slave_name).get_data()
+            url = "http://"+ slave_address
+            
+            self.update_domain_veth_name(session, domain_uuid)
+            
+            
+            interfaces: list[Interface] = db.condition_select(session, Interface, values={"guest_uuid" : domain_uuid})
+            veth_names = [interface.veth_name for interface in interfaces]
+            ips = [interface.ip_address for interface in interfaces]
+            gateways = [interface.gateway for interface in interfaces]
+            
+            data = {
+                    consts.P_DOMAIN_UUID: domain_uuid,
+                    consts.P_IP_ADDRESSES: ips,
+                    consts.P_GATEWAYS: gateways,
+                    consts.P_INTERFACE_NAMES: veth_names
+                    }
+            response: requests.Response = requests.post(url + "/setStaticIP/", data)
+            return APIResponse.success()
+        except Exception as e:
+            return APIResponse.error(code=400, msg=str(e))
     
     
     @enginefacade.transactional
@@ -483,47 +512,14 @@ class NetworkService:
         
         except Exception as e:
             return APIResponse.error(400, str(e))
-    
-    
-    @enginefacade.transactional
-    def set_domain_ip_final(self, session,
-                            interface_name,
-                            is_delete=False):
-        """
-        this function should be called in the last of the interface/ip chain
-        it sets/remove static ip configs within domain.
-        Several interface db would also be modified 
-        """
-        from src.guest.api import GuestAPI
-        guest_api = GuestAPI()
-        try:
-            interface: Interface = db.get_interface_by_name(session, interface_name)
-            domain_status = guest_api.get_domain_status(interface.guest_uuid).get_data()
-            if not is_delete :           
-                if domain_status == 1:
-                    # if domain is running, directly change the ip/gateway
-                    self.set_domain_ip(session, interface.guest_uuid,
-                                    interface.name, interface.ip_address, interface.gateway, False)
-                else:
-                    # else set interface as modified, ip change would apply after starting domain
-                    db.update_interface_modified(session, interface.uuid, True)
-            else:
-                if domain_status == 1:
-                    # if domain is running, directly remove the ip/gateway
-                    self.set_domain_ip(session, interface.guest_uuid,
-                                    interface.name, None, None, True)
-                else:
-                    pass
-                    
-        except Exception as e:
-            return APIResponse.error(400, str(e))
+
     
     
     @enginefacade.transactional
     def set_domain_ip(self, session,
                       domain_uuid: str,
                       interface_name: str,
-                      network_addr: str,
+                      ip_addr: str,
                       gateway: str,
                       remove: bool = False) -> APIResponse:
         """
@@ -540,19 +536,22 @@ class NetworkService:
             slave_address: str = slave_api.get_slave_address_by_name(slave_name).get_data()
             url = "http://"+ slave_address
             
+            interface: Interface = db.get_interface_by_name(session, interface_name)
+            veth_name = interface.veth_name
+            
             if remove == False:
                 data = {
                         consts.P_DOMAIN_UUID: domain_uuid,
-                        consts.P_NETWORK_ADDRESS: network_addr,
+                        consts.P_IP_ADDRESS: ip_addr,
                         consts.P_GATEWAY: gateway,
-                        consts.P_INTERFACE_NAME: interface_name
+                        consts.P_INTERFACE_NAME: veth_name
                     }
                 response: requests.Response = requests.post(url + "/setStaticIP/", data)
                 return APIResponse.deserialize_response(response.json())
             else:
                 data = {
                         consts.P_DOMAIN_UUID: domain_uuid,
-                        consts.P_INTERFACE_NAME: interface_name
+                        consts.P_INTERFACE_NAME: veth_name
                     }
                 response: requests.Response = requests.post(url + "/removeStaticIP/", data)
                 return APIResponse.deserialize_response(response.json())
@@ -669,3 +668,22 @@ def generage_unused_name(old_name_list: list[str]):
         name: str = faker.name()
         if old_name_list.count(name) < 1:
             return name.replace(" ","")
+        
+
+def random_mac():
+    """Generate a random MAC address.
+
+    00-16-3E allocated to xensource
+    52-54-00 used by qemu/kvm
+    Different hardware firms have their own unique OUI for mac address.
+    The OUI list is available at https://standards.ieee.org/regauth/oui/oui.txt.
+
+    The remaining 3 fields are random, with the first bit of the first
+    random field set 0.
+    """
+    oui = [0x52, 0x54, 0x00]
+    mac = oui + [
+        random.randint(0x00, 0xff),
+        random.randint(0x00, 0xff),
+        random.randint(0x00, 0xff)]
+    return ':'.join(["%02x" % x for x in mac])

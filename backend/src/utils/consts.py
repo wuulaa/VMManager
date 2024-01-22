@@ -44,3 +44,6 @@ P_SNAP_NAME = "snap_name"
 P_SNAP_UUID = "snap_uuid"
 
 P_POOL_UUID = "d38681d3-07fd-41c7-b457-1667ef9354c7"
+P_IP_ADDRESSES = "ip_addresses"
+P_GATEWAYS = "gateways"
+P_INTERFACE_NAMES = "interface_names"

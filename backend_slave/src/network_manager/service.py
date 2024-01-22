@@ -105,6 +105,48 @@ def create_route(netA: str, netB: str, parent: str):
 def delete_route(netA: str, netB: str, parent: str):
     return nat.delete_route_networks(netA, netB, parent)
 
+
+def init_set_guest_ips_ubuntu(uuid: str,
+                        ip_addresses: list[str],
+                        gateways: list[str],
+                        interface_names: list[str],
+                        dns: str = "8.8.8.8",
+                        file_path: str = "/etc/netplan/01-network-manager-all.yaml"):
+    """
+    clear file and add all static ips provided.
+    This function should be called as the init function to handle all static ips.
+    """
+    domain: libvirt.virDomain = connection.lookupByUUIDString(uuid)
+    yaml_data = {}
+    yaml_data["network"] = {}
+    yaml_data["network"]["version"] = 2
+    yaml_data["network"]["ethernets"] = {}
+    
+    for interface_name, ip_address, gateway in zip(interface_names, ip_addresses, gateways):
+        interface_data = {
+            'dhcp4': 'no',
+            'addresses': [ip_address],
+            'optional': "true",
+            'gateway4': gateway,
+            'nameservers': {
+                'addresses': [dns]
+                }
+            }
+        yaml_data["network"]["ethernets"][interface_name] = interface_data
+            
+
+    # open in write mode, old content would be cleared
+    res = qa.guest_open_file(domain, file_path, mode="w")
+    file_handle = qa.get_file_handle(res)
+    modified_content = yaml.dump(yaml_data, default_flow_style=False)
+    # write  modified content
+    res = qa.guest_write_file(domain, file_handle, modified_content)
+    # close file and apply
+    res = qa.guest_close_file(domain, file_handle)
+    res = qa.guest_exec(domain, "netplan", ["apply"])
+    return APIResponse.success()
+
+
     
 def set_guest_ip_ubuntu(uuid: str,
                         ip_address: str,
@@ -116,26 +158,38 @@ def set_guest_ip_ubuntu(uuid: str,
     set static ip for domain, domain must be running.
     """
     domain: libvirt.virDomain = connection.lookupByUUIDString(uuid)
-    res = qa.guest_open_file(domain, file_path, mode="w")
-    # print("open", res)
+    res = qa.guest_open_file(domain, file_path, mode="r")
     file_handle = qa.get_file_handle(res)
-    network_str = f"""
-network:
-    ethernets:
-        {interface_name}:
-            dhcp4: no
-            addresses: [{ip_address}]
-            optional: true
-            gateway4: {gateway}
-            nameservers:
-                    addresses: [{dns}]
- 
-    version: 2
-"""
-    res = qa.guest_write_file(domain, file_handle, network_str)
-    # print("write", res)
+    read_content = qa.guest_read_file(domain, file_handle)
+    content = qa.decode_file_read_res(read_content)
+    yaml_data = yaml.safe_load(content)
+    if "network" in yaml_data:
+        if not "ethernets" in yaml_data["network"]:
+            yaml_data["network"]["ethernets"] = {}
+        
+        interface_data = {
+            'dhcp4': 'no',
+            'addresses': [ip_address],
+            'optional': "true",
+            'gateway4': gateway,
+            'nameservers': {
+                'addresses': [dns]
+                }
+            }
+        yaml_data["network"]["ethernets"][interface_name] = interface_data
+            
+    # close file
     res = qa.guest_close_file(domain, file_handle)
-    # print("close", res)
+    
+    
+    # open in write mode
+    res = qa.guest_open_file(domain, file_path, mode="w")
+    file_handle = qa.get_file_handle(res)
+    modified_content = yaml.dump(yaml_data, default_flow_style=False)
+    # write back modified content
+    res = qa.guest_write_file(domain, file_handle, modified_content)
+    # close file and apply
+    res = qa.guest_close_file(domain, file_handle)
     res = qa.guest_exec(domain, "netplan", ["apply"])
     return APIResponse.success()
 
@@ -151,7 +205,10 @@ def remove_guest_ip_ubuntu(uuid: str, interface_name: str = None, file_path: str
         # remove all interface configs if no name is provided
         res = qa.guest_open_file(domain, file_path, mode="w")
         file_handle = qa.get_file_handle(res)
-        network_str = ''
+        network_str = f"""
+network:
+  version:2
+        """
         res = qa.guest_write_file(domain, file_handle, network_str)
         res = qa.guest_close_file(domain, file_handle)
         res = qa.guest_exec(domain, "netplan", ["apply"])
@@ -174,7 +231,6 @@ def remove_guest_ip_ubuntu(uuid: str, interface_name: str = None, file_path: str
     res = qa.guest_open_file(domain, file_path, mode="w")
     file_handle = qa.get_file_handle(res)
     modified_content = yaml.dump(yaml_data, default_flow_style=False)
-    print(modified_content)
     # write back modified content
     res = qa.guest_write_file(domain, file_handle, modified_content)
     # close file and apply
