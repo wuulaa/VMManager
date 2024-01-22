@@ -45,7 +45,7 @@ class Guest(Base):
                                       unique=False,
                                       nullable=True,
                                       comment="Guest description")
-    status: Mapped[int] = mapped_column(Integer,
+    status: Mapped[str] = mapped_column(String(64),
                                      default=0,
                                      comment="Guest status")
     architecture: Mapped[str] = mapped_column(String(64),
@@ -54,18 +54,23 @@ class Guest(Base):
                                       comment="Guest architecture")
     cpu: Mapped[int] = mapped_column(Integer,
                                      default=0,
+                                     nullable=True,
                                      comment="CPU count")
     max_cpu: Mapped[int] = mapped_column(Integer,
                                      default=0,
+                                     nullable=True,
                                      comment="Max CPU count")
     memory: Mapped[int] = mapped_column(Integer,
                                         default=0,
+                                        nullable=True,
                                         comment="Memory size(MB)")
     max_memory: Mapped[int] = mapped_column(Integer,
                                         default=0,
+                                        nullable=True,
                                         comment="Max Memory size(MB)")
     boot_option: Mapped[str] = mapped_column(String(64),
                                       unique=False,
+                                      nullable=True,
                                       comment="Guest boot option, mapped to a volume")
     spice_address: Mapped[str] = mapped_column(String(64),
                                       unique=False,
@@ -76,12 +81,50 @@ class Guest(Base):
                                       nullable=True,
                                       comment="Guest VNC address, including ip, port and passwd")
     parent_uuid: Mapped[str] = mapped_column(String(64),
+                                             nullable=True,
                                              comment="parent guest uuid")
     children_list: Mapped[str] = mapped_column(String(64),
+                                               nullable=True,
                                                comment="children guest uuid list")
     backups_list: Mapped[str] = mapped_column(String(64),
+                                              nullable=True,
                                               comment="backups uuid list, including ip, port and passwd")
-
+    
+    def __init__(self,
+                 uuid,
+                 name,
+                 slave_name,
+                 title: str = None,
+                 description: str = None,
+                 status: str = "running",
+                 architecture: str = "x86",
+                 cpu: int = None,
+                 max_cpu: int = None,
+                 memory: int = None,
+                 max_memory: int = None,
+                 boot_option: str = None,
+                 spice_address: str = None,
+                 vnc_address: str = None,
+                 parent_uuid: str = None,
+                 children_list: str = None,
+                 backups_list: str = None):
+        self.uuid = uuid
+        self.name = name
+        self.slave_name = slave_name
+        self.title = title
+        self.description = description
+        self.status = status
+        self.architecture = architecture
+        self.cpu = cpu
+        self.max_cpu = max_cpu
+        self.memory = memory
+        self.max_memory = max_memory
+        self.boot_option = boot_option
+        self.spice_address = spice_address
+        self.vnc_address= vnc_address
+        self.parent_uuid = parent_uuid
+        self.children_list = children_list
+        self.backups_list = backups_list 
 
 class Slave(Base):
     __tablename__ = 'slave'

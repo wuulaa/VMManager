@@ -50,8 +50,7 @@ class GuestService():
         xml = {consts.P_DOMAIN_XML : guest.get_xml_string(), consts.P_DOMAIN_NAME : domain_name}
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/addDomain/", data=xml).json())
         if(response.code == 0):
-            uuid = response.get_data()['uuid']
-            guestDB.create_guest(session, uuid, domain_name, slave_name, **kwargs)
+            guestDB.create_guest(session, guest_uuid, domain_name, slave_name, **kwargs)
         return response
 
     @enginefacade.transactional
@@ -394,13 +393,13 @@ class GuestService():
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/detachDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(msg=response.msg)
-        return vol_api.remove_volume_from_guest(volume_uuid)
+        return vol_api.remove_disk_from_guest(volume_uuid)
     
     def add_disk_copy(self, volume_uuid, copy_name):
-        return vol_api.clone_volume(volume_uuid ,"d38681d3-07fd-41c7-b457-1667ef9354c7", copy_name)
+        return vol_api.clone_disk(volume_uuid ,"d38681d3-07fd-41c7-b457-1667ef9354c7", copy_name)
     
     def del_disk_copy(self, volume_uuid):
-        return vol_api.delete_volume_by_uuid(volume_uuid)
+        return vol_api.delete_disk_by_uuid(volume_uuid)
     
     def get_disk_copys(self, volume_uuid):
         return 
