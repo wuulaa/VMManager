@@ -9,7 +9,7 @@ from src.network.db.models import Network, Interface, OVSPort
 from src.network import db 
 from src.utils.sqlalchemy import enginefacade
 from src.utils.config import CONF
-from src.utils import consts
+from src.utils import consts, generator
 from faker import Faker
 
 
@@ -202,11 +202,11 @@ class NetworkService:
             used_names: list[str] = [interface.name for interface in interfaces]
             ips: list[str] = [interface.ip_address for interface in interfaces]
             if name is None:
-                name = generage_unused_name(used_names)
+                name = generator.generage_unused_name(used_names)
             if ip_address is None:
-                ip_address = generate_unique_ip(network.address, ips)
+                ip_address = generator.generate_unique_ip(network.address, ips)
             if mac is None:
-                mac = random_mac()
+                mac = generator.generate_random_mac()
                 
             if gateway is None:
                 gateway = get_network_gateway(ip_address)
@@ -281,15 +281,15 @@ class NetworkService:
         ips: list[str] = [interface.ip_address for interface in interfaces]
         
         if new_name is None:
-            new_name = generage_unused_name(used_names)
+            new_name = generator.generage_unused_name(used_names)
             
         if new_ip is None:
-            new_ip = generate_unique_ip(network.address, ips)
+            new_ip = generator.generate_unique_ip(network.address, ips)
         else:
             if not is_ip_in_network(new_ip, network.address):
                 return APIResponse.error(code=400, msg="new ip is not within network scope")
             
-        mac = random_mac()
+        mac = generator.generate_random_mac()
          
         return self.create_interface(session, name=new_name, network_name=network.name,
                               ip_address=new_ip, gateway=interface.gateway, mac=mac)
@@ -685,34 +685,7 @@ def is_network_ip_used(network_address: str) -> bool:
         return True
     else:
         return False
-    
-    
-def generate_unique_ip(network_str: str, used_ips: list[str]) -> str:
-    """
-    Get an unused IP address from the network.
-    """
-    network = ipaddress.IPv4Network(network_str, strict=False)
-    available_ips = [str(ip) for ip in network.hosts()]
-    unused_ips = set(available_ips) - set(used_ips)
-
-    # If there are unused IP addresses, return the first one
-    if unused_ips:
-        unused_ip = unused_ips.pop()
-        return f"{unused_ip}/{network.prefixlen}"
-    else:
-        return None
-   
-    
-def generage_unused_name(old_name_list: list[str]):
-    """
-    get a name , and it's not in the list
-    """
-    faker = Faker()
-    while True:
-        name: str = faker.name()
-        if old_name_list.count(name) < 1:
-            return name.replace(" ","")
-        
+            
 
 def get_network_gateway(ip_address_str: str) -> str:
     try:
@@ -726,21 +699,3 @@ def get_network_gateway(ip_address_str: str) -> str:
     except ValueError as e:
         print(f"Error: {e}")
         return None
-
-def random_mac():
-    """Generate a random MAC address.
-
-    00-16-3E allocated to xensource
-    52-54-00 used by qemu/kvm
-    Different hardware firms have their own unique OUI for mac address.
-    The OUI list is available at https://standards.ieee.org/regauth/oui/oui.txt.
-
-    The remaining 3 fields are random, with the first bit of the first
-    random field set 0.
-    """
-    oui = [0x52, 0x54, 0x00]
-    mac = oui + [
-        random.randint(0x00, 0xff),
-        random.randint(0x00, 0xff),
-        random.randint(0x00, 0xff)]
-    return ':'.join(["%02x" % x for x in mac])
