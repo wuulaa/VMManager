@@ -54,8 +54,12 @@ class NetworkAPI():
                                                        domain_uuid=domain_uuid)
     
     
-    def init_set_domain_static_ip(self, domain_uuid):
+    def init_set_domain_static_ip(self, domain_uuid)->APIResponse:
         return network_service.init_set_domain_static_ip(domain_uuid=domain_uuid)
+    
+    
+    def update_domain_veth_name(self, domain_uuid)->APIResponse:
+        return network_service.update_domain_veth_name(domain_uuid=domain_uuid)
     
         
     def list_networks(self) -> APIResponse:

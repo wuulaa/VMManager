@@ -401,7 +401,7 @@ class NetworkService:
             
             # 3. write interface db
             db.update_interface_port(session, interface_uuid, None)
-            db.update_interface_status(session, interface_uuid, "un_bound")
+            db.update_interface_status(session, interface_uuid, "unbound")
             db.update_interface_slave_uuid(session, interface_uuid, None)
             db.update_interface_xml(session, interface_uuid, None)
             
@@ -424,12 +424,14 @@ class NetworkService:
                     consts.P_DOMAIN_UUID: domain_uuid
                 }
             response: requests.Response = requests.post(url + "/getInterfaceAddresses/", data)
-            res_dict: dict = response.json().get(data)
+            apires: APIResponse = APIResponse().deserialize_response(content=response.json())
+            res_dict: dict = apires.get_data()
+            
             interfaces: list[Interface] = db.condition_select(session, Interface, values={"guest_uuid" : domain_uuid})
             
             for interface in interfaces:
                 mac = interface.mac
-                for key, info in res_dict:
+                for key, info in res_dict.items():
                     if "hwaddr" in info and info.get('hwaddr') == mac:
                         db.update_interface_veth_name(session, interface.uuid, key)
             
@@ -463,7 +465,10 @@ class NetworkService:
                     consts.P_GATEWAYS: ",".join(gateways),
                     consts.P_INTERFACE_NAMES: ",".join(veth_names)
                     }
-            response: requests.Response = requests.post(url + "/setStaticIP/", data)
+            response: requests.Response = requests.post(url + "/initSetStaticIP/", data)
+            apires: APIResponse = APIResponse().deserialize_response(content=response.json())
+            if apires.get_code() != 0:
+                return apires
             return APIResponse.success()
         except Exception as e:
             return APIResponse.error(code=400, msg=str(e))
@@ -555,14 +560,14 @@ class NetworkService:
                         consts.P_INTERFACE_NAME: veth_name
                     }
                 response: requests.Response = requests.post(url + "/setStaticIP/", data)
-                return APIResponse.deserialize_response(response.json())
+                return APIResponse().deserialize_response(response.json())
             else:
                 data = {
                         consts.P_DOMAIN_UUID: domain_uuid,
                         consts.P_INTERFACE_NAME: veth_name
                     }
                 response: requests.Response = requests.post(url + "/removeStaticIP/", data)
-                return APIResponse.deserialize_response(response.json())
+                return APIResponse().deserialize_response(response.json())
             
         except Exception as e:
             return APIResponse.error(400, str(e))

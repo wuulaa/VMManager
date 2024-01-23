@@ -110,3 +110,12 @@ def delete_top():
     network_addr = request.values.get(consts.P_NETWORK_ADDRESS)
     return network_api.delete_top_network(network_addr).json()
 
+
+@network_bp.route("/network/initSetStaticIps", methods=["POST"])
+def initSetIps():
+    """
+    set all domain interface static ips
+    """
+    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
+    return network_api.init_set_domain_static_ip(domain_uuid=domain_uuid).json()
+
