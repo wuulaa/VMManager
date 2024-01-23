@@ -27,6 +27,12 @@ class NetworkAPI():
     def delete_interface(self, interface_name: str) -> APIResponse:
         return network_service.delete_interface(name=interface_name)
     
+    def interface_exists(self, interface_name: str)-> APIResponse:
+        return network_service.interface_exists(interface_name=interface_name)
+    
+    def clone_interface(self, interface_name: str, new_name: str, new_ip: str) -> APIResponse:
+        return network_service.clone_interface(interface_uuid=None, interface_name=interface_name,new_name=new_name, new_ip=new_ip)
+    
     
     def modify_interface(self, interface_name: str, ip_addr: str, gateway:str) -> APIResponse:
         return network_service.modify_interface(interface_uuid=None, name=interface_name,

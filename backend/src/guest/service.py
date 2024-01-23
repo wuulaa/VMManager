@@ -11,6 +11,7 @@ from src.domain_xml.device.disk import create_cdrom_builder
 from src.volume.api import VolumeAPI, SnapshotAPI
 from src.utils.generator import UUIDGenerator
 from src.domain_xml.domain.guest import Guest, DomainDevices
+import src.utils.generator as generator
 import src.utils.consts as consts 
 import requests
 
@@ -212,10 +213,10 @@ class GuestService():
             consts.P_FLAGS : flags
         }
         url = CONF['slaves'][slave_name]
-        print(url)
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(msg=response.msg)
+            networkapi.detach_interface_from_domain(domain_uuid, interface_name)
+            return APIResponse.error(code=400, msg=response.msg)
         return response
     
     
@@ -230,7 +231,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/detachDevice/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(msg=response.msg)
+            return APIResponse.error(code=400, msg=response.msg)
         domain_uuid = guestDB.get_domain_uuid_by_name(session, domain_name, slave_name)
         response = networkapi.detach_interface_from_domain(domain_uuid, interface_name)
         return response
@@ -273,7 +274,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(msg=response.msg)
+            return APIResponse.error(code=400, msg=response.msg)
         uuid = guestDB.get_domain_uuid_by_name(session, domain_name, slave_name)
         address = f"{url}:{port}:{passwd}"
         guestDB.update_guest(session, uuid, values={"vnc_address":address })
@@ -291,7 +292,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(msg=response.msg)
+            return APIResponse.error(code=400, msg=response.msg)
         uuid = guestDB.get_domain_uuid_by_name(session, domain_name, slave_name)
         address = f"{url}:{port}:{passwd}"
         guestDB.update_guest(session, uuid, values={"spice_address":address })
@@ -312,7 +313,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(msg=response.msg)
+            return APIResponse.error(code=400, msg=response.msg)
         uuid = guestDB.get_domain_uuid_by_name(session, domain_name, slave_name)
         address = f"{url}:{port}:{passwd}"
         if vnc:
@@ -329,7 +330,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/monitor/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(msg=response.msg)
+            return APIResponse.error(code=400, msg=response.msg)
         return response
         
         
@@ -342,7 +343,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/setUserPasswd/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(msg=response.msg)
+            return APIResponse.error(code=400, msg=response.msg)
         return response
     
     @enginefacade.transactional
@@ -376,7 +377,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(msg=response.msg)
+            return APIResponse.error(code=400, msg=response.msg)
         return response
     
     @enginefacade.transactional
@@ -394,8 +395,9 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/detachDevice/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(msg=response.msg)
+            return APIResponse.error(code=400, msg=response.msg)
         return vol_api.remove_disk_from_guest(volume_uuid)
+    
     
     def add_disk_copy(self, volume_uuid, copy_name):
         return vol_api.clone_disk(volume_uuid ,"d38681d3-07fd-41c7-b457-1667ef9354c7", copy_name)
@@ -417,6 +419,31 @@ class GuestService():
     
     def rollback_to_snapshot(self, snap_uuid):
         return snap_api.rollback_to_snapshot(snap_uuid)
+    
+    
+    @enginefacade.transactional
+    def post_domain_start(self, session, domain_uuid):
+        """
+        Called after domain start.
+        Currently only has static ip init
+        """
+        networkapi.init_set_domain_static_ip(domain_uuid)
+        
+        
+    @enginefacade.transactional
+    def post_domain_create(self, session, domain_uuid, network_name: str, interface_name: str):
+        """
+        Called after comain creation. 
+        Currently only has interface(nic) attachment
+
+        """
+        exists = networkapi.interface_exists(interface_name).get_data()
+        # if given interface does not exist, create a new one with random ip
+        if not exists:
+            networkapi.create_interface(interface_name, network_name, None, None)
+        
+        networkapi.attach_interface_to_domain(domain_uuid, interface_name)
+        
 
 class SlaveService():
     @enginefacade.transactional

@@ -47,3 +47,5 @@ P_POOL_UUID = "d38681d3-07fd-41c7-b457-1667ef9354c7"
 P_IP_ADDRESSES = "ip_addresses"
 P_GATEWAYS = "gateways"
 P_INTERFACE_NAMES = "interface_names"
+
+P_NEW_IP_ADDRESS = "new_ip_addresses"

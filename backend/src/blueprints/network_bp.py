@@ -63,6 +63,17 @@ def port_del():
     return network_api.delete_interface(name).json()
 
 
+@network_bp.route("/network/portClone", methods=["POST"])
+def port_clone():
+    """
+    add virtual port to a internet
+    """
+    name = request.values.get(consts.P_INTERFACE_NAME)
+    new_name = request.values.get(consts.P_NEW_NAME)
+    new_ip = request.values.get(consts.P_NEW_IP_ADDRESS)
+    return network_api.clone_interface(name, new_name, new_ip).json()
+
+
 @network_bp.route("/network/portPut", methods=["POST"])
 def port_put():
     """
@@ -112,10 +123,11 @@ def delete_top():
 
 
 @network_bp.route("/network/initSetStaticIps", methods=["POST"])
-def initSetIps():
+def init_set_ips():
     """
     set all domain interface static ips
     """
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     return network_api.init_set_domain_static_ip(domain_uuid=domain_uuid).json()
+
 

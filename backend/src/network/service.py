@@ -168,6 +168,13 @@ class NetworkService:
         # TODO: db
         netapi.delete_route(addrA, addrB, parent_addr)
     
+    @enginefacade.transactional
+    def interface_exists(self, session, interface_name: str):
+        interface = db.get_interface_by_name(interface_name)
+        res = True
+        if interface is None:
+            res = False
+        return APIResponse.success(data=res)
     
     @enginefacade.transactional
     def create_interface(self, session,
@@ -189,16 +196,11 @@ class NetworkService:
         if network is None:
             return APIResponse.error(400, f'cannot find a network which name={name}')
         
-        if not is_ip_in_network(ip_address, network.address):
-            return APIResponse.error(400, f'interface address is not within network')
-        
-        if is_interface_ip_used(ip_address):
-            return APIResponse.error(400, f'interface address has been used')
         
         try:
-            interfaces: list[Network] = db.get_interface_list()
+            interfaces: list[Interface] = db.get_interface_list()
             used_names: list[str] = [interface.name for interface in interfaces]
-            ips: list[str] = [interface.address for interface in interfaces]
+            ips: list[str] = [interface.ip_address for interface in interfaces]
             if name is None:
                 name = generage_unused_name(used_names)
             if ip_address is None:
@@ -206,7 +208,15 @@ class NetworkService:
             if mac is None:
                 mac = random_mac()
                 
+            if gateway is None:
+                gateway = get_network_gateway(ip_address)
                 
+            if not is_ip_in_network(ip_address, network.address):
+                return APIResponse.error(400, f'interface address is not within network')
+        
+            if is_interface_ip_used(ip_address):
+                return APIResponse.error(400, f'interface address has been used')
+            
             interface: Interface = db.create_interface(session,
                                             name=name,
                                             network_name=network_name,
@@ -252,20 +262,37 @@ class NetworkService:
         
         
     @enginefacade.transactional
-    def clone_interface(self, session, interface_uuid: str, new_ip = None):
+    def clone_interface(self, session, interface_uuid: str, interface_name: str = None, new_name = None, new_ip = None):
         """
         clone a interface, if new_ip is None, a random available ip within the network would be selected.
         this is also a purly db function
 
         """
-        interface: Interface = db.get_interface_by_uuid(interface_uuid)
+        if interface_uuid is not None:
+            interface: Interface = db.get_interface_by_uuid(interface_uuid)
+        else:
+            interface: Interface = db.get_interface_by_name(interface_name)
+            
+        if interface is None:
+            return APIResponse.error(code=400, msg=f'cannot find a interface which name={interface_name}, uuid = {interface_uuid}')
         network: Network = db.get_network_by_uuid(interface.network_uuid)
-        if new_ip is not None:
+        interfaces: list[Interface] = db.get_interface_list()
+        used_names: list[str] = [interface.name for interface in interfaces]
+        ips: list[str] = [interface.ip_address for interface in interfaces]
+        
+        if new_name is None:
+            new_name = generage_unused_name(used_names)
+            
+        if new_ip is None:
+            new_ip = generate_unique_ip(network.address, ips)
+        else:
             if not is_ip_in_network(new_ip, network.address):
                 return APIResponse.error(code=400, msg="new ip is not within network scope")
+            
+        mac = random_mac()
          
-        return self.create_interface(session, name=None, network_name=network.name,
-                              ip_address=new_ip, gateway=interface.gateway)
+        return self.create_interface(session, name=new_name, network_name=network.name,
+                              ip_address=new_ip, gateway=interface.gateway, mac=mac)
     
     
     
@@ -295,6 +322,10 @@ class NetworkService:
                     gateway = interface.gateway
                 if ip_addr is None:
                     ip_addr = interface.ip_address
+            
+            network: Network = db.get_network_by_uuid(interface.network_uuid)
+            if not is_ip_in_network(ip_addr, network.address):
+                return APIResponse.error(code=400, msg="new ip is not within network scope")
                 
             # 1. update in db
             db.update_interface_ip(session, interface.uuid, ip_addr)
@@ -303,7 +334,6 @@ class NetworkService:
             if interface.guest_uuid is not None:
                     
                 domain_status = guest_api.get_domain_status(interface.guest_uuid).get_data()
-            
                 if domain_status == "running":
                     # if domain is running, directly change the ip/gateway
                     self.set_domain_ip(session, interface.guest_uuid,
@@ -657,17 +687,18 @@ def is_network_ip_used(network_address: str) -> bool:
         return False
     
     
-def generate_unique_ip(network_str: str, used_ips: list[str])-> str:
+def generate_unique_ip(network_str: str, used_ips: list[str]) -> str:
     """
-    get a ip of the network , and it's not in the used_ip list
+    Get an unused IP address from the network.
     """
     network = ipaddress.IPv4Network(network_str, strict=False)
     available_ips = [str(ip) for ip in network.hosts()]
     unused_ips = set(available_ips) - set(used_ips)
 
-    # 如果有未使用的 IP 地址，则返回第一个未使用的 IP
+    # If there are unused IP addresses, return the first one
     if unused_ips:
-        return unused_ips.pop()
+        unused_ip = unused_ips.pop()
+        return f"{unused_ip}/{network.prefixlen}"
     else:
         return None
    
@@ -682,6 +713,19 @@ def generage_unused_name(old_name_list: list[str]):
         if old_name_list.count(name) < 1:
             return name.replace(" ","")
         
+
+def get_network_gateway(ip_address_str: str) -> str:
+    try:
+        ip_interface = ipaddress.IPv4Interface(ip_address_str)
+        network = ip_interface.network
+
+        # 获取网络的第一个地址作为网关
+        gateway_ip = str(network.network_address + 1)
+        return gateway_ip
+
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
 
 def random_mac():
     """Generate a random MAC address.
