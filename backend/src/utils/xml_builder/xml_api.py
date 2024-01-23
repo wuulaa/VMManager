@@ -197,6 +197,8 @@ def get_children(node: ElementBase) -> List[ElementBase]:
     return node.getchildren()
 
 
+
+
 def remove_child(parent_node: ElementBase, child_node: ElementBase):
     parent_node.remove(child_node)
 
@@ -350,6 +352,36 @@ def build_sub_node_from_xpath(base_node: ElementBase, xpath: str) -> ElementBase
 
     return parent_node
 
+
+def add_children_with_str(parent_xml_str: str, children_xml_str: str, xpath=None):
+    """
+    Given a parent xml str and a children xml str, add the child to parent.
+    If xpath is given and does exist in parent, add child xml to the xpath
+
+    Args:
+        parent_xml_str (str): xml str
+        children_xml_str (str): xml str
+        xpath (_type_, optional): Defaults to None. eg: "./devices"
+
+    Raises:
+        Exception: if xpath node does not exit 
+
+    Returns:
+        modified parent str
+    """
+    parent_node = node_from_xml(parent_xml_str)
+    child_node = node_from_xml(children_xml_str)
+    if xpath is not None:
+        intermediate_node = find_first(parent_node, xpath)
+        if intermediate_node is None:
+            raise Exception(f"Cannot find sub-node with xpath={xpath}")
+        add_child(intermediate_node, child_node)
+    else:
+        add_child(parent_node, child_node)
+        
+    return node_to_xml(parent_node)
+
+
 # NameSpaces = {}
 #
 #
@@ -414,3 +446,4 @@ def build_sub_node_from_xpath(base_node: ElementBase, xpath: str) -> ElementBase
 # # print(etree.tostring(store, encoding='unicode', pretty_print=True))
 # e = create_tag_with_namespace("aaa", "p", "uriuriuri")
 # print(node_to_xml(e))
+    
