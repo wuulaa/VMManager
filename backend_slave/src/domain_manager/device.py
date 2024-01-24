@@ -39,8 +39,10 @@ def set_domain_vcpu(
             return APIResponse.error(code=404, msg=error_info.get(404))
         
         max_cpu = domain.vcpusFlags(libvirt.VIR_DOMAIN_VCPU_MAXIMUM)
-        if flags == (libvirt.VIR_DOMAIN_VCPU_MAXIMUM | libvirt.VIR_DOMAIN_VCPU_LIVE):
+        # flags = 4 | 2, change the maxium
+        if flags == (libvirt.VIR_DOMAIN_VCPU_MAXIMUM | libvirt.VIR_DOMAIN_AFFECT_CONFIG):
             domain.setVcpusFlags(vcpu, flags)
+        # else change with given flags, can not exceed maxium
         elif vcpu > max_cpu:
             return APIResponse.error(code=401, msg=error_info.get(401))
         else:

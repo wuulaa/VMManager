@@ -116,12 +116,12 @@ class GuestAPI():
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
         return guestService.add_vnc(domain_name, slave_name, port, passwd, flags)
     
-    def add_spice(self, domain_name: str, slave_name: str, port:int, passwd: str, flags)-> APIResponse:
+    def add_spice(self, domain_name: str, slave_name: str, port:str, passwd: str, flags)-> APIResponse:
         if (flags is None):
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
         return guestService.add_spice(domain_name, slave_name, port, passwd, flags)
     
-    def change_graphic_passwd(self, domain_name: str, slave_name: str, port:int, passwd: str, flags, vnc=True) -> APIResponse:
+    def change_graphic_passwd(self, domain_name: str, slave_name: str, port:str, passwd: str, flags, vnc=True) -> APIResponse:
         if (flags is None):
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
         return guestService.change_graphic_passwd(domain_name, slave_name, port, passwd, flags, vnc)

@@ -264,7 +264,9 @@ class GuestService():
     
     
     @enginefacade.transactional
-    def add_vnc(self, session, domain_name, slave_name, port: int, passwd: str, flags) -> APIResponse:
+    def add_vnc(self, session, domain_name, slave_name, port: str, passwd: str, flags) -> APIResponse:
+        if port:
+            port = int(port)
         xml = graphics.create_vnc_viewer(port, passwd).get_xml_string()
         data = {
             consts.P_DOMAIN_NAME : domain_name,
@@ -282,7 +284,9 @@ class GuestService():
     
     
     @enginefacade.transactional
-    def add_spice(self, session, domain_name, slave_name, port: int, passwd: str, flags) -> APIResponse:
+    def add_spice(self, session, domain_name, slave_name, port: str, passwd: str, flags) -> APIResponse:
+        if port:
+            port = int(port)
         xml = graphics.create_spice_viewer(port, passwd).get_xml_string()
         data = {
             consts.P_DOMAIN_NAME : domain_name,

@@ -61,12 +61,18 @@ class DeviceGraphics(Device):
     # Default config #
     ##################
 def create_local_auto_port_spice_viewer():
+    """create a local only spice with passwd,
+    so no one outside can connect.
+    Set address to 0.0.0.0 with user passwd and port if add-spice is called
+
+    """
+    
     graphic = DeviceGraphics()
     graphic.type = "spice"
     graphic.port = -1
     graphic.autoport = True
     graphic.listen = "127.0.0.1"
-    graphic.passwd = "local-locked"
+    graphic.passwd = "locked"
     listen = GraphicsListen()
     listen.type = "address"
     listen.address = "127.0.0.1"
@@ -77,12 +83,17 @@ def create_local_auto_port_spice_viewer():
 
 
 def create_local_auto_port_vnc_viewer():
+    """create a local only spice with passwd,
+    so no one outside can connect.
+    Set address to 0.0.0.0 with user passwd and port if add-vnc is called
+
+    """
     graphic = DeviceGraphics()
     graphic.type = "vnc"
     graphic.port = -1
     graphic.autoport = True
     graphic.listen = "127.0.0.1"
-    graphic.passwd = "local-locked"
+    graphic.passwd = "locked"
     listen = GraphicsListen()
     listen.type = "address"
     listen.address = "127.0.0.1"
@@ -91,13 +102,17 @@ def create_local_auto_port_vnc_viewer():
     return graphic   
 
 
-def create_spice_viewer(port: int, passwd: str):
+def create_spice_viewer(port: int = None, passwd: str =None):
     graphic = DeviceGraphics()
     graphic.type = "spice"
-    graphic.port = port
-    graphic.autoport = False
+    if port is None:
+        graphic.autoport = True
+    else:
+        graphic.port = port
+        graphic.autoport = False
     graphic.listen = "0.0.0.0"
-    graphic.passwd = passwd
+    if passwd :
+        graphic.passwd = passwd
     listen = GraphicsListen()
     listen.type = "address"
     listen.address = "0.0.0.0"
@@ -107,13 +122,18 @@ def create_spice_viewer(port: int, passwd: str):
     return graphic
 
 
-def create_vnc_viewer(port: int, passwd: str):
+def create_vnc_viewer(port: int = None, passwd: str = None):
     graphic = DeviceGraphics()
     graphic.type = "vnc"
-    graphic.port = port
-    graphic.autoport = False
+    if port is None:
+        graphic.port = -1
+        graphic.autoport = True
+    else:
+        graphic.port = port
+        graphic.autoport = False
     graphic.listen = "0.0.0.0"
-    graphic.passwd = passwd
+    if passwd :
+        graphic.passwd = passwd
     listen = GraphicsListen()
     listen.type = "address"
     listen.address = "0.0.0.0"
