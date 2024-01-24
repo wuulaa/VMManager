@@ -48,7 +48,8 @@ def TO_INT(list: list):
         @wraps(func)
         def decorator(*args, **kwargs):
             for key in list:
-                kwargs[key] = int(kwargs[key])
+                if kwargs[key] is not None:
+                    kwargs[key] = int(kwargs[key])
             return func(*args, **kwargs)
         return decorator
     return revert
