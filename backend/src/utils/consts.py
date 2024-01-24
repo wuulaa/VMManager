@@ -1,16 +1,25 @@
+# XML
+P_DOMAIN_XML = "domain_xml"
+P_CPU_NUM = "cpu_num"
+P_MEMORY_SIZE = "memory_size"
+P_DEVICE_XML = "device_xml"
+
+# Cluster
 P_SLAVE_NAME = "slave_name"
+P_ADDRESS = "address"
+
+# Domain
 P_DOMAIN_NAME = "domain_name"
 P_NEW_NAME = "new_name"
 P_NEW_DESCRIPTION = "new_description"
 P_DOMAIN_UUID = "domain_uuid"
 P_DOMAINS_NAME_LIST = "domains_name_list"
 P_DOMAINS_UUID_LIST = "domains_uuid_list"
-P_DOMAIN_XML = "domain_xml"
-P_CPU_NUM = "cpu_num"
-P_MEMORY_SIZE = "memory_size"
+P_USER_NAME = "user_name"
+P_PASSWD = "passwd"
+P_FLAGS = "flags"
 
-P_CHILD_NAME = "child_name"
-
+# Network
 P_NETWORK_ADDRESS = "network_address"
 P_NETWORK_NAME = "network_name"
 P_IP_ADDRESS = "ip_address"
@@ -19,34 +28,25 @@ P_PORT_NAME = "port_name"
 P_TYPE = "type"
 P_REMOTE_IP = "remote_ip"
 P_TAG = "tag"
+P_GATEWAYS = "gateways"
 P_NETWORKA = "networkA"
 P_NETWORKB = "networkB"
 P_INTERFACE_NAME = "interface_name"
+P_INTERFACE_NAMES = "interface_names"
+P_IP_ADDRESSES = "ip_addresses"
+P_NEW_IP_ADDRESS = "new_ip_addresses"
 P_GATEWAY = "gateway"
 P_MAC = "mac"
+P_PORT = "port"
 
-P_PARENT = "parent"
+# Storage
+P_POOL_UUID = "d38681d3-07fd-41c7-b457-1667ef9354c7"
 P_VOLUME_UUID = "volume_uuid"
 P_VOLUME_NAME = "volume_name"
-
-P_DEVICE_XML = "device_xml"
-P_PORT = "port"
-P_PASSWD = "passwd"
-P_FLAGS = "flags"
-P_VNC = "vnc"
-P_SPICE = "spice"
-
-P_ADDRESS = "address"
-P_USER_NAME = "user_name"
-P_PASSWD = "passwd"
-
 P_COPY_NAME = "copy_name"
 P_SNAP_NAME = "snap_name"
 P_SNAP_UUID = "snap_uuid"
 
-P_POOL_UUID = "d38681d3-07fd-41c7-b457-1667ef9354c7"
-P_IP_ADDRESSES = "ip_addresses"
-P_GATEWAYS = "gateways"
-P_INTERFACE_NAMES = "interface_names"
-
-P_NEW_IP_ADDRESS = "new_ip_addresses"
+# Graphic
+P_VNC = "vnc"
+P_SPICE = "spice"

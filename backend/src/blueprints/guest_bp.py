@@ -87,6 +87,48 @@ def reboot():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     return guestAPI.reboot_domain(domain_uuid).to_json_str()
 
+@guest_bp.route("/clone", methods=["POST"])
+def clone():
+    pass
+    
+    
+@guest_bp.route("/migrate", methods=["POST"])
+def migrate():
+    pass
+ 
+@guest_bp.route("/monitor")
+def monitor_domain():
+    """
+    monitor domain status, note that domain should be running
+    """
+    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
+    return guestAPI.monitor(domain_uuid).to_json_str()
+
+@guest_bp.route("/setUserPasswd")
+def set_user_passwd():
+    """
+    set domain user passwd, domain should be running
+    """
+    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
+    user_name = request.values.get(consts.P_USER_NAME)
+    passwd = request.values.get(consts.P_PASSWD)
+    return guestAPI.set_user_passwd(domain_uuid, user_name, passwd).to_json_str()
+
+@guest_bp.route("/setCPU", methods=["POST"])
+def set_cpu():
+    cpu_num = request.values.get(consts.P_CPU_NUM)
+    flags = request.values.get(consts.P_FLAGS)
+    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
+    return guestAPI.set_domain_vcpu(domain_uuid, cpu_num = cpu_num, flags = flags).to_json_str()
+
+@guest_bp.route("/setMemory", methods=["POST"])
+def set_memory():
+    memory_size = request.values.get(consts.P_MEMORY_SIZE)
+    flags = request.values.get(consts.P_FLAGS)
+    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
+    return guestAPI.set_domain_memory(domain_uuid, memory_size = memory_size, flags = flags).to_json_str()
+
+
 @guest_bp.route("/batchStartDomains", methods=["POST"])
 def batch_start_domain():
     domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)
@@ -185,35 +227,6 @@ def change_graphic_passwd():
                                           port, passwd, flags = flags,
                                           vnc = vnc).to_json_str()
 
- 
-@guest_bp.route("/monitor")
-def monitor_domain():
-    """
-    monitor domain status, note that domain should be running
-    """
-    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
-    return guestAPI.monitor(domain_uuid).to_json_str()
-
-
-@guest_bp.route("/setUserPasswd")
-def set_user_passwd():
-    """
-    set domain user passwd, domain should be running
-    """
-    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
-    user_name = request.values.get(consts.P_USER_NAME)
-    passwd = request.values.get(consts.P_PASSWD)
-    return guestAPI.set_user_passwd(domain_uuid, user_name, passwd).to_json_str()
-
-
-@guest_bp.route("/clone", methods=["POST"])
-def clone():
-    pass
-    
-    
-@guest_bp.route("/migrate", methods=["POST"])
-def migrate():
-    pass
 
 
 @guest_bp.route("/attachDisk", methods=["POST"])
@@ -301,19 +314,3 @@ def save_snapshot():
 @guest_bp.route("/snapshotToImage", methods=["POST"])
 def snapshot_to_image():
     pass
-
-
-@guest_bp.route("/setCPU", methods=["POST"])
-def set_cpu():
-    cpu_num = request.values.get(consts.P_CPU_NUM)
-    flags = request.values.get(consts.P_FLAGS)
-    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
-    return guestAPI.set_domain_vcpu(domain_uuid, cpu_num = cpu_num, flags = flags).to_json_str()
-
-@guest_bp.route("/setMemory", methods=["POST"])
-def set_memory():
-    memory_size = request.values.get(consts.P_MEMORY_SIZE)
-    flags = request.values.get(consts.P_FLAGS)
-    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
-    return guestAPI.set_domain_memory(domain_uuid, memory_size = memory_size, flags = flags).to_json_str()
-
