@@ -272,7 +272,7 @@ class GuestService():
             consts.P_FLAGS : flags
         }
         url = CONF['slaves'][slave_name]
-        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(code=400, msg=response.msg)
         uuid = guestDB.get_domain_uuid_by_name(session, domain_name, slave_name)
@@ -290,7 +290,7 @@ class GuestService():
             consts.P_FLAGS : flags
         }
         url = CONF['slaves'][slave_name]
-        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(code=400, msg=response.msg)
         uuid = guestDB.get_domain_uuid_by_name(session, domain_name, slave_name)

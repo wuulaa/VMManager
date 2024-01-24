@@ -60,6 +60,36 @@ class DeviceGraphics(Device):
     ##################
     # Default config #
     ##################
+def create_local_auto_port_spice_viewer():
+    graphic = DeviceGraphics()
+    graphic.type = "spice"
+    graphic.port = -1
+    graphic.autoport = True
+    graphic.listen = "127.0.0.1"
+    graphic.passwd = "local-locked"
+    listen = GraphicsListen()
+    listen.type = "address"
+    listen.address = "127.0.0.1"
+
+    graphic.listens.append(listen)
+    graphic.image_compression = "off"
+    return graphic    
+
+
+def create_local_auto_port_vnc_viewer():
+    graphic = DeviceGraphics()
+    graphic.type = "vnc"
+    graphic.port = -1
+    graphic.autoport = True
+    graphic.listen = "127.0.0.1"
+    graphic.passwd = "local-locked"
+    listen = GraphicsListen()
+    listen.type = "address"
+    listen.address = "127.0.0.1"
+
+    graphic.listens.append(listen)
+    return graphic   
+
 
 def create_spice_viewer(port: int, passwd: str):
     graphic = DeviceGraphics()

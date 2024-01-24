@@ -4,7 +4,7 @@ from src.domain_xml.domain.features import DomainFeatures
 from src.domain_xml.domain.cpu import DomainCpu
 from src.domain_xml.device.controller import DeviceController
 from src.domain_xml.device.char import DeviceSerial, DeviceConsole, CharSource, DeviceChannel
-from src.domain_xml.device.graphics import create_vnc_viewer
+from src.domain_xml.device.graphics import create_local_auto_port_vnc_viewer, create_local_auto_port_spice_viewer
 from src.domain_xml.device.input import DeviceInput
 from src.domain_xml.domain.guest import Guest, DomainDevices
 
@@ -88,8 +88,12 @@ def create_initial_xml(domain_name: str, uuid: str):
     guest.devices = devices
 
     # VNC
-    # vnc_viewer = create_vnc_viewer(15910)
-    # devices.graphics.append(vnc_viewer)
+    vnc_viewer = create_local_auto_port_vnc_viewer()
+    devices.graphics.append(vnc_viewer)
+    
+    # SPICE
+    vnc_viewer = create_local_auto_port_spice_viewer()
+    devices.graphics.append(vnc_viewer)
 
     # serial
     char_source = CharSource()

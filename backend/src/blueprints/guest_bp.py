@@ -151,7 +151,7 @@ def detach_nic():
     return guestAPI.detach_nic(domain_name, slave_name, interface_name, int(flags)).json()
 
 
-@guest_bp.route("/detachNic", methods=["POST"])
+@guest_bp.route("/listNic", methods=["POST"])
 def list_nic():
     """
     list nics of domain
@@ -172,7 +172,7 @@ def add_vnc():
     port = request.values.get(consts.P_PORT)
     passwd = request.values.get(consts.P_PASSWD)
     flags = request.values.get(consts.P_FLAGS)
-    return guestAPI.add_vnc(domain_name, slave_name, port, passwd, int(flags)).json()
+    return guestAPI.add_vnc(domain_name, slave_name, port, passwd, flags).json()
 
 
 @guest_bp.route("/addSPICE", methods=["POST"])
@@ -185,7 +185,7 @@ def add_spice():
     port = request.values.get(consts.P_PORT)
     passwd = request.values.get(consts.P_PASSWD)
     flags = request.values.get(consts.P_FLAGS)
-    return guestAPI.add_spice(domain_name, slave_name, port, passwd, int(flags)).json()
+    return guestAPI.add_spice(domain_name, slave_name, port, passwd, flags).json()
 
 
 @guest_bp.route("/setGraphicPasswd", methods=["POST"])
