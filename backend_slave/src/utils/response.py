@@ -59,7 +59,7 @@ class APIResponse(object):
     _data = property(get_data, set_data)
     _msg = property(get_msg, set_msg)
 
-    def json(self) -> str:
+    def to_json_str(self) -> str:
         return json.dumps(self.__dict__, cls=MyEncoder, indent=4)
 
 
@@ -77,7 +77,7 @@ def example():
     response = APIResponse()
     response.set_msg('Empty APIResponse')
     response.set_code(SUCCESS_CODE)
-    print(response.json())
+    print(response.to_json_str())
     print()
 
     # 2. 创建包含 data 的 response, code 默认为 0
@@ -85,7 +85,7 @@ def example():
     data_res = APIResponse(
         [1234, 2234, 'aaa', [333333, 2222222, 3333333, 444444]])
     data_res.set_msg('Creating APIResponse with data, code defaults to 0')
-    print(data_res.json())
+    print(data_res.to_json_str())
     print()
 
     # 3. 创建包含 data 的 successful response
@@ -94,13 +94,13 @@ def example():
                                            dict={'bool': True,
                                                  'int': 123,
                                                  'void': None}))
-    print(success_res.json())
+    print(success_res.to_json_str())
     print()
 
     # 4. 创建包含 msg 的 failed response
     print('---------------------- 创建包含 msg 的 failed response -------------------------')
     error_res = APIResponse.error('invocation: error')
-    print(error_res.json())
+    print(error_res.to_json_str())
     print('----------------------------------------------------------------------------------')
 
 

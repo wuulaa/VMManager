@@ -11,29 +11,29 @@ slaveAPI = SlaveAPI()
 
 @slave_bp.route("/initSlaves", methods=["POST"])
 def init_slaves():
-    return slaveAPI.init_slave_db().json()
+    return slaveAPI.init_slave_db().to_json_str()
 
 
 @slave_bp.route("/add", methods=["POST"])
 def add_slave():
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     slave_addr = request.values.get(consts.P_ADDRESS)
-    return slaveAPI.create_slave(slave_name, slave_addr).json()
+    return slaveAPI.create_slave(slave_name, slave_addr).to_json_str()
 
 
 @slave_bp.route("/del", methods=["POST"])
 def delete_slave():
     slave_name = request.values.get(consts.P_SLAVE_NAME)
-    return slaveAPI.delete_slave(slave_name).json()
+    return slaveAPI.delete_slave(slave_name).to_json_str()
 
 
 @slave_bp.route("/detail", methods=["POST"])
 def slave_detail():
     slave_name = request.values.get(consts.P_SLAVE_NAME)
-    return slaveAPI.slave_detail(slave_name).json()
+    return slaveAPI.slave_detail(slave_name).to_json_str()
 
 
 @slave_bp.route("/getGuests", methods=["POST"])
 def get_slave_guests():
     slave_name = request.values.get(consts.P_SLAVE_NAME)
-    return slaveAPI.get_slave_guests(slave_name).json()
+    return slaveAPI.get_slave_guests(slave_name).to_json_str()

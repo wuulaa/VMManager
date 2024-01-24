@@ -1,7 +1,11 @@
+from src.volume.db.models import Volume
+import pdb
 import sys
 import os
 from src.storage.storage_api import *
 from src.utils.connect import *
+from src.image.snapshot.snapshot import SnapShot
+from src.utils.sqlalchemy import api as db
 
 # conn = get_connected(User="root@172.16.2.83")
 conn = libvirt.open("qemu:///system")
@@ -114,20 +118,81 @@ testXML = '''
 # for domain in domains:
 #     print(str(domain)+"             "+str(domains[domain]))
 
-def create_snap_test():
-    print(create_snap("volume-pool", "python-image", "snap1").json())
-# create_snap_test()
+# def create_snap_test():
+#     print(create_snap("volume-pool", "python-image", "snap1").to_json_str()())
+# # create_snap_test()
 
-def query_snaps_test():
-    print(query_snaps("volume-pool", "python-image").json())
-query_snaps_test()
+# def query_snaps_test():
+#     print(query_snaps("volume-pool", "python-image").to_json_str()())
+# query_snaps_test()
 
-def delete_snap_test():
-    print(delete_snap("volume-pool", "python-image", "snap1").json())
-# delete_snap_test()
+# def delete_snap_test():
+#     print(delete_snap("volume-pool", "python-image", "snap1").to_json_str()())
+# # delete_snap_test()
 
-def info_snap_test():
-    print(info_snap("volume-pool", "python-image", "snap1").json())
-info_snap_test()
-    
+# def info_snap_test():
+#     print(info_snap("volume-pool", "python-image", "snap1").to_json_str()())
+# info_snap_test()
 
+snap1 = SnapShot('volume-pool', 'python-image')
+snap2 = SnapShot('volume-pool', 'python-image2')
+try:
+    delete_rbd('volume-pool', 'clone-image')
+except Exception:
+    print('delete_rbd')
+
+try:
+    delete_rbd('volume-pool', 'snap-image')
+except Exception:
+    "print()"
+
+try:
+    snap1.unprotect_snap('snap1')
+except Exception:
+    "print()"
+
+try:
+    snap2.unprotect_snap('python-image2')
+except Exception:
+    "print()"
+
+
+try:
+    delete_snap('volume-pool', 'python-image', 'snap1')
+except Exception:
+    "print()"
+
+try:
+    delete_snap('volume-pool', 'python-image2', 'python-image2')
+except Exception:
+    "print()"
+
+
+try:
+    delete_rbd('volume-pool', 'python-image')
+except Exception:
+    "print()"
+
+try:
+    delete_rbd('volume-pool', 'python-image2')
+except Exception:
+    "aoeuaoeu"
+
+# pdb.set_trace()
+try:
+    clone_volume = db.select_by_name(Volume, 'clone-image')
+    db.delete(clone_volume)
+except Exception:
+    "aoaoeu"
+
+try:
+    snap_volume = db.select_by_name(Volume, 'snap-image')
+    db.delete(snap_volume)
+except Exception:
+    "aoeuaoeu"
+
+try:
+    volumes = db.condition_select(Volume)
+    db.batch_delete(volumes)
+except Exception:
+    "aoeu"

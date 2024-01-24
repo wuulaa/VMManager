@@ -22,12 +22,12 @@ err_code = {
 guestService = GuestService()
 slaveService = SlaveService()
 
-def NOT_NULL(dict: dict):
-    def check(func):
+def NOT_NULL(dict: dict) -> APIResponse:
+    def check(func) -> APIResponse:
         sig = inspect.signature(func)
         parameters = sig.parameters  #参数列表的有序字典
         @wraps(func)
-        def decorator(*args, **kwargs):
+        def decorator(*args, **kwargs) -> APIResponse:
             flag =False
             str = ""
             for key in dict:
@@ -41,55 +41,55 @@ def NOT_NULL(dict: dict):
     return check
 
 class GuestAPI():
-    def create_domain(self, domain_name: str, slave_name: str, **kwargs):
+    def create_domain(self, domain_name: str, slave_name: str, **kwargs) -> APIResponse:
         return guestService.create_domain(domain_name, slave_name, **kwargs)
 
-    def shutdown_domain(self, domain_name: str, slave_name: str):
+    def shutdown_domain(self, domain_name: str, slave_name: str) -> APIResponse:
         url = CONF['slaves'][slave_name]
         if url is None:
             return APIResponse.error(code=0, msg = str(slave_name) + "isn't exsit.")
         return guestService.shutdown_domain(domain_name, slave_name)
 
-    def destroy_domain(self, domain_name: str, slave_name: str):
+    def destroy_domain(self, domain_name: str, slave_name: str) -> APIResponse:
         return guestService.destroy_domain(domain_name, slave_name)
 
-    def pause_domain(self, domain_name: str, slave_name: str):
+    def pause_domain(self, domain_name: str, slave_name: str) -> APIResponse:
         return guestService.pause_domain(domain_name, slave_name)
 
-    def resume_domain(self, domain_name: str, slave_name: str):
+    def resume_domain(self, domain_name: str, slave_name: str) -> APIResponse:
         return guestService.resume_domain(domain_name, slave_name)
     
-    def reboot_domain(self, domain_name: str, slave_name: str):
+    def reboot_domain(self, domain_name: str, slave_name: str) -> APIResponse:
         return guestService.reboot_domain(domain_name, slave_name)
 
-    def start_domain(self, domain_name: str, slave_name: str):
+    def start_domain(self, domain_name: str, slave_name: str) -> APIResponse:
         return guestService.start_domain(domain_name, slave_name)
 
-    def batch_start_domains(self, domains_name_list, slave_name: str):
+    def batch_start_domains(self, domains_name_list, slave_name: str) -> APIResponse:
         return guestService.batch_start_domains(domains_name_list, slave_name)
 
-    def batch_pause_domains(self, domains_name_list, slave_name: str):
+    def batch_pause_domains(self, domains_name_list, slave_name: str) -> APIResponse:
         return guestService.batch_pause_domains(domains_name_list, slave_name)
     
-    def batch_shutdown_domains(self, domains_name_list, slave_name: str):
+    def batch_shutdown_domains(self, domains_name_list, slave_name: str) -> APIResponse:
         return guestService.batch_shutdown_domains(domains_name_list, slave_name)
 
-    def batch_delete_domains(self, domains_name_list, slave_name: str):
+    def batch_delete_domains(self, domains_name_list, slave_name: str) -> APIResponse:
         return guestService.batch_delete_domains(domains_name_list, slave_name)
 
-    def batch_restart_domains(self, domains_name_list, slave_name: str):
+    def batch_restart_domains(self, domains_name_list, slave_name: str) -> APIResponse:
         return guestService.batch_restart_domains(domains_name_list, slave_name)
 
-    def get_domains_list(self):
+    def get_domains_list(self) -> APIResponse:
         return guestService.get_domains_list()
 
-    def rename_domain(self, domain_name: str, new_name: str, slave_name: str):
+    def rename_domain(self, domain_name: str, new_name: str, slave_name: str) -> APIResponse:
         return guestService.rename_domain(domain_name, new_name, slave_name)
 
-    def put_description(self, domain_name: str, new_description: str, slave_name: str):
+    def put_description(self, domain_name: str, new_description: str, slave_name: str) -> APIResponse:
         return guestService.put_description(domain_name, new_description, slave_name)
 
-    def delete_domain(self, domain_name: str, slave_name: str):
+    def delete_domain(self, domain_name: str, slave_name: str) -> APIResponse:
         return guestService.delete_domain(domain_name, slave_name)
     
     def attach_nic(self, domain_name: str, slave_name: str, interface_name: str, flags: int)-> APIResponse:
@@ -101,12 +101,12 @@ class GuestAPI():
     def list_nic(self, domain_name: str, slave_name: str) -> APIResponse:
         return guestService.list_nic(domain_name, slave_name)
         
-    def set_domain_vcpu(self, domain_name: str, slave_name: str, cpu_num: int, flags: int):
+    def set_domain_vcpu(self, domain_name: str, slave_name: str, cpu_num: int, flags: int) -> APIResponse:
         if (flags is None):
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
         return guestService.set_domain_vcpu(domain_name, slave_name, cpu_num, flags)
     
-    def set_domain_memory(self, domain_name: str, slave_name: str, memory_size: int, flags: int):
+    def set_domain_memory(self, domain_name: str, slave_name: str, memory_size: int, flags: int) -> APIResponse:
         if (flags is None):
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
         return guestService.set_domain_memory(domain_name, slave_name, memory_size, flags)
@@ -121,15 +121,15 @@ class GuestAPI():
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
         return guestService.add_spice(domain_name, slave_name, port, passwd, flags)
     
-    def change_graphic_passwd(self, domain_name: str, slave_name: str, port:int, passwd: str, flags, vnc=True):
+    def change_graphic_passwd(self, domain_name: str, slave_name: str, port:int, passwd: str, flags, vnc=True) -> APIResponse:
         if (flags is None):
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
         return guestService.change_graphic_passwd(domain_name, slave_name, port, passwd, flags, vnc)
     
-    def monitor(self, domain_name: str, slave_name: str):
+    def monitor(self, domain_name: str, slave_name: str) -> APIResponse:
         return guestService.monitor(domain_name, slave_name)
     
-    def set_user_passwd(self, domain_name: str, slave_name: str, user_name: str, passwd: str):
+    def set_user_passwd(self, domain_name: str, slave_name: str, user_name: str, passwd: str) -> APIResponse:
         return guestService.set_user_passwd(domain_name, slave_name, user_name, passwd)
         
     def get_domain_slave_name(self, domain_uuid: str)-> APIResponse:
@@ -138,31 +138,31 @@ class GuestAPI():
     def get_domain_status(self, domain_uuid: str) -> APIResponse:
         return guestService.get_domain_status(domain_uuid)
     
-    def attach_disk(self, domain_name: str, slave_name: str, volume_name, volume_uuid: str = None, size: int = 10*1024*1024*1024, flags: int = libvirt.VIR_DOMAIN_VCPU_CONFIG):
+    def attach_disk(self, domain_name: str, slave_name: str, volume_name, volume_uuid: str = None, size: int = 10*1024*1024*1024, flags: int = libvirt.VIR_DOMAIN_VCPU_CONFIG) -> APIResponse:
         return guestService.attach_domain_disk(domain_name, slave_name, volume_name, volume_uuid, size, flags)
     
-    def detach_disk(self, domain_name: str, slave_name: str, volume_uuid, flags: int = libvirt.VIR_DOMAIN_VCPU_CONFIG):
+    def detach_disk(self, domain_name: str, slave_name: str, volume_uuid, flags: int = libvirt.VIR_DOMAIN_VCPU_CONFIG) -> APIResponse:
         return guestService.detach_domain_disk(domain_name, slave_name, volume_uuid, flags)
     
-    def add_disk_copy(self, volume_uuid: str, copy_name: str):
+    def add_disk_copy(self, volume_uuid: str, copy_name: str) -> APIResponse:
         return guestService.add_disk_copy(volume_uuid, copy_name)
     
-    def del_disk_copy(self, volume_uuid: str):
+    def del_disk_copy(self, volume_uuid: str) -> APIResponse:
         return guestService.del_disk_copy(volume_uuid)
     
-    def get_disk_copys(self, volume_uuid: str):
+    def get_disk_copys(self, volume_uuid: str) -> APIResponse:
         return 
     
-    def add_snapshot(self, volume_uuid: str, snap_name: str):
+    def add_snapshot(self, volume_uuid: str, snap_name: str) -> APIResponse:
         return guestService.add_snapshot(volume_uuid, snap_name)
     
-    def get_snap_info(self, snap_uuid: str):
+    def get_snap_info(self, snap_uuid: str) -> APIResponse:
         return
     
-    def del_snapshot(self, snap_uuid: str):
+    def del_snapshot(self, snap_uuid: str) -> APIResponse:
         return guestService.del_snapshot(snap_uuid)
     
-    def rollback_to_snapshot(self, snap_uuid: str):
+    def rollback_to_snapshot(self, snap_uuid: str) -> APIResponse:
         return guestService.rollback_to_snapshot(snap_uuid)
     
     

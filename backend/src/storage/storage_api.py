@@ -10,7 +10,7 @@ error_info = {
     400:"unknown exception"
 }
 
-def query_rbds(pool_name: str):
+def query_rbds(pool_name: str) -> APIResponse:
     '''
         query rbds in chosen pool
         pool_name: chosen pool name
@@ -30,7 +30,7 @@ def query_rbds(pool_name: str):
             ioctx.close()
 
 
-def exist_rbd(pool_name:str ,rbd_name:str):
+def exist_rbd(pool_name:str ,rbd_name:str) -> APIResponse:
     '''
         check rbd named rbd_name exist or not
         pool_name: pool name
@@ -43,7 +43,7 @@ def exist_rbd(pool_name:str ,rbd_name:str):
             return True
     return False
 
-def create_pool(pool_name: str):
+def create_pool(pool_name: str) -> APIResponse:
     ''' 
         create pool named pool_name
         pool_name: pool name
@@ -54,7 +54,7 @@ def create_pool(pool_name: str):
     else:
         return APIResponse.error(code=400, msg=description)
 
-def query_pools():
+def query_pools() -> APIResponse:
     '''query pool'''
 
     try:
@@ -63,7 +63,7 @@ def query_pools():
     except Exception as err:
         return APIResponse.error(code=400, msg=str(err))
 
-def delete_pool(pool_name: str):
+def delete_pool(pool_name: str) -> APIResponse:
     '''
         delete pool named pool_name
         pool_name: pool name
@@ -77,7 +77,7 @@ def delete_pool(pool_name: str):
     else:
         return APIResponse.error(code=400, msg=description)
 
-def write_full_rbd(pool_name: str, rbd_name: str, object_name: str, data: bytes):
+def write_full_rbd(pool_name: str, rbd_name: str, object_name: str, data: bytes) -> APIResponse:
     '''
         write data into rbd
         pool_name: pool name
@@ -103,7 +103,7 @@ def write_full_rbd(pool_name: str, rbd_name: str, object_name: str, data: bytes)
             ioctx.close()
 
 
-def append_rbd(pool_name: str, rbd_name: str, data: bytes):
+def append_rbd(pool_name: str, rbd_name: str, data: bytes) -> APIResponse:
     '''
         append data to rbd
         pool_name: pool name 
@@ -127,7 +127,7 @@ def append_rbd(pool_name: str, rbd_name: str, data: bytes):
             ioctx.close()
 
 
-def read_rbd(pool_name: str, rbd_name: str, offset=0, length=8192):
+def read_rbd(pool_name: str, rbd_name: str, offset=0, length=8192) -> APIResponse:
     '''
         read rbd
         pool_name: pool name
@@ -150,7 +150,7 @@ def read_rbd(pool_name: str, rbd_name: str, offset=0, length=8192):
             ioctx.close()
 
 
-def delete_rbd(pool_name: str, rbd_name: str):
+def delete_rbd(pool_name: str, rbd_name: str) -> APIResponse:
     '''
         delete rbd
         pool_name: pool name
@@ -174,7 +174,7 @@ def delete_rbd(pool_name: str, rbd_name: str):
             ioctx.close()
 
 
-def create_rbd(pool_name: str, rbd_name: str, size: int):
+def create_rbd(pool_name: str, rbd_name: str, size: int) -> APIResponse:
     '''
         create rbd
         pool_name: pool name
@@ -198,7 +198,7 @@ def create_rbd(pool_name: str, rbd_name: str, size: int):
             ioctx.close()
 
 
-def clone(pool_name: str, rbd_name: str, snap_name: str, dest_pool_name: str, dest_rbd_name: str):
+def clone(pool_name: str, rbd_name: str, snap_name: str, dest_pool_name: str, dest_rbd_name: str) -> APIResponse:
     snap = SnapShot(pool_name, rbd_name)
     try:
         if not snap.is_snap_exits(snap_name):
@@ -213,7 +213,7 @@ def clone(pool_name: str, rbd_name: str, snap_name: str, dest_pool_name: str, de
         return APIResponse.error(code=400, msg=str(err))
 
 
-def create_snap(pool_name: str, rbd_name: str, snap_name: str):
+def create_snap(pool_name: str, rbd_name: str, snap_name: str) -> APIResponse:
     snap = SnapShot(pool_name, rbd_name)
     image = snap.get_image()
     try:
@@ -228,7 +228,7 @@ def create_snap(pool_name: str, rbd_name: str, snap_name: str):
             image.close()
 
 
-def delete_snap(pool_name: str, rbd_name: str, snap_name: str):
+def delete_snap(pool_name: str, rbd_name: str, snap_name: str) -> APIResponse:
     snap = SnapShot(pool_name, rbd_name)
     image = snap.get_image()
     try:
@@ -242,12 +242,12 @@ def delete_snap(pool_name: str, rbd_name: str, snap_name: str):
             image.close()
 
 
-def query_snaps(pool_name: str, rbd_name: str):
+def query_snaps(pool_name: str, rbd_name: str) -> APIResponse:
     snap = SnapShot(pool_name, rbd_name)
     return APIResponse.success(data=snap.query_snaps())
 
 
-def rollback_to_snap(pool_name: str, rbd_name: str, snap_name: str):
+def rollback_to_snap(pool_name: str, rbd_name: str, snap_name: str) -> APIResponse:
     snap = SnapShot(pool_name, rbd_name)
     try:
         if not snap.is_snap_exits(snap_name):
@@ -259,7 +259,7 @@ def rollback_to_snap(pool_name: str, rbd_name: str, snap_name: str):
         return APIResponse.error(code=400, msg=str(err))
 
 
-def rename_rbd(pool_name: str, rbd_name: str, new_name: str):
+def rename_rbd(pool_name: str, rbd_name: str, new_name: str) -> APIResponse:
     ioctx = pool.get_ioctx_by_name(pool_name)
     rbd_instance = RbdManager(ioctx)
     try:
@@ -272,7 +272,7 @@ def rename_rbd(pool_name: str, rbd_name: str, new_name: str):
             ioctx.close()
     
 
-def resize_rbd(pool_name: str, rbd_name: str, size: str):
+def resize_rbd(pool_name: str, rbd_name: str, size: str) -> APIResponse:
     ioctx = pool.get_ioctx_by_name(pool_name)
     rbd_instance = RbdManager(ioctx)
     try:
@@ -285,7 +285,7 @@ def resize_rbd(pool_name: str, rbd_name: str, size: str):
             ioctx.close()
     
 
-def info_snap(pool_name: str, rbd_name: str, snap_name: str):
+def info_snap(pool_name: str, rbd_name: str, snap_name: str) -> APIResponse:
     snap = SnapShot(pool_name, rbd_name)
     '''
         snap = dict{

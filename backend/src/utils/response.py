@@ -1,7 +1,7 @@
 from __future__ import annotations
-
 import sys
 import json
+from src.utils.serializable import JsonSerializable
 
 SUCCESS_CODE: int = 0
 
@@ -35,7 +35,7 @@ class APIResponse(object):
         return cls(code, msg=msg)
 
     def is_success(self) -> bool:
-        return True if (self._code == 0) else False
+        return True if (self.code == 0) else False
 
     def get_code(self) -> int:
         return self.code
@@ -59,14 +59,15 @@ class APIResponse(object):
     _data = property(get_data, set_data)
     _msg = property(get_msg, set_msg)
 
-    def json(self) -> str:
-        return json.dumps(self.__dict__, cls=MyEncoder, indent=4)
-    
+    def to_json_str(self) -> str:
+        return json.dumps(self.__dict__)
+
     def deserialize_response(self, content: json):
         self.set_code(content["code"])
         self.set_data(content["data"])
         self.set_msg(content["msg"])
         return self
+
 
 class MyEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -82,7 +83,7 @@ def example():
     response = APIResponse()
     response.set_msg('Empty APIResponse')
     response.set_code(SUCCESS_CODE)
-    print(response.json())
+    print(response.to_json_str())
     print()
 
     # 2. 创建包含 data 的 response, code 默认为 0
@@ -90,7 +91,7 @@ def example():
     data_res = APIResponse(
         [1234, 2234, 'aaa', [333333, 2222222, 3333333, 444444]])
     data_res.set_msg('Creating APIResponse with data, code defaults to 0')
-    print(data_res.json())
+    print(data_res.to_json_str())
     print()
 
     # 3. 创建包含 data 的 successful response
@@ -99,13 +100,13 @@ def example():
                                            dict={'bool': True,
                                                  'int': 123,
                                                  'void': None}))
-    print(success_res.json())
+    print(success_res.to_json_str())
     print()
 
     # 4. 创建包含 msg 的 failed response
     print('---------------------- 创建包含 msg 的 failed response -------------------------')
     error_res = APIResponse.error('invocation: error')
-    print(error_res.json())
+    print(error_res.to_json_str())
     print('----------------------------------------------------------------------------------')
 
 
