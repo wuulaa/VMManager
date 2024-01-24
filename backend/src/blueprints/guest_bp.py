@@ -136,7 +136,7 @@ def attach_nic():
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     interface_name = request.values.get(consts.P_INTERFACE_NAME)
     flags = request.values.get(consts.P_FLAGS)
-    return guestAPI.attach_nic(domain_name, slave_name, interface_name, int(flags)).to_json_str()
+    return guestAPI.attach_nic(domain_name, slave_name, interface_name, flags = flags).to_json_str()
 
 
 @guest_bp.route("/detachNic", methods=["POST"])
@@ -148,7 +148,7 @@ def detach_nic():
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     interface_name = request.values.get(consts.P_INTERFACE_NAME)
     flags = request.values.get(consts.P_FLAGS)
-    return guestAPI.detach_nic(domain_name, slave_name, interface_name, int(flags)).to_json_str()
+    return guestAPI.detach_nic(domain_name, slave_name, interface_name, flags = flags).to_json_str()
 
 
 @guest_bp.route("/listNic", methods=["POST"])
@@ -172,7 +172,7 @@ def add_vnc():
     port = request.values.get(consts.P_PORT)
     passwd = request.values.get(consts.P_PASSWD)
     flags = request.values.get(consts.P_FLAGS)
-    return guestAPI.add_vnc(domain_name, slave_name, port, passwd, flags).to_json_str()
+    return guestAPI.add_vnc(domain_name, slave_name, port, passwd, flags = flags).to_json_str()
 
 
 @guest_bp.route("/addSPICE", methods=["POST"])
@@ -185,7 +185,7 @@ def add_spice():
     port = request.values.get(consts.P_PORT)
     passwd = request.values.get(consts.P_PASSWD)
     flags = request.values.get(consts.P_FLAGS)
-    return guestAPI.add_spice(domain_name, slave_name, port, passwd, flags).to_json_str()
+    return guestAPI.add_spice(domain_name, slave_name, port, passwd, flags = flags).to_json_str()
 
 
 @guest_bp.route("/setGraphicPasswd", methods=["POST"])
@@ -202,8 +202,8 @@ def change_graphic_passwd():
     if vnc is None:
         vnc = True
     return guestAPI.change_graphic_passwd(domain_name, slave_name,
-                                          port, passwd, int(flags),
-                                          vnc).to_json_str()
+                                          port, passwd, flags = flags,
+                                          vnc = vnc).to_json_str()
 
  
 @guest_bp.route("/monitor")
@@ -246,7 +246,8 @@ def attach_disk():
     volume_name = request.values.get(consts.P_VOLUME_NAME)
     volume_uuid = request.values.get(consts.P_VOLUME_UUID)
     flags = request.values.get(consts.P_FLAGS)
-    return guestAPI.attach_disk(domain_name, slave_name, volume_name, volume_uuid, size, flags).to_json_str()
+    guestAPI.attach_disk(domain_name, slave_name, volume_name, volume_uuid, size = size, flags = flags)
+    return "sads"
 
 
 @guest_bp.route("/detachDisk", methods=["POST"])
@@ -255,7 +256,7 @@ def detach_disk():
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     volume_uuid = request.values.get(consts.P_VOLUME_UUID)
     flags = request.values.get(consts.P_FLAGS)
-    return guestAPI.detach_disk(domain_name, slave_name, volume_uuid, flags).to_json_str()
+    return guestAPI.detach_disk(domain_name, slave_name, volume_uuid, flags = flags).to_json_str()
 
 
 @guest_bp.route("/diskCopy", methods=["POST"])
@@ -329,17 +330,17 @@ def snapshot_to_image():
 
 @guest_bp.route("/setCPU", methods=["POST"])
 def set_cpu():
-    cpu_num = int(request.values.get(consts.P_CPU_NUM))
-    flag = request.values.get(consts.P_FLAGS)
+    cpu_num = request.values.get(consts.P_CPU_NUM)
+    flags = request.values.get(consts.P_FLAGS)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
-    return guestAPI.set_domain_vcpu(domain_name, slave_name, cpu_num, flag).to_json_str()
+    return guestAPI.set_domain_vcpu(domain_name, slave_name, cpu_num = cpu_num, flags = flags).to_json_str()
 
 @guest_bp.route("/setMemory", methods=["POST"])
 def set_memory():
-    memory_size = int(request.values.get(consts.P_MEMORY_SIZE))
-    flag = request.values.get(consts.P_FLAGS)
+    memory_size = request.values.get(consts.P_MEMORY_SIZE)
+    flags = request.values.get(consts.P_FLAGS)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
-    return guestAPI.set_domain_memory(domain_name, slave_name, memory_size, flag).to_json_str()
+    return guestAPI.set_domain_memory(domain_name, slave_name, memory_size = memory_size, flags = flags).to_json_str()
 

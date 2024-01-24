@@ -22,12 +22,12 @@ err_code = {
 guestService = GuestService()
 slaveService = SlaveService()
 
-def NOT_NULL(dict: dict) -> APIResponse:
-    def check(func) -> APIResponse:
+def NOT_NULL(dict: dict):
+    def check(func):
         sig = inspect.signature(func)
         parameters = sig.parameters  #参数列表的有序字典
         @wraps(func)
-        def decorator(*args, **kwargs) -> APIResponse:
+        def decorator(*args, **kwargs):
             flag =False
             str = ""
             for key in dict:
@@ -39,6 +39,20 @@ def NOT_NULL(dict: dict) -> APIResponse:
             return func(*args, **kwargs)
         return decorator
     return check
+
+def TO_INT(list: list):
+    def revert(func):
+        # sig = inspect.signature(func)
+        # parameters = sig.parameters  # 参数有序字典
+        # arg_keys = tuple(parameters.keys())
+        @wraps(func)
+        def decorator(*args, **kwargs):
+            for key in list:
+                kwargs[key] = int(kwargs[key])
+            return func(*args, **kwargs)
+        return decorator
+    return revert
+
 
 class GuestAPI():
     def create_domain(self, domain_name: str, slave_name: str, **kwargs) -> APIResponse:
@@ -92,35 +106,42 @@ class GuestAPI():
     def delete_domain(self, domain_name: str, slave_name: str) -> APIResponse:
         return guestService.delete_domain(domain_name, slave_name)
     
+    @TO_INT(list = ["flags"])
     def attach_nic(self, domain_name: str, slave_name: str, interface_name: str, flags: int)-> APIResponse:
         return guestService.attach_nic(domain_name, slave_name, interface_name, flags)
     
+    @TO_INT(list = ["flags"])    
     def detach_nic(self, domain_name: str, slave_name: str, interface_name: str, flags: int)->APIResponse:
         return guestService.detach_nic(domain_name, slave_name, interface_name, flags)
     
     def list_nic(self, domain_name: str, slave_name: str) -> APIResponse:
         return guestService.list_nic(domain_name, slave_name)
-        
+
+    @TO_INT(list = ["cpu_num", "flags"])        
     def set_domain_vcpu(self, domain_name: str, slave_name: str, cpu_num: int, flags: int) -> APIResponse:
         if (flags is None):
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
         return guestService.set_domain_vcpu(domain_name, slave_name, cpu_num, flags)
     
+    @TO_INT(list = ["memory_size", "flags"])    
     def set_domain_memory(self, domain_name: str, slave_name: str, memory_size: int, flags: int) -> APIResponse:
         if (flags is None):
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
         return guestService.set_domain_memory(domain_name, slave_name, memory_size, flags)
-    
+
+    @TO_INT(list = ["flags"])    
     def add_vnc(self, domain_name: str, slave_name: str, port:int, passwd: str, flags) -> APIResponse:
         if (flags is None):
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
         return guestService.add_vnc(domain_name, slave_name, port, passwd, flags)
-    
+
+    @TO_INT(list = ["flags"])    
     def add_spice(self, domain_name: str, slave_name: str, port:str, passwd: str, flags)-> APIResponse:
         if (flags is None):
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
         return guestService.add_spice(domain_name, slave_name, port, passwd, flags)
-    
+
+    @TO_INT(list = ["flags"])    
     def change_graphic_passwd(self, domain_name: str, slave_name: str, port:str, passwd: str, flags, vnc=True) -> APIResponse:
         if (flags is None):
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
@@ -137,10 +158,12 @@ class GuestAPI():
     
     def get_domain_status(self, domain_uuid: str) -> APIResponse:
         return guestService.get_domain_status(domain_uuid)
-    
+
+    @TO_INT(list = ["size", "flags"])    
     def attach_disk(self, domain_name: str, slave_name: str, volume_name, volume_uuid: str = None, size: int = 10*1024*1024*1024, flags: int = libvirt.VIR_DOMAIN_VCPU_CONFIG) -> APIResponse:
         return guestService.attach_domain_disk(domain_name, slave_name, volume_name, volume_uuid, size, flags)
-    
+
+    @TO_INT(list = ["flags"])    
     def detach_disk(self, domain_name: str, slave_name: str, volume_uuid, flags: int = libvirt.VIR_DOMAIN_VCPU_CONFIG) -> APIResponse:
         return guestService.detach_domain_disk(domain_name, slave_name, volume_uuid, flags)
     
@@ -195,5 +218,3 @@ class SlaveAPI():
     
     def get_slave_guests(self, name: str) -> APIResponse:
         return slaveService.get_slave_guests(name=name)
-
-    

@@ -41,8 +41,7 @@ class GuestService():
         guest_uuid = generator.get_uuid(exist_uuids)
         guest: GuestBuilder = create_initial_xml(domain_name, guest_uuid)
         response = vol_api.clone_disk("8388ad7f-e58b-4d94-bf41-6e95b23d0d4a", "d38681d3-07fd-41c7-b457-1667ef9354c7", domain_name, guest_uuid, rt_flag=1)
-        guest.devices.disk.append(response.get_data()["disk"])
-        print(guest.get_xml_string())       
+        guest.devices.disk.append(response.get_data()["disk"]) 
 
         # rbdXML = RbdVolumeXMLBuilder()
         # device = rbdXML.construct(domain_name)
@@ -204,7 +203,7 @@ class GuestService():
         return response
     
     @enginefacade.transactional
-    def attach_nic(self, session, domain_name, slave_name, interface_name, flags) -> APIResponse:
+    def attach_nic(self, session, domain_name, slave_name, interface_name, flags: int) -> APIResponse:
         domain_uuid = guestDB.get_domain_uuid_by_name(session, domain_name, slave_name)
         response = networkapi.attach_interface_to_domain(domain_uuid, interface_name)
         xml = networkapi.get_interface_xml(interface_name).get_data()
@@ -222,7 +221,7 @@ class GuestService():
     
     
     @enginefacade.transactional
-    def detach_nic(self, session, domain_name, slave_name, interface_name, flags) -> APIResponse:
+    def detach_nic(self, session, domain_name, slave_name, interface_name, flags: int) -> APIResponse:
         xml = networkapi.get_interface_xml(interface_name).get_data()
         data = {
             consts.P_DOMAIN_NAME : domain_name,
@@ -244,7 +243,7 @@ class GuestService():
     
     
     @enginefacade.transactional
-    def set_domain_vcpu(self, session, domain_name, slave_name, cpu_num, flags) -> APIResponse:
+    def set_domain_vcpu(self, session, domain_name: str, slave_name: str, cpu_num: int, flags: int) -> APIResponse:
         data = {consts.P_DOMAIN_NAME : domain_name, consts.P_CPU_NUM : cpu_num, consts.P_FLAGS : flags}
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/setCPU/", data=data).json())
@@ -254,7 +253,7 @@ class GuestService():
         return response
     
     @enginefacade.transactional
-    def set_domain_memory(self, session, domain_name, slave_name, memory_size, flags) -> APIResponse:
+    def set_domain_memory(self, session, domain_name: str, slave_name: str, memory_size: int, flags: int) -> APIResponse:
         data = {consts.P_DOMAIN_NAME : domain_name, consts.P_MEMORY_SIZE : memory_size, consts.P_FLAGS : flags}
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/setMemory", data=data).json())
@@ -265,7 +264,7 @@ class GuestService():
     
     
     @enginefacade.transactional
-    def add_vnc(self, session, domain_name, slave_name, port: str, passwd: str, flags) -> APIResponse:
+    def add_vnc(self, session, domain_name, slave_name, port: str, passwd: str, flags: int) -> APIResponse:
         if port:
             port = int(port)
         url = CONF['slaves'][slave_name]
@@ -291,7 +290,7 @@ class GuestService():
     
     
     @enginefacade.transactional
-    def add_spice(self, session, domain_name, slave_name, port: str, passwd: str, flags) -> APIResponse:
+    def add_spice(self, session, domain_name, slave_name, port: str, passwd: str, flags: int) -> APIResponse:
         if port:
             port = int(port)
         url = CONF['slaves'][slave_name]
@@ -317,7 +316,7 @@ class GuestService():
     
     
     @enginefacade.transactional
-    def change_graphic_passwd(self, session, domain_name: str, slave_name: str, port:int, passwd: str, flags, vnc=True) -> APIResponse:
+    def change_graphic_passwd(self, session, domain_name: str, slave_name: str, port:int, passwd: str, flags: int, vnc=True) -> APIResponse:
         if vnc:
             xml = graphics.create_vnc_viewer(port, passwd).get_xml_string()
         else:
@@ -372,16 +371,16 @@ class GuestService():
         return APIResponse.success(guestDB.get_domain_status(session, domain_uuid))
     
     @enginefacade.transactional
-    def attach_domain_disk(self, session, domain_name, slave_name, volume_name, volume_uuid, size, flags) -> APIResponse:
+    def attach_domain_disk(self, session, domain_name, slave_name, volume_name, volume_uuid, size, flags: int) -> APIResponse:
         guest_uuid = guestDB.get_domain_uuid_by_name(session, domain_name, slave_name)
         if volume_uuid:
-            response = vol_api.add_volume_to_guest(volume_uuid ,guest_uuid, return_xml =True)
+            response = vol_api.add_disk_to_guest(volume_uuid ,guest_uuid, rt_flag = 2)
             if response.is_success():
                 xml = response.get_data()
             else:
                 return response
         else:
-            response: APIResponse = vol_api.create_volume(pool_uuid="d38681d3-07fd-41c7-b457-1667ef9354c7", volume_name=volume_name, allocation=size, guest_uuid=guest_uuid, return_xml = True)
+            response: APIResponse = vol_api.create_disk(pool_uuid="d38681d3-07fd-41c7-b457-1667ef9354c7", volume_name=volume_name, allocation=size, guest_uuid=guest_uuid, rt_flag = 2)
             if response.is_success():
                 xml = response.get_data()
             else:
@@ -398,8 +397,8 @@ class GuestService():
         return response
     
     @enginefacade.transactional
-    def detach_domain_disk(self, session, domain_name, slave_name, volume_uuid, flags) -> APIResponse:
-        response = vol_api.get_volume_by_uuid(volume_uuid, return_xml = True)
+    def detach_domain_disk(self, session, domain_name, slave_name, volume_uuid, flags: int) -> APIResponse:
+        response = vol_api.get_disk_by_uuid(session, volume_uuid, rt_flag = 2)
         if response.is_success():
             xml = response.get_data()
         else:
