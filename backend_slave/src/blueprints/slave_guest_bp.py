@@ -119,7 +119,9 @@ def attach_device():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     xml = request.values.get(consts.P_DEVICE_XML)
     flags = request.values.get(consts.P_FLAGS)
-    res = guestAPI.attach_device(domain_name, xml, int(flags))
+    if flags:
+        flags = int(flags)
+    res = guestAPI.attach_device(domain_name, xml, flags)
     return res.to_json_str()
 
 @guest_bp.route("/detachDevice/", methods=["POST"])
@@ -127,7 +129,9 @@ def detach_device():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     xml = request.values.get(consts.P_DEVICE_XML)
     flags = request.values.get(consts.P_FLAGS)
-    res = guestAPI.detach_device(domain_name, xml, int(flags))
+    if flags:
+        flags = int(flags)
+    res = guestAPI.detach_device(domain_name, xml, flags)
     return res.to_json_str()
 
 @guest_bp.route("/updateDevice/", methods=["POST"])
@@ -135,7 +139,9 @@ def update_device():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     xml = request.values.get(consts.P_DEVICE_XML)
     flags = request.values.get(consts.P_FLAGS)
-    res = guestAPI.update_device(domain_name, xml, int(flags))
+    if flags:
+        flags = int(flags)
+    res = guestAPI.update_device(domain_name, xml, flags)
     return res.to_json_str()
 
 @guest_bp.route("/setCPU/", methods=["POST"])
@@ -143,7 +149,9 @@ def set_domain_vcpu():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     cpu_num = request.values.get(consts.P_CPU_NUM)
     flags = request.values.get(consts.P_FLAGS)
-    res = guestAPI.set_domain_vcpu(domain_name, cpu_num, int(flags))
+    if flags:
+        flags = int(flags)
+    res = guestAPI.set_domain_vcpu(domain_name, cpu_num, flags)
     return res.to_json_str()
 
 @guest_bp.route("/setMemory/", methods=["POST"])
@@ -151,7 +159,9 @@ def set_domain_memory():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     memory_size = request.values.get(consts.P_MEMORY_SIZE)
     flags = request.values.get(consts.P_FLAGS)
-    res = guestAPI.set_domain_memory(domain_name, memory_size, int(flags))
+    if flags:
+        flags = int(flags)
+    res = guestAPI.set_domain_memory(domain_name, memory_size, flags)
     return res.to_json_str()
 
 @guest_bp.route("/monitor/", methods=["POST"])

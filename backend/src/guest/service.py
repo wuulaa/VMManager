@@ -10,8 +10,9 @@ from src.domain_xml.device import graphics
 from src.domain_xml.device.disk import create_cdrom_builder
 from src.volume.api import VolumeAPI, SnapshotAPI
 from src.utils.generator import UUIDGenerator
-from src.domain_xml.domain.guest import Guest, DomainDevices
+from src.domain_xml.domain.guest import Guest as GuestBuilder
 import src.utils.generator as generator
+from src.guest.db.models import Guest as GuestModel
 import src.utils.consts as consts 
 import requests
 
@@ -38,7 +39,7 @@ class GuestService():
         for guest in guestDB.get_domain_list(session):
             exist_uuids.append(guest.uuid)
         guest_uuid = generator.get_uuid(exist_uuids)
-        guest: Guest = create_initial_xml(domain_name, guest_uuid)
+        guest: GuestBuilder = create_initial_xml(domain_name, guest_uuid)
         response = vol_api.clone_disk("8388ad7f-e58b-4d94-bf41-6e95b23d0d4a", "d38681d3-07fd-41c7-b457-1667ef9354c7", domain_name, guest_uuid, rt_flag=1)
         guest.devices.disk.append(response.get_data()["disk"])
         print(guest.get_xml_string())       
@@ -267,13 +268,19 @@ class GuestService():
     def add_vnc(self, session, domain_name, slave_name, port: str, passwd: str, flags) -> APIResponse:
         if port:
             port = int(port)
+        url = CONF['slaves'][slave_name]
+            
+        vnc_address = f"{url}:{port}"
+        
+        if self.is_graphic_address_used(session, vnc_address):
+            return APIResponse.error(code=400, msg="port has been used")
+        
         xml = graphics.create_vnc_viewer(port, passwd).get_xml_string()
         data = {
             consts.P_DOMAIN_NAME : domain_name,
             consts.P_DEVICE_XML: xml,
             consts.P_FLAGS : flags
         }
-        url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(code=400, msg=response.msg)
@@ -287,13 +294,19 @@ class GuestService():
     def add_spice(self, session, domain_name, slave_name, port: str, passwd: str, flags) -> APIResponse:
         if port:
             port = int(port)
+        url = CONF['slaves'][slave_name]
+            
+        vnc_address = f"{url}:{port}"
+        
+        if self.is_graphic_address_used(session, vnc_address):
+            return APIResponse.error(code=400, msg="port has been used")
+        
         xml = graphics.create_spice_viewer(port, passwd).get_xml_string()
         data = {
             consts.P_DOMAIN_NAME : domain_name,
             consts.P_DEVICE_XML: xml,
             consts.P_FLAGS : flags
         }
-        url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(code=400, msg=response.msg)
@@ -447,6 +460,29 @@ class GuestService():
             networkapi.create_interface(interface_name, network_name, None, None)
         
         networkapi.attach_interface_to_domain(domain_uuid, interface_name)
+        
+        
+    @enginefacade.transactional    
+    def is_graphic_address_used(self, session, address: str):
+        """
+        determine whether a ip:port has been used by other vnc/spice
+
+        """
+        guests: list[GuestModel] = guestDB.get_domain_list(session)
+        address_list: list[str] = []
+        for guest in guests:
+            if guest.vnc_address is not None:
+                address_list.append(guest.vnc_address)
+            if guest.spice_address is not None:
+                address_list.append(guest.spice_address)
+        
+        ip_ports: list[str] = []
+        for s in address_list:
+            parts = s.split(":")
+            ip_port = f"{parts[0]}:{parts[1]}"
+            ip_ports.append(ip_port)
+        
+        return address in ip_ports
         
 
 class SlaveService():
