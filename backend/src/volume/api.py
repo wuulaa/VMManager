@@ -83,8 +83,6 @@ class VolumeAPI(object):
                     guest_uuid: Optional[str] = None,
                     rt_flag: Optional[int] = 0) -> APIResponse:
         try:
-            import pdb
-            pdb.set_trace()
             response = APIResponse.success()
             volume = volume_service.create_volume(pool_uuid, volume_name,
                                                   allocation, guest_uuid)

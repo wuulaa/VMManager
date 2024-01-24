@@ -246,7 +246,7 @@ def attach_disk():
     volume_name = request.values.get(consts.P_VOLUME_NAME)
     volume_uuid = request.values.get(consts.P_VOLUME_UUID)
     flags = request.values.get(consts.P_FLAGS)
-    return guestAPI.attach_disk(domain_name, slave_name, volume_name, volume_uuid, size,flags)
+    return guestAPI.attach_disk(domain_name, slave_name, volume_name, volume_uuid, size, flags).to_json_str()
 
 
 @guest_bp.route("/detachDisk", methods=["POST"])
@@ -255,14 +255,14 @@ def detach_disk():
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     volume_uuid = request.values.get(consts.P_VOLUME_UUID)
     flags = request.values.get(consts.P_FLAGS)
-    return guestAPI.detach_disk(domain_name, slave_name, volume_uuid, flags)
+    return guestAPI.detach_disk(domain_name, slave_name, volume_uuid, flags).to_json_str()
 
 
 @guest_bp.route("/diskCopy", methods=["POST"])
 def disk_copy():
     volume_uuid = request.values.get(consts.P_VOLUME_UUID)
     copy_name = request.values.get(consts.P_COPY_NAME)
-    return guestAPI.add_disk_copy(volume_uuid, copy_name)
+    return guestAPI.add_disk_copy(volume_uuid, copy_name).to_json_str()
 
 
 @guest_bp.route("/diskCopyCancel", methods=["POST"])
@@ -273,13 +273,13 @@ def disk_copy_cancel():
 @guest_bp.route("/diskCopyDel", methods=["POST"])
 def disk_copy_del():
     volume_uuid = request.values.get(consts.P_VOLUME_UUID)
-    return guestAPI.del_disk_copy(volume_uuid)
+    return guestAPI.del_disk_copy(volume_uuid).to_json_str()
 
 
 @guest_bp.route("/diskCopyList")
 def disk_copy_list():
     volume_uuid = request.values.get(consts.P_VOLUME_UUID)
-    return guestAPI.get_disk_copys(volume_uuid)
+    return guestAPI.get_disk_copys(volume_uuid).to_json_str()
 
 
 @guest_bp.route("/diskCopyRecover", methods=["POST"])
@@ -291,7 +291,7 @@ def disk_copy_recover():
 def add_snapshot():
     volume_uuid = request.values.get(consts.P_VOLUME_UUID)
     snap_name = request.values.get(consts.P_SNAP_NAME)    
-    return guestAPI.add_snapshot(volume_uuid, snap_name)
+    return guestAPI.add_snapshot(volume_uuid, snap_name).to_json_str()
 
 
 @guest_bp.route("/putSnapshotName", methods=["POST"])
@@ -302,19 +302,19 @@ def put_snapshot_name():
 @guest_bp.route("/snapshotDetail", methods=["POST"])
 def snapshot_detail():
     snap_uuid = request.values.get(consts.P_SNAP_UUID)
-    return guestAPI.get_snap_info(snap_uuid)
+    return guestAPI.get_snap_info(snap_uuid).to_json_str()
     
 
 @guest_bp.route("/snapshotDel", methods=["POST"])
 def del_snapshot():
     snap_uuid = request.values.get(consts.P_SNAP_UUID)
-    return guestAPI.del_snapshot(snap_uuid)
+    return guestAPI.del_snapshot(snap_uuid).to_json_str()
 
 
 @guest_bp.route("/snapshotRestore", methods=["POST"])
 def restore_snapshot():
     snap_uuid = request.values.get(consts.P_SNAP_UUID)
-    return guestAPI.rollback_to_snapshot(snap_uuid)
+    return guestAPI.rollback_to_snapshot(snap_uuid).to_json_str()
 
 
 @guest_bp.route("/snapshotSave", methods=["POST"])
@@ -329,7 +329,7 @@ def snapshot_to_image():
 
 @guest_bp.route("/setCPU", methods=["POST"])
 def set_cpu():
-    cpu_num = request.values.get(consts.P_CPU_NUM)
+    cpu_num = int(request.values.get(consts.P_CPU_NUM))
     flag = request.values.get(consts.P_FLAGS)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
@@ -337,7 +337,7 @@ def set_cpu():
 
 @guest_bp.route("/setMemory", methods=["POST"])
 def set_memory():
-    memory_size = request.values.get(consts.P_MEMORY_SIZE)
+    memory_size = int(request.values.get(consts.P_MEMORY_SIZE))
     flag = request.values.get(consts.P_FLAGS)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     domain_name = request.values.get(consts.P_DOMAIN_NAME)

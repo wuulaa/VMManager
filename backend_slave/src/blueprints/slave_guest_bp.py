@@ -147,7 +147,7 @@ def update_device():
 @guest_bp.route("/setCPU/", methods=["POST"])
 def set_domain_vcpu():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
-    cpu_num = request.values.get(consts.P_CPU_NUM)
+    cpu_num = int(request.values.get(consts.P_CPU_NUM))
     flags = request.values.get(consts.P_FLAGS)
     if flags:
         flags = int(flags)
@@ -157,7 +157,7 @@ def set_domain_vcpu():
 @guest_bp.route("/setMemory/", methods=["POST"])
 def set_domain_memory():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
-    memory_size = request.values.get(consts.P_MEMORY_SIZE)
+    memory_size = int(request.values.get(consts.P_MEMORY_SIZE))
     flags = request.values.get(consts.P_FLAGS)
     if flags:
         flags = int(flags)
@@ -176,12 +176,6 @@ def set_user_passwd():
     user_name = request.values.get(consts.P_USER_NAME)
     passwd = request.values.get(consts.P_PASSWD)
     res: APIResponse = guestAPI.set_user_passwd(domain_name, user_name, passwd)
-    return res.to_json_str()
-
-@guest_bp.route("/attachDisk/", methods=["POST"])
-def attach_disk():
-    domain_name = request.values.get(consts.P_DOMAIN_NAME)
-    res: APIResponse = guestAPI.monitor(domain_name)
     return res.to_json_str()
 
 

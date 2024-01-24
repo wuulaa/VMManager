@@ -134,7 +134,7 @@ def resume_domain(conn: libvirt.virConnect, domain_uuid):
             return APIResponse.error(code=400,msg="domain is none.")
         elif domain.state()[0] is libvirt.VIR_DOMAIN_PAUSED:
             domain.resume()
-            return {"is_success": True}
+            return APIResponse.success()
         else:
             return APIResponse.error(code=1, msg="error: Failed to resume domain. Domain"
                     + domain_uuid+"state is error. ")
