@@ -286,6 +286,21 @@ class GuestService():
         response = networkapi.detach_interface_from_domain(domain_uuid, interface_name)
         return response
     
+    
+    @enginefacade.transactional
+    def detach_all_nic_from_domain(self, session, domain_uuid, flags: int=2) -> APIResponse:
+        interface_names = networkapi.get_domain_interface_names(domain_uuid).get_data()
+        responses: list[APIResponse] = []
+        for name in interface_names:
+            response =self.detach_nic(session, domain_uuid, name, flags)
+            responses.append(response)
+        
+        for resp in responses:
+            if resp.get_code() != 0:
+                return APIResponse.error(code=400, msg=f"detach not complete")
+        return APIResponse.success()
+    
+    
     @enginefacade.transactional
     def list_nic(self, session, domain_uuid: str) -> APIResponse:
         return networkapi.list_domain_interfaces(domain_uuid)

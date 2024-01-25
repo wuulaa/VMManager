@@ -640,6 +640,12 @@ class NetworkService:
         return APIResponse.success(interface.to_dict())
     
     
+    @enginefacade.transactional
+    def get_domain_interface_names(self, session, domain_uuid: str):
+        res: list[Interface] = db.get_domain_interfaces(session, domain_uuid)
+        names = [interface.name  for interface in res]
+        return APIResponse.success(names)
+    
     ####################
     # helper functions #
     ####################

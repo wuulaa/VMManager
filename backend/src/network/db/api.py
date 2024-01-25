@@ -45,6 +45,11 @@ def get_interface_by_name(session, name):
 
 
 @enginefacade.auto_session
+def get_domain_interfaces(session, domain_uuid):
+    return condition_select(session, Interface, values={"guest_uuid" : domain_uuid})
+
+
+@enginefacade.auto_session
 def update_interface_ip(session, uuid, new_ip):
     condition_update(session, Interface, uuid, {"ip_address": new_ip})
     return select_by_uuid(session, Interface, uuid)
