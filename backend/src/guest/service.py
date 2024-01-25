@@ -63,6 +63,14 @@ class GuestService():
         if(response.code == 0):
             guestDB.status_update(session, domain_uuid, status=status[5])
         return response
+    
+    @enginefacade.transactional
+    def get_domain_detail(self, session, domain_uuid: str) -> APIResponse:
+        guest = guestDB.get_domain_by_uuid(session, domain_uuid)
+        if guest is None:
+            return APIResponse(code=400, msg = "domian is None")
+        else:
+            return APIResponse.success(data=guest.to_dict())
 
     @enginefacade.transactional
     def destroy_domain(self, session, domain_uuid: str) -> APIResponse:
@@ -118,6 +126,17 @@ class GuestService():
         # networkapi.domain_ip_modified(uuid)    
         
         return response
+
+    def batch_domains_detail(self, domains_uuid_list) -> APIResponse:
+        error_list = []
+        data = {}
+        for domain_uuid in domains_uuid_list:
+            response: APIResponse = self.get_domain_detail(domain_uuid)
+            if response.get_code() == 0:
+                data[domain_uuid] = response.get_data()
+            else:
+                error_list.append(domain_uuid)
+        return APIResponse.success(data=data, msg = "error list: " + str(error_list))
 
 
     def batch_start_domains(self, domains_uuid_list) -> APIResponse:
