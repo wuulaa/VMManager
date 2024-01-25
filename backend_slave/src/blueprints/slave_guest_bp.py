@@ -1,6 +1,7 @@
 from flask import Blueprint
 from flask import request
 from src.slave_guest import service as guestAPI
+from src.slave_node import service as nodeAPI
 from src.utils import consts
 from src.utils.response import APIResponse
 import json
@@ -183,4 +184,10 @@ def set_user_passwd():
 def get_domain_ip_addressed():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     res: APIResponse = guestAPI.get_domain_interface_addresses(domain_uuid)
+    return res.to_json_str()
+
+
+@guest_bp.route("/getSystemInfo/")
+def get_compute_node_info():
+    res: APIResponse = nodeAPI.get_all_node_info()
     return res.to_json_str()

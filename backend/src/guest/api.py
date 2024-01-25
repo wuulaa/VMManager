@@ -226,3 +226,6 @@ class SlaveAPI():
     
     def get_slave_guests(self, name: str) -> APIResponse:
         return slaveService.get_slave_guests(name=name)
+    
+    def get_slave_status(self, slave_name) -> APIResponse:
+        return slaveService.get_slave_status(slave_name)

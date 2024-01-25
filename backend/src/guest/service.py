@@ -631,3 +631,12 @@ class SlaveService():
             create_res =self.create_slave(session, slave_name, slave_addr).get_data()
             res.append(create_res)
         return APIResponse.success(data=res) 
+    
+    
+    def get_slave_status(self, slave_name) -> APIResponse:
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.get(url="http://"+url+"/getSystemInfo/").json())
+        if response.code != 0:
+            return APIResponse.error(code=400, msg=response.msg)
+        
+        return response
