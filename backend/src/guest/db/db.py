@@ -58,6 +58,11 @@ def get_domain_status(session, domain_uuid: str):
     guest: Guest = db.select_by_uuid(session, Guest, domain_uuid)
     return guest.status
 
+@enginefacade.auto_session
+def get_domain_by_uuid(session, domain_uuid: str):
+    guest: Guest = db.select_by_uuid(session, Guest, domain_uuid)
+    return guest
+
     
 @enginefacade.auto_session
 def create_slave(session, name: str, address: str):
