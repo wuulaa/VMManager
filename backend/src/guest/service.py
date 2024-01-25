@@ -381,7 +381,6 @@ class GuestService():
     
     @enginefacade.transactional
     def attach_domain_disk(self, session, domain_uuid, volume_name, volume_uuid, size, flags: int) -> APIResponse:
-        
         if volume_uuid:
             response = vol_api.add_disk_to_guest(volume_uuid ,domain_uuid, rt_flag = 2)
             if response.is_success():
