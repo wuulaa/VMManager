@@ -207,7 +207,7 @@ class GuestService():
     
     @enginefacade.transactional
     def attach_nic(self, session, domain_uuid, interface_name, flags: int) -> APIResponse:
-        domain_uuid = guestDB.get_domain_uuid_by_name(session, domain_uuid)
+        
         response = networkapi.attach_interface_to_domain(domain_uuid, interface_name)
         xml = networkapi.get_interface_xml(interface_name).get_data()
         data = {
@@ -237,13 +237,12 @@ class GuestService():
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/detachDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(code=400, msg=response.msg)
-        domain_uuid = guestDB.get_domain_uuid_by_name(session, domain_uuid)
+        
         response = networkapi.detach_interface_from_domain(domain_uuid, interface_name)
         return response
     
     @enginefacade.transactional
     def list_nic(self, session, domain_uuid: str) -> APIResponse:
-        domain_uuid = guestDB.get_domain_uuid_by_name(session, domain_uuid)
         return networkapi.list_domain_interfaces(domain_uuid)
     
     
@@ -254,8 +253,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/setCPU/", data=data).json())
         if(response.code == 0):
-            uuid = guestDB.get_domain_uuid_by_name(session, domain_uuid)
-            guestDB.update_guest(session, uuid, values={"cpu": cpu_num})
+            guestDB.update_guest(session, domain_uuid, values={"cpu": cpu_num})
         return response
     
     @enginefacade.transactional
@@ -265,8 +263,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/setMemory", data=data).json())
         if(response.code == 0):
-            uuid = guestDB.get_domain_uuid_by_name(session, domain_uuid)
-            guestDB.update_guest(session, uuid, values={"memory": memory_size})
+            guestDB.update_guest(session, domain_uuid, values={"memory": memory_size})
         return response
     
     
@@ -291,9 +288,9 @@ class GuestService():
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(code=400, msg=response.msg)
-        uuid = guestDB.get_domain_uuid_by_name(session, domain_uuid)
+        
         address = f"{url}:{port}:{passwd}"
-        guestDB.update_guest(session, uuid, values={"vnc_address":address })
+        guestDB.update_guest(session, domain_uuid, values={"vnc_address":address })
         return response
     
     
@@ -318,9 +315,9 @@ class GuestService():
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(code=400, msg=response.msg)
-        uuid = guestDB.get_domain_uuid_by_name(session, domain_uuid)
+        
         address = f"{url}:{port}:{passwd}"
-        guestDB.update_guest(session, uuid, values={"spice_address":address })
+        guestDB.update_guest(session, domain_uuid, values={"spice_address":address })
         return response
     
     
@@ -340,12 +337,12 @@ class GuestService():
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(code=400, msg=response.msg)
-        uuid = guestDB.get_domain_uuid_by_name(session, domain_uuid)
+       
         address = f"{url}:{port}:{passwd}"
         if vnc:
-            guestDB.update_guest(session, uuid, values={"vnc_address":address })
+            guestDB.update_guest(session, domain_uuid, values={"vnc_address":address })
         else:
-            guestDB.update_guest(session, uuid, values={"spice_address":address })
+            guestDB.update_guest(session, domain_uuid, values={"spice_address":address })
         return response
         
     @enginefacade.transactional    
@@ -384,15 +381,15 @@ class GuestService():
     
     @enginefacade.transactional
     def attach_domain_disk(self, session, domain_uuid, volume_name, volume_uuid, size, flags: int) -> APIResponse:
-        guest_uuid = guestDB.get_domain_uuid_by_name(session, domain_uuid)
+        
         if volume_uuid:
-            response = vol_api.add_disk_to_guest(volume_uuid ,guest_uuid, rt_flag = 2)
+            response = vol_api.add_disk_to_guest(volume_uuid ,domain_uuid, rt_flag = 2)
             if response.is_success():
                 xml = response.get_data()
             else:
                 return response
         else:
-            response: APIResponse = vol_api.create_disk(pool_uuid="d38681d3-07fd-41c7-b457-1667ef9354c7", volume_name=volume_name, allocation=size, guest_uuid=guest_uuid, rt_flag = 2)
+            response: APIResponse = vol_api.create_disk(pool_uuid="d38681d3-07fd-41c7-b457-1667ef9354c7", volume_name=volume_name, allocation=size, guest_uuid=domain_uuid, rt_flag = 2)
             if response.is_success():
                 xml = response.get_data()
             else:
