@@ -140,6 +140,11 @@ def batch_pause_domain():
     domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)
     return guestAPI.batch_pause_domains(domains_uuid_list).to_json_str()
 
+@guest_bp.route("/batchResumeDomains", methods=["POST"])
+def batch_resume_domain():
+    domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)
+    return guestAPI.batch_resume_domains(domains_uuid_list).to_json_str()
+
 @guest_bp.route("/batchShutdownDomains", methods=["POST"])
 def batch_shutdown_domain():
     domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)

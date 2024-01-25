@@ -119,7 +119,7 @@ class GuestService():
         
         return response
 
-    @enginefacade.transactional
+
     def batch_start_domains(self, domains_uuid_list) -> APIResponse:
         success_list = []
         error_list = []
@@ -137,7 +137,7 @@ class GuestService():
         else:
             return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
 
-    @enginefacade.transactional
+
     def batch_pause_domains(self, domains_uuid_list) -> APIResponse:
         success_list = []
         error_list = []
@@ -155,7 +155,7 @@ class GuestService():
         else:
             return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
 
-    @enginefacade.transactional
+
     def batch_shutdown_domains(self, domains_uuid_list) -> APIResponse:
         success_list = []
         error_list = []
@@ -173,7 +173,7 @@ class GuestService():
         else:
             return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
 
-    @enginefacade.transactional
+
     def batch_delete_domains(self, domains_uuid_list) -> APIResponse:
         success_list = []
         error_list = []
@@ -191,13 +191,31 @@ class GuestService():
         else:
             return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
 
-    @enginefacade.transactional
+
     def batch_restart_domains(self, domains_uuid_list) -> APIResponse:
         success_list = []
         error_list = []
         msg_list = []
         for domain_uuid in domains_uuid_list:
             response: APIResponse = self.reboot_domain(domain_uuid)
+            if response.get_code() == 0:
+                success_list.append(domain_uuid)
+            else:
+                error_list.append(domain_uuid)
+                msg_list.append(response.get_msg())
+        response = APIResponse()
+        if len(error_list) == 0:
+            return APIResponse.success()
+        else:
+            return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
+        
+        
+    def batch_resume_domains(self, domains_uuid_list) -> APIResponse:
+        success_list = []
+        error_list = []
+        msg_list = []
+        for domain_uuid in domains_uuid_list:
+            response: APIResponse = self.resume_domain(domain_uuid)
             if response.get_code() == 0:
                 success_list.append(domain_uuid)
             else:

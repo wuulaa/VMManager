@@ -83,6 +83,9 @@ class GuestAPI():
     def batch_pause_domains(self, domains_uuid_list ) -> APIResponse:
         return guestService.batch_pause_domains(domains_uuid_list)
     
+    def batch_resume_domains(self, domains_uuid_list ) -> APIResponse:
+        return guestService.batch_resume_domains(domains_uuid_list)
+    
     def batch_shutdown_domains(self, domains_uuid_list ) -> APIResponse:
         return guestService.batch_shutdown_domains(domains_uuid_list)
 
