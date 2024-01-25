@@ -228,15 +228,13 @@ def change_graphic_passwd():
                                           vnc = vnc).to_json_str()
 
 
-
 @guest_bp.route("/attachDisk", methods=["POST"])
 def attach_disk():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
-    size = request.values.get(consts.P_MEMORY_SIZE)
-    volume_name = request.values.get(consts.P_VOLUME_NAME)
     volume_uuid = request.values.get(consts.P_VOLUME_UUID)
-    flags = request.values.get(consts.P_FLAGS)
-    return guestAPI.attach_disk(domain_uuid, volume_name, volume_uuid, size = size, flags = flags).to_json_str()
+    volume_name = request.values.get(consts.P_VOLUME_NAME)
+    size = request.values.get(consts.P_VOLUME_SIZE)
+    return guestAPI.attach_disk(domain_uuid, volume_name, size, volume_uuid).to_json_str()
 
 
 @guest_bp.route("/detachDisk", methods=["POST"])
