@@ -100,9 +100,10 @@ class GuestAPI():
 
     def put_description(self, domain_uuid: str, new_description: str) -> APIResponse:
         return guestService.put_description(domain_uuid, new_description)
-
-    def delete_domain(self, domain_uuid: str) -> APIResponse:
-        return guestService.delete_domain(domain_uuid)
+    
+    @TO_INT(list = ["flags"])
+    def delete_domain(self, domain_uuid: str, flags: int) -> APIResponse:
+        return guestService.delete_domain(domain_uuid, flags)
     
     @TO_INT(list = ["flags"])
     def attach_nic(self, domain_uuid: str , interface_name: str, flags: int)-> APIResponse:

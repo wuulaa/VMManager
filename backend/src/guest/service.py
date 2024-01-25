@@ -56,7 +56,7 @@ class GuestService():
 
     @enginefacade.transactional
     def shutdown_domain(self, session, domain_uuid: str) -> APIResponse:
-        data = {"domain_uuid" : domain_uuid}
+        data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/shutdownDomain/", data=data).json())
@@ -66,7 +66,7 @@ class GuestService():
 
     @enginefacade.transactional
     def destroy_domain(self, session, domain_uuid: str) -> APIResponse:
-        data = {"domain_uuid" : domain_uuid}
+        data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/destroyDomain/", data=data).json())
@@ -76,7 +76,7 @@ class GuestService():
 
     @enginefacade.transactional
     def pause_domain(self, session, domain_uuid: str) -> APIResponse:
-        data = {"domain_uuid" : domain_uuid}
+        data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/pauseDomain/", data=data).json())
@@ -86,7 +86,7 @@ class GuestService():
 
     @enginefacade.transactional
     def resume_domain(self, session, domain_uuid: str) -> APIResponse:
-        data = {"domain_uuid" : domain_uuid}
+        data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/resumeDomain/", data=data).json())
@@ -96,7 +96,7 @@ class GuestService():
     
     @enginefacade.transactional
     def reboot_domain(self, session, domain_uuid: str) -> APIResponse:
-        data = {"domain_uuid" : domain_uuid}
+        data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/rebootDomain/", data=data).json())
@@ -106,7 +106,7 @@ class GuestService():
 
     @enginefacade.transactional
     def start_domain(self, session, domain_uuid: str) -> APIResponse:
-        data = {"domain_uuid" : domain_uuid}
+        data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/startDomain/", data=data).json())
@@ -119,55 +119,95 @@ class GuestService():
         
         return response
 
-    # @enginefacade.transactional
-    # def batch_start_domains(self, session, domains_name_list) -> APIResponse:
-    #     data = {consts.P_DOMAINS_NAME_LIST : domains_name_list}
-    #     url = CONF['slaves'][slave_name]
-    #     response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/batchStartDomains/", data=data).json())
-    #     success_list = response.get_data()["success"]
-    #     for uuid in success_list:
-    #         guestDB.status_update(session, uuid, status[1])
-    #     return response
+    @enginefacade.transactional
+    def batch_start_domains(self, domains_uuid_list) -> APIResponse:
+        success_list = []
+        error_list = []
+        msg_list = []
+        for domain_uuid in domains_uuid_list:
+            response: APIResponse = self.start_domain(domain_uuid)
+            if response.get_code() == 0:
+                success_list.append(domain_uuid)
+            else:
+                error_list.append(domain_uuid)
+                msg_list.append(response.get_msg())
+        response = APIResponse()
+        if len(error_list) == 0:
+            return APIResponse.success()
+        else:
+            return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
 
-    # @enginefacade.transactional
-    # def batch_pause_domains(self, session, domains_name_list) -> APIResponse:
-    #     data = {consts.P_DOMAINS_NAME_LIST : domains_name_list}
-    #     url = CONF['slaves'][slave_name]
-    #     response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/batchPauseDomains/", data=data).json())
-    #     success_list = response.get_data()["success"]
-    #     for uuid in success_list:
-    #         guestDB.status_update(session, uuid, status[3])
-    #     return response
+    @enginefacade.transactional
+    def batch_pause_domains(self, domains_uuid_list) -> APIResponse:
+        success_list = []
+        error_list = []
+        msg_list = []
+        for domain_uuid in domains_uuid_list:
+            response: APIResponse = self.pause_domain(domain_uuid)
+            if response.get_code() == 0:
+                success_list.append(domain_uuid)
+            else:
+                error_list.append(domain_uuid)
+                msg_list.append(response.get_msg())
+        response = APIResponse()
+        if len(error_list) == 0:
+            return APIResponse.success()
+        else:
+            return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
 
-    # @enginefacade.transactional
-    # def batch_shutdown_domains(self, session, domains_name_list) -> APIResponse:
-    #     data = {consts.P_DOMAINS_NAME_LIST : domains_name_list}
-    #     url = CONF['slaves'][slave_name]
-    #     response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/batchShutdownDomains/", data=data).json())
-    #     success_list = response.get_data()["success"]
-    #     for uuid in success_list:
-    #         guestDB.status_update(session, uuid, status[4])
-    #     return response
+    @enginefacade.transactional
+    def batch_shutdown_domains(self, domains_uuid_list) -> APIResponse:
+        success_list = []
+        error_list = []
+        msg_list = []
+        for domain_uuid in domains_uuid_list:
+            response: APIResponse = self.shutdown_domain(domain_uuid)
+            if response.get_code() == 0:
+                success_list.append(domain_uuid)
+            else:
+                error_list.append(domain_uuid)
+                msg_list.append(response.get_msg())
+        response = APIResponse()
+        if len(error_list) == 0:
+            return APIResponse.success()
+        else:
+            return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
 
-    # @enginefacade.transactional
-    # def batch_delete_domains(self, session, domains_name_list) -> APIResponse:
-    #     data = {consts.P_DOMAINS_NAME_LIST : domains_name_list}
-    #     url = CONF['slaves'][slave_name]
-    #     response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/batchDeleteDomains/", data=data).json())
-    #     success_list = response.get_data()["success"]
-    #     for uuid in success_list:
-    #         guestDB.delete_domain_by_uuid(session, uuid)
-    #     return response
+    @enginefacade.transactional
+    def batch_delete_domains(self, domains_uuid_list) -> APIResponse:
+        success_list = []
+        error_list = []
+        msg_list = []
+        for domain_uuid in domains_uuid_list:
+            response: APIResponse = self.delete_domain(domain_uuid)
+            if response.get_code() == 0:
+                success_list.append(domain_uuid)
+            else:
+                error_list.append(domain_uuid)
+                msg_list.append(response.get_msg())
+        response = APIResponse()
+        if len(error_list) == 0:
+            return APIResponse.success()
+        else:
+            return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
 
-    # @enginefacade.transactional
-    # def batch_restart_domains(self, session, domains_name_list) -> APIResponse:
-    #     data = {consts.P_DOMAINS_NAME_LIST : domains_name_list}
-    #     url = CONF['slaves'][slave_name]
-    #     response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/batchRestartDomains/", data=data).json())
-    #     success_list = response.get_data()["success"]
-    #     for uuid in success_list:
-    #         guestDB.status_update(session, uuid, status[1])
-    #     return response
+    @enginefacade.transactional
+    def batch_restart_domains(self, domains_uuid_list) -> APIResponse:
+        success_list = []
+        error_list = []
+        msg_list = []
+        for domain_uuid in domains_uuid_list:
+            response: APIResponse = self.reboot_domain(domain_uuid)
+            if response.get_code() == 0:
+                success_list.append(domain_uuid)
+            else:
+                error_list.append(domain_uuid)
+                msg_list.append(response.get_msg())
+        response = APIResponse()
+        if len(error_list) == 0:
+            return APIResponse.success()
+        else:
+            return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
 
     def get_domains_list(self) -> APIResponse:
         return guestDB.get_domain_list()
@@ -179,8 +219,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/renameDomain/", data=data).json())
         if(response.code == 0):
-            uuid = guestDB.get_domain_uuid_by_name(session, domain_uuid)
-            guestDB.update_guest(session, uuid, values={"name": new_name})
+            guestDB.update_guest(session, domain_uuid, values={"name": new_name})
         return response
 
     @enginefacade.transactional
@@ -190,19 +229,25 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/putDes/", data=data).json())
         if(response.code == 0):
-            uuid = guestDB.get_domain_uuid_by_name(session, domain_uuid)
-            guestDB.update_guest(session, uuid, values={"description": new_description})
+            guestDB.update_guest(session, domain_uuid, values={"description": new_description})
         return response
 
     @enginefacade.transactional
-    def delete_domain(self, session, domain_uuid) -> APIResponse:
+    def delete_domain(self, session, domain_uuid, flags) -> APIResponse:
         data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/delDomain/", data=data).json())
         if(response.code == 0):
-            uuid = guestDB.get_domain_uuid_by_name(session, domain_uuid)
-            guestDB.delete_domain_by_uuid(session, uuid = uuid)
+            guestDB.delete_domain_by_uuid(session, uuid = domain_uuid)
+            volume_list = vol_api.fetch_volume_list(guest_uuid = domain_uuid)
+            #删除磁盘
+            if(flags == 0):
+                for volume in volume_list:
+                    vol_api.delete_disk_by_uuid(volume.uuid)
+            else:
+                for volume in volume_list:
+                    vol_api.remove_disk_from_guest(volume.uuid)
         return response
     
     @enginefacade.transactional

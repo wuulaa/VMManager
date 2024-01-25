@@ -21,9 +21,9 @@ def get_domains_list():
     guest_list = []
     for item in guestAPI.get_domains_list():
         guest = {}
-        guest["domain_uuid"] = item.name
-        guest["domain_uuid"] = item.uuid
-        guest["slave_name"] = item.slave_name
+        guest[consts.P_DOMAIN_NAME] = item.name
+        guest[consts.P_DOMAIN_UUID] = item.uuid
+        guest[consts.P_SLAVE_NAME] = item.slave_name
         guest_list.append(guest)
     response.set_data(guest_list)
     return response.to_json_str()
@@ -53,7 +53,8 @@ def put_description():
 @guest_bp.route("/del", methods=["POST"])
 def delete_domain():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
-    return guestAPI.delete_domain(domain_uuid).to_json_str()
+    flags = request.values.get(consts.P_FLAGS)
+    return guestAPI.delete_domain(domain_uuid, flags).to_json_str()
 
 
 @guest_bp.route("/start", methods=["POST"])

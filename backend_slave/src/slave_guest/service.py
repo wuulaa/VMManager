@@ -22,8 +22,8 @@ def reboot_domain(domain_uuid: str):
 def rename_domain(domain_uuid: str, new_name: str):
     return guest_manager.rename_domain(connection, domain_uuid, new_name)
 
-def get_uuid_by_name(domain_uuid: str):
-    return guest_manager.get_uuid_by_name(connection, domain_uuid)
+def get_uuid_by_name(domain_name: str):
+    return guest_manager.get_uuid_by_name(connection, domain_name)
 
 def put_description(domain_uuid: str, description: str):
     return guest_manager.set_domain_description(connection, domain_uuid, description)
