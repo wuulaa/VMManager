@@ -131,7 +131,7 @@ def set_memory():
     return guestAPI.set_domain_memory(domain_uuid, memory_size = memory_size, flags = flags).to_json_str()
 
 @guest_bp.route("/batchGetDoaminsDetail", methods=["POST"])
-def batch_start_domain():
+def batch_get_domains_detail():
     domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)
     return guestAPI.batch_domains_detail(domains_uuid_list).to_json_str()
 
