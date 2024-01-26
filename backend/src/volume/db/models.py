@@ -140,22 +140,27 @@ class Snapshot(Base):
                                       unique=True,
                                       comment="Snapshot UUID")
     name: Mapped[str] = mapped_column(String(64),
-                                      unique=True,
                                       nullable=False,
                                       comment="Snapshot name")
     volume_uuid: Mapped[str] = mapped_column(String(64),
                                              ForeignKey('volume.uuid'),
                                              comment="UUID of the snapshotted volume")
+    temporary: Mapped[bool] = mapped_column(Boolean,
+                                            nullable=False,
+                                            comment="Whether it was created "
+                                                    "temporarily due to cloning")
 
     volume: Mapped["Volume"] = relationship(back_populates="snapshots")
 
     def __init__(self,
                  volume_uuid: str,
-                 snap_name: str):
+                 snap_name: str,
+                 is_temp: bool):
         if (volume_uuid is None or snap_name is None):
             raise Exception('volume_uuid or snapshot name cannot be empty')
         self.volume_uuid = volume_uuid
         self.name = snap_name
+        self.is_temp = is_temp
 
         self.uuid = self._gen_uuid()
 

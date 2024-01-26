@@ -1,3 +1,4 @@
+import requests
 from src.domain_xml.xml_init import create_initial_xml
 from src.utils.config import CONF
 from src.volume.xml.volume.rbd_builder import RbdVolumeXMLBuilder
@@ -8,13 +9,12 @@ from src.utils.response import APIResponse
 from src.network.api import NetworkAPI
 from src.domain_xml.device import graphics
 from src.domain_xml.device.disk import create_cdrom_builder
-from src.volume.api import VolumeAPI, SnapshotAPI
+from src.volume.api import StorageAPI
 from src.utils.generator import UUIDGenerator
 from src.domain_xml.domain.guest import Guest as GuestBuilder
 import src.utils.generator as generator
 from src.guest.db.models import Guest as GuestModel
 import src.utils.consts as consts 
-import requests
 
 status = {
     0:"nostate",
@@ -27,10 +27,9 @@ status = {
     7:"pmsuspended"
 }
 
-vol_api = VolumeAPI()
+storage_api = StorageAPI()
 networkapi = NetworkAPI()
 generator =UUIDGenerator()
-snap_api = SnapshotAPI()
 
 class GuestService():
     @enginefacade.transactional
@@ -40,7 +39,7 @@ class GuestService():
             exist_uuids.append(guest.uuid)
         guest_uuid = generator.get_uuid(exist_uuids)
         guest: GuestBuilder = create_initial_xml(domain_name, guest_uuid)
-        response = vol_api.clone_disk("8388ad7f-e58b-4d94-bf41-6e95b23d0d4a", "d38681d3-07fd-41c7-b457-1667ef9354c7", domain_name, guest_uuid, rt_flag=1)
+        response = storage_api.clone_volume("8388ad7f-e58b-4d94-bf41-6e95b23d0d4a", domain_name, guest_uuid, rt_flag=1)
         guest.devices.disk.append(response.get_data()["disk"]) 
 
         # rbdXML = RbdVolumeXMLBuilder()
@@ -240,14 +239,14 @@ class GuestService():
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/delDomain/", data=data).json())
         if(response.code == 0):
             guestDB.delete_domain_by_uuid(session, uuid = domain_uuid)
-            volume_list = vol_api.fetch_volume_list(guest_uuid = domain_uuid)
+            volume_list = storage_api.get_all_volumes(guest_uuid=domain_uuid)
             #删除磁盘
             if(flags == 0):
                 for volume in volume_list:
-                    vol_api.delete_disk_by_uuid(volume.uuid)
+                    storage_api.delete_volume_by_uuid(volume.uuid)
             else:
                 for volume in volume_list:
-                    vol_api.remove_disk_from_guest(volume.uuid)
+                    storage_api.detach_volume_from_guest(volume.uuid)
         return response
     
     @enginefacade.transactional
@@ -415,83 +414,66 @@ class GuestService():
         if response.code != 0:
             return APIResponse.error(code=400, msg=response.msg)
         return response
-    
+
     @enginefacade.transactional
     def get_domain_slave_name(self, session, domain_uuid: str) -> APIResponse:
         return APIResponse.success(guestDB.get_domain_slave_name(session, domain_uuid))
-    
+
     @enginefacade.transactional
     def get_domain_status(self, session, domain_uuid: str) -> APIResponse:
         return APIResponse.success(guestDB.get_domain_status(session, domain_uuid))
-    
+
     @enginefacade.transactional
-    def attach_domain_disk(self, session, domain_uuid, volume_name, volume_uuid, size, flags: int) -> APIResponse:
-        if volume_uuid:
-            response = vol_api.add_disk_to_guest(volume_uuid ,domain_uuid, rt_flag = 2)
-            if response.is_success():
-                xml = response.get_data()
-            else:
-                return response
+    def attach_disk_to_guest(self, session,
+                             guest_uuid: str,
+                             volume_name: str,
+                             volume_uuid: str,
+                             size: int,
+                             flags: int) -> APIResponse:
+        response = storage_api.attach_volume_to_guest(guest_uuid, volume_uuid,
+                                                      volume_name, size, rt_flag=2)
+        if response.is_success():
+            xml_string = response.get_data()
         else:
-            response: APIResponse = vol_api.create_disk(pool_uuid="d38681d3-07fd-41c7-b457-1667ef9354c7", volume_name=volume_name, allocation=size, guest_uuid=domain_uuid, rt_flag = 2)
-            if response.is_success():
-                xml = response.get_data()
-            else:
-                return response
+            raise Exception(f'Failed to attach disk, failed to get device XML:'
+                            f'{response.get_msg()}')
+
         data = {
-            consts.P_DOMAIN_UUID : domain_uuid,
-            consts.P_DEVICE_XML : xml,
-            consts.P_FLAGS : flags
+            consts.P_DOMAIN_UUID: guest_uuid,
+            consts.P_DEVICE_XML: xml_string,
+            consts.P_FLAGS: flags
         }
-        slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
+        slave_name = guestDB.get_domain_slave_name(session, guest_uuid)
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
-        if response.code != 0:
-            return APIResponse.error(code=400, msg=response.msg)
-        return response
-    
-    @enginefacade.transactional
-    def detach_domain_disk(self, session, domain_uuid, volume_uuid, flags: int) -> APIResponse:
-        response = vol_api.get_disk_by_uuid(session, volume_uuid, rt_flag = 2)
         if response.is_success():
-            xml = response.get_data()
-        else:
             return response
+        else:
+            raise Exception(f'Failed to attach disk: {response.get_msg()}')
+
+    @enginefacade.transactional
+    def detach_disk_from_domain(self, session, guest_uuid: str,
+                                volume_uuid: str, flags: int) -> APIResponse:
+        response = storage_api.get_volume(volume_uuid, rt_flag=2)
+        if response.is_success():
+            xml_string = response.get_data()
+        else:
+            raise Exception(f'Failed to detach disk; '
+                            f'Failed to get disk xml: {response.get_msg()}')
+
         data = {
-            consts.P_DOMAIN_UUID : domain_uuid,
-            consts.P_DEVICE_XML : xml,
-            consts.P_FLAGS : flags
+            consts.P_DOMAIN_UUID: guest_uuid,
+            consts.P_DEVICE_XML: xml_string,
+            consts.P_FLAGS: flags
         }
-        slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
+        slave_name = guestDB.get_domain_slave_name(session, guest_uuid)
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/detachDevice/", data=data).json())
-        if response.code != 0:
-            return APIResponse.error(code=400, msg=response.msg)
-        return vol_api.remove_disk_from_guest(volume_uuid)
-    
-    
-    def add_disk_copy(self, volume_uuid, copy_name) -> APIResponse:
-        return vol_api.clone_disk(volume_uuid ,"d38681d3-07fd-41c7-b457-1667ef9354c7", copy_name)
-    
-    def del_disk_copy(self, volume_uuid) -> APIResponse:
-        return vol_api.delete_disk_by_uuid(volume_uuid)
-    
-    def get_disk_copys(self, volume_uuid) -> APIResponse:
-        return 
-    
-    def add_snapshot(self, volume_uuid, snap_name) -> APIResponse:
-        return snap_api.create_snapshot(volume_uuid, snap_name)
-    
-    def get_snapshot_info(self, snap_uuid) -> APIResponse:
-        return snap_api.get_snapshot_info(snap_uuid)
-    
-    def del_snapshot(self, snap_uuid) -> APIResponse:
-        return snap_api.delete_snapshot_by_uuid(snap_uuid)
-    
-    def rollback_to_snapshot(self, snap_uuid) -> APIResponse:
-        return snap_api.rollback_to_snapshot(snap_uuid)
-    
-    
+        if response.is_success():
+            return storage_api.detach_volume_from_guest(volume_uuid)
+        else:
+            raise Exception(f'Failed to dettach disk: {response.get_msg()}')
+
     @enginefacade.transactional
     def post_domain_start(self, session, domain_uuid) -> APIResponse:
         """
@@ -499,8 +481,7 @@ class GuestService():
         Currently only has static ip init
         """
         networkapi.init_set_domain_static_ip(domain_uuid)
-        
-        
+
     @enginefacade.transactional
     def post_domain_create(self, session, domain_uuid, network_name: str, interface_name: str) -> APIResponse:
         """
