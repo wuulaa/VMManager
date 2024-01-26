@@ -138,12 +138,8 @@ class StorageService():
 
         # 2. 创建 snapshot
         snap_name = f'{src_volume.name}_{str(datetime.datetime.now().timestamp())}'
-        snap_response = snap_driver.create(src_volume.name, snap_name)
 
-        if snap_response.is_success():
-            self.create_snapshot(session, src_volume_uuid, snap_name, is_temp=True)
-        else:
-            raise Exception(f'clone failed: {snap_response.get_msg()}')
+        self.create_snapshot(session, src_volume_uuid, snap_name, is_temp=True)
 
         # 3. clone volume
         clone_response = volume_driver.clone(src_volume.name,
@@ -303,7 +299,7 @@ class StorageService():
                         session,
                         volume_uuid: str,
                         snap_name: str,
-                        is_temp: bool = False,) -> Snapshot:
+                        is_temp: bool = False) -> Snapshot:
         volume = db.select_by_uuid(session, Volume, volume_uuid)
         if volume is None:
             raise Exception(f'Cannot find a volume '
@@ -312,7 +308,7 @@ class StorageService():
         response = snap_driver.create(volume.name, snap_name)
 
         if response.is_success():
-            snapshot = Snapshot(volume_uuid, snap_name)
+            snapshot = Snapshot(volume_uuid, snap_name, is_temp=is_temp)
             db.insert(session, snapshot)
             return snapshot
         else:
