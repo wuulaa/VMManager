@@ -145,10 +145,10 @@ class Snapshot(Base):
     volume_uuid: Mapped[str] = mapped_column(String(64),
                                              ForeignKey('volume.uuid'),
                                              comment="UUID of the snapshotted volume")
-    temporary: Mapped[bool] = mapped_column(Boolean,
-                                            nullable=False,
-                                            comment="Whether it was created "
-                                                    "temporarily due to cloning")
+    is_temp: Mapped[bool] = mapped_column(Boolean,
+                                          nullable=False,
+                                          comment="Whether it was created "
+                                                  "temporarily due to cloning")
 
     volume: Mapped["Volume"] = relationship(back_populates="snapshots")
 
