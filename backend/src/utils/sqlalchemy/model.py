@@ -9,32 +9,29 @@ from sqlalchemy.orm import mapped_column
 
 from . import enginefacade
 from src.utils.generator import UUIDGenerator
+from src.utils.serializable import JsonSerializable
 
 
 # model 基类
-class Base(DeclarativeBase):
+class Base(DeclarativeBase, JsonSerializable):
     # 数据表配置
     __table_args__ = {'mysql_engine': 'InnoDB',     # 使用 InnoDB 引擎
                       'mysql_charset': 'utf8mb4'}   # 编码格式
-
-    _field_list: List = None
 
     id: Mapped[int] = mapped_column(Integer,
                                     primary_key=True,
                                     autoincrement=True,
                                     comment="Primary Key")
 
+    def _as_dict(self):
+        return JsonSerializable._as_dict(self, self.to_dict().keys())
+
     def _gen_uuid(self):
         return UUIDGenerator.get_uuid()
 
-    def get_field_list(self) -> List:
-        if self._field_list is None:
-            self._field_list = [column.name for column in self.__table__.columns]
-        return self._field_list
-
     def to_dict(self) -> dict:
         dict = {}
-        for field in self.get_field_list():
+        for field in self.__table__.columns.keys():
             if field in self.__dict__ and self.__dict__[field] is not None:
                 dict[field] = self.__dict__[field]
         return dict
