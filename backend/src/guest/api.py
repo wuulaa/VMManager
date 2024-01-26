@@ -167,42 +167,23 @@ class GuestAPI():
     def get_domain_status(self, domain_uuid: str) -> APIResponse:
         return guestService.get_domain_status(domain_uuid)
 
-    @TO_INT(list = ["size", "flags"])
     def attach_disk(self,
-                    domain_uuid: str,
+                    guest_uuid: str,
                     volume_name: str,
                     size: int = 20*1024,
                     volume_uuid: str = None,
                     flags: int = libvirt.VIR_DOMAIN_AFFECT_CONFIG) -> APIResponse:
-        return guestService.attach_domain_disk(domain_uuid, volume_name,
-                                               volume_uuid, size, flags)
+        if size is not None:
+            size = int(size)
+        return guestService.attach_disk_to_guest(guest_uuid, volume_name,
+                                                 volume_uuid, size, flags)
 
-    @TO_INT(list = ["flags"])    
-    def detach_disk(self, domain_uuid: str , volume_uuid, flags: int = libvirt.VIR_DOMAIN_VCPU_CONFIG) -> APIResponse:
-        return guestService.detach_domain_disk(domain_uuid, volume_uuid, flags)
-    
-    def add_disk_copy(self, volume_uuid: str, copy_name: str) -> APIResponse:
-        return guestService.add_disk_copy(volume_uuid, copy_name)
-    
-    def del_disk_copy(self, volume_uuid: str) -> APIResponse:
-        return guestService.del_disk_copy(volume_uuid)
-    
-    def get_disk_copys(self, volume_uuid: str) -> APIResponse:
-        return 
-    
-    def add_snapshot(self, volume_uuid: str, snap_name: str) -> APIResponse:
-        return guestService.add_snapshot(volume_uuid, snap_name)
-    
-    def get_snap_info(self, snap_uuid: str) -> APIResponse:
-        return
-    
-    def del_snapshot(self, snap_uuid: str) -> APIResponse:
-        return guestService.del_snapshot(snap_uuid)
-    
-    def rollback_to_snapshot(self, snap_uuid: str) -> APIResponse:
-        return guestService.rollback_to_snapshot(snap_uuid)
-    
-    
+    def detach_disk(self,
+                    guest_uuid: str,
+                    volume_uuid: str,
+                    flags: int = libvirt.VIR_DOMAIN_AFFECT_CONFIG) -> APIResponse:
+        return guestService.detach_disk_from_domain(guest_uuid, volume_uuid, flags)
+
 
 class SlaveAPI():
     

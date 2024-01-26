@@ -242,49 +242,19 @@ def change_graphic_passwd():
 
 @guest_bp.route("/attachDisk", methods=["POST"])
 def attach_disk():
-    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
-    size = request.values.get(consts.P_MEMORY_SIZE)
-    volume_name = request.values.get(consts.P_VOLUME_NAME)
+    guest_uuid = request.values.get(consts.P_GUEST_UUID)
     volume_uuid = request.values.get(consts.P_VOLUME_UUID)
-    flags = request.values.get(consts.P_FLAGS)
-    return guestAPI.attach_disk(domain_uuid, volume_name, volume_uuid, size = size, flags = flags).to_json_str()
+    volume_name = request.values.get(consts.P_VOLUME_NAME)
+    size = request.values.get(consts.P_VOLUME_SIZE)
+    return guestAPI.attach_disk(guest_uuid, volume_name, size,
+                                volume_uuid=volume_uuid).to_json_str()
 
 
 @guest_bp.route("/detachDisk", methods=["POST"])
 def detach_disk():
-    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
+    domain_uuid = request.values.get(consts.P_GUEST_UUID)
     volume_uuid = request.values.get(consts.P_VOLUME_UUID)
-    flags = request.values.get(consts.P_FLAGS)
-    return guestAPI.detach_disk(domain_uuid, volume_uuid, flags = flags).to_json_str()
-
-
-@guest_bp.route("/diskCopy", methods=["POST"])
-def disk_copy():
-    volume_uuid = request.values.get(consts.P_VOLUME_UUID)
-    copy_name = request.values.get(consts.P_COPY_NAME)
-    return guestAPI.add_disk_copy(volume_uuid, copy_name).to_json_str()
-
-
-@guest_bp.route("/diskCopyCancel", methods=["POST"])
-def disk_copy_cancel():
-    pass
-
-
-@guest_bp.route("/diskCopyDel", methods=["POST"])
-def disk_copy_del():
-    volume_uuid = request.values.get(consts.P_VOLUME_UUID)
-    return guestAPI.del_disk_copy(volume_uuid).to_json_str()
-
-
-@guest_bp.route("/diskCopyList")
-def disk_copy_list():
-    volume_uuid = request.values.get(consts.P_VOLUME_UUID)
-    return guestAPI.get_disk_copys(volume_uuid).to_json_str()
-
-
-@guest_bp.route("/diskCopyRecover", methods=["POST"])
-def disk_copy_recover():
-    pass
+    return guestAPI.detach_disk(domain_uuid, volume_uuid).to_json_str()
 
 
 @guest_bp.route("/snapshotAdd", methods=["POST"])

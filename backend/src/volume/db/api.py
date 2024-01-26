@@ -2,27 +2,25 @@ from src.utils.sqlalchemy import enginefacade
 from src.utils.sqlalchemy.api import *
 from .models import Volume, Snapshot
 
+
 @enginefacade.auto_session
-def list_volumes(session, pool_uuid: str):
-    if pool_uuid is None:
-        return condition_select(session, Volume)
-    else:
-        return condition_select(session,
-                                Volume,
-                                values={'pool_uuid': pool_uuid})
+def select_volumes(session, **kwargs):
+    return condition_select(session,
+                            Volume,
+                            values=kwargs)
 
 
 @enginefacade.auto_session
-def select_volume_by_name(session, pool_uuid: str, name: str):
-    volumes = condition_select(session,
-                               Volume,
-                               values={'pool_uuid': pool_uuid,
-                                       'name': name})
-    return volumes[0] if len(volumes) > 0 else None
+def delete_volume_with_snapshots(session, volume_uuid):
+    volume: Volume = select_by_uuid(session, Volume, volume_uuid)
+    if volume is None:
+        return
+    volume.snapshots.clear()
+    delete(session, volume)
 
 
 @enginefacade.auto_session
-def select_snap_by_volume_uuid(session, volume_uuid: str):
+def select_snapshots(session, **kwargs):
     return condition_select(session,
                             Snapshot,
-                            values={'volume_uuid': volume_uuid})
+                            values=kwargs)

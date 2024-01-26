@@ -31,7 +31,7 @@ snap_driver = getattr(snap_module, snap_driver_name)
 
 
 @singleton
-class VolumeService():
+class StorageService():
 
     def _get_dev_order(self, session, guest_uuid: str):
         list = db.condition_select(session, Volume, values={
@@ -50,13 +50,23 @@ class VolumeService():
         return True if (allocation < pool.allocation - pool.usage) else False
 
     @enginefacade.transactional
-    def add_volume_to_guest(self, session, volume_uuid: str, guest_uuid: str):
-        volume = db.select_by_uuid(session, Volume, volume_uuid)
-        if volume is None:
-            raise Exception(f'Cannot find a volume '
-                            f'which UUID is {volume_uuid}')
-        elif volume.guest_uuid is not None:
-            raise Exception(f'this volume is used by {volume.guest_uuid}')
+    def attach_volume_to_guest(self, session,
+                               guest_uuid: str,
+                               volume_uuid: str,
+                               pool_uuid: str,
+                               volume_name: str,
+                               allocation: int):
+        if volume_uuid:
+            # attach existed volume
+            volume = db.select_by_uuid(session, Volume, volume_uuid)
+            if volume is None:
+                raise Exception(f'Cannot find a volume '
+                                f'which UUID is {volume_uuid}')
+            elif volume.guest_uuid is not None:
+                raise Exception(f'this volume is used by {volume.guest_uuid}')
+        else:
+            # attach new volume
+            volume = self.create_volume(session, pool_uuid, volume_name, allocation)
 
         dev_order = self._get_dev_order(session, guest_uuid)
         volume.dev_order = dev_order
@@ -131,8 +141,7 @@ class VolumeService():
         snap_response = snap_driver.create(src_volume.name, snap_name)
 
         if snap_response.is_success():
-            snapshot = Snapshot(src_volume.uuid, snap_name)
-            db.insert(session, snapshot)
+            self.create_snapshot(session, src_volume_uuid, snap_name, is_temp=True)
         else:
             raise Exception(f'clone failed: {snap_response.get_msg()}')
 
@@ -161,11 +170,11 @@ class VolumeService():
                             f'{clone_response.get_msg()}')
 
     @enginefacade.transactional
-    def create_from_snap(self,
-                         session,
-                         snap_uuid: str,
-                         volume_name: str,
-                         guest_uuid: str = None) -> Volume:
+    def create_from_snapshot(self,
+                             session,
+                             snap_uuid: str,
+                             volume_name: str,
+                             guest_uuid: str = None) -> Volume:
         snapshot = db.select_by_uuid(session, Snapshot, snap_uuid)
         if snapshot is None:
             raise Exception(f'Cannot find a snapshot '
@@ -189,7 +198,7 @@ class VolumeService():
             db.insert(session, cloned_volume)
             return cloned_volume
         else:
-            raise Exception(f'volume {volume_name} creation failed: '
+            raise Exception(f'Volume {volume_name} creation failed: '
                             f'{response.get_msg()}')
 
     @enginefacade.transactional
@@ -198,11 +207,14 @@ class VolumeService():
         if volume is None:
             raise Exception(f'Cannot find a volume '
                             f'which UUID is {volume_uuid}')
+        elif volume.guest_uuid is not None:
+            raise Exception(f'The Volume is being used by the Guest '
+                            f'with UUID {volume.guest_uuid}')
 
         response = volume_driver.delete(volume.name)
         if response.is_success():
             volume.pool.usage -= volume.allocation
-            db.delete(session, volume)
+            db.delete_volume_with_snapshots(volume_uuid=volume_uuid)
         else:
             raise Exception(f'volume {volume.name} deletion failed: '
                             f'{response.get_msg()}')
@@ -213,7 +225,9 @@ class VolumeService():
         if pool is None:
             raise Exception(f'Cannot find a pool which UUID is {pool_uuid}')
 
-        volume = db.select_volume_by_name(session, pool_uuid, volume_name)
+        volume = db.select_volumes(session,
+                                   pool_uuid=pool_uuid,
+                                   name=volume_name)
         if volume is None:
             raise Exception(f'Cannot find a volume named {volume_name} '
                             f'in Pool {pool.name}')
@@ -221,7 +235,7 @@ class VolumeService():
         response = volume_driver.delete(volume.name)
         if response.is_success():
             pool.usage -= volume.allocation
-            db.delete(session, volume)
+            db.delete_volume_with_snapshots(volume_uuid=volume.uuid)
         else:
             raise Exception(f'volume {volume.name} deletion failed: '
                             f'{response.get_msg()}')
@@ -232,7 +246,11 @@ class VolumeService():
 
     @enginefacade.transactional
     def get_volume_by_name(self, session, pool_uuid: str, name: str) -> Volume:
-        return db.select_volume_by_name(session, pool_uuid, name)
+        volume_list = db.select_volumes(session,
+                                        pool_uuid=pool_uuid,
+                                        name=name)
+        if len(volume_list) > 0:
+            return volume_list[0]
 
     @enginefacade.transactional
     def get_volume_xml(self, session, volume_uuid: str) -> str:
@@ -244,8 +262,12 @@ class VolumeService():
         return disk.get_xml_string()
 
     @enginefacade.transactional
-    def list_volumes(self, session, pool_uuid: str = None):
-        return db.list_volumes(session, pool_uuid)
+    def get_all_volumes(self, session, **kwargs):
+        return db.select_volumes(session, **kwargs)
+
+    @enginefacade.transactional
+    def fetch_backup_list(self, session, parent_uuid: str) -> List[Volume]:
+        return db.select_volumes(session, parent_uuid=parent_uuid)
 
     @enginefacade.transactional
     def resize_volume(self, session, uuid: str, new_size: int):
@@ -260,9 +282,9 @@ class VolumeService():
                             'than the used capacity')
 
     @enginefacade.transactional
-    def rollback_to_snap(self, session,
-                         volume_uuid: str,
-                         snap_uuid: str):
+    def rollback_to_snapshot(self, session,
+                             volume_uuid: str,
+                             snap_uuid: str):
         volume = db.select_by_uuid(session, Volume, volume_uuid)
         if volume is None:
             raise Exception(f'Cannot find a volume '
@@ -276,13 +298,12 @@ class VolumeService():
         if not response.is_success():
             raise Exception(f'Volume {volume.name} rollback failed')
 
-
-class SnapshotService():
     @enginefacade.transactional
     def create_snapshot(self,
                         session,
                         volume_uuid: str,
-                        snap_name: str) -> Snapshot:
+                        snap_name: str,
+                        is_temp: bool = False,) -> Snapshot:
         volume = db.select_by_uuid(session, Volume, volume_uuid)
         if volume is None:
             raise Exception(f'Cannot find a volume '
@@ -312,12 +333,15 @@ class SnapshotService():
             raise Exception(f'snapshot {snapshot.name} deletion failed: '
                             f'{response.get_msg()}')
 
+    # @enginefacade.transactional
+    # def fetch_volume_snapshots
+
     @enginefacade.transactional
-    def list_snapshots(self, session, volume_uuid: str = None) -> List[Snapshot]:
+    def get_snapshots(self, session, volume_uuid: str = None) -> List[Snapshot]:
         volume = db.select_by_uuid(session, Volume, volume_uuid)
         if volume is None:
             raise Exception(f'Cannot find a volume '
-                             f'which UUID is {volume_uuid}')
+                            f'which UUID is {volume_uuid}')
         return volume.snapshots()
 
     @enginefacade.transactional
@@ -333,6 +357,7 @@ class SnapshotService():
         else:
             raise Exception(f'Fail to get snapshot {snapshot.name} infomation')
 
+# service = StorageService()
 
 # POOL_UUID = 'd38681d3-07fd-41c7-b457-1667ef9354c7'
 # volume_service = VolumeService()

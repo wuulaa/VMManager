@@ -1,25 +1,24 @@
 from typing import List, Optional, Type
 
 from sqlalchemy import select
-from sqlalchemy.orm import DeclarativeBase
-
 from . import enginefacade
+from .model import Base
 
 
 @enginefacade.auto_session
-def batch_insert(session, instance_list: List[DeclarativeBase]):
+def batch_insert(session, instance_list: List[Base]):
     session.add_all(instance_list)
 
 
 @enginefacade.auto_session
-def batch_delete(session, instance_list: List[DeclarativeBase]):
+def batch_delete(session, instance_list: List[Base]):
     for instance in instance_list:
         session.delete(instance=instance)
 
 
 @enginefacade.auto_session
 def condition_update(session,
-                     model_type: Type[DeclarativeBase],
+                     model_type: Type[Base],
                      uuid: str,
                      values: dict):
     instance = select_by_uuid(session, model_type, uuid)
@@ -34,9 +33,9 @@ def condition_update(session,
 
 @enginefacade.auto_session
 def condition_select(session,
-                     model_type: Type[DeclarativeBase],
-                     instance: Optional[DeclarativeBase] = None,
-                     values: Optional[dict] = {}) -> List[DeclarativeBase]:
+                     model_type: Type[Base],
+                     instance: Optional[Base] = None,
+                     values: Optional[dict] = {}) -> List[Base]:
     if instance is not None:
         values = instance.to_dict()
     stmt = select(model_type).filter_by(**values)
@@ -44,35 +43,35 @@ def condition_select(session,
 
 
 @enginefacade.auto_session
-def delete(session, instance: DeclarativeBase):
+def delete(session, instance: Base):
     session.delete(instance=instance)
 
 
 @enginefacade.auto_session
-def insert(session, instance: DeclarativeBase):
+def insert(session, instance: Base):
     session.add(instance=instance)
 
 
 @enginefacade.auto_session
 def select_by_id(session,
-                 model_type: Type[DeclarativeBase],
-                 id: int):
+                 model_type: Type[Base],
+                 id: int) -> Base:
     stmt = select(model_type).filter_by(id=id)
     return session.scalar(stmt)
 
 
 @enginefacade.auto_session
 def select_by_uuid(session,
-                   model_type: Type[DeclarativeBase],
-                   uuid: str):
+                   model_type: Type[Base],
+                   uuid: str) -> Base:
     stmt = select(model_type).filter_by(uuid=uuid)
     return session.scalar(stmt)
 
 
 @enginefacade.auto_session
 def select_by_name(session,
-                   model_type: Type[DeclarativeBase],
-                   name: str):
+                   model_type: Type[Base],
+                   name: str) -> Base:
     stmt = select(model_type).filter_by(name=name)
     return session.scalar(stmt)
 

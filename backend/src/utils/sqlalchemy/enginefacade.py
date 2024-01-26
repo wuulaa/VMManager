@@ -1,4 +1,5 @@
 import copy
+from sqlalchemy.exc import SQLAlchemyError
 from functools import wraps
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -50,7 +51,7 @@ def transactional(func):
                 res = copy.deepcopy(func(args[0], session, *args[1:], **kwargs))
                 session.commit()
             return res
-        except Exception as e:
+        except SQLAlchemyError as e:
             print(f"Error in {func.__name__}: {e}")
         finally:
             if _is_new_session:
