@@ -30,7 +30,8 @@ def get_domains_list():
 
 @guest_bp.route("/detail", methods=["GET"])
 def get_domain_detail():
-    return 
+    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
+    return guestAPI.get_domain_detail(domain_uuid).to_json_str()
 
 @guest_bp.route("/add", methods=["POST"])
 def create_domain():
@@ -129,6 +130,10 @@ def set_memory():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     return guestAPI.set_domain_memory(domain_uuid, memory_size = memory_size, flags = flags).to_json_str()
 
+@guest_bp.route("/batchGetDoaminsDetail", methods=["POST"])
+def batch_get_domains_detail():
+    domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)
+    return guestAPI.batch_domains_detail(domains_uuid_list).to_json_str()
 
 @guest_bp.route("/batchStartDomains", methods=["POST"])
 def batch_start_domain():
@@ -139,6 +144,11 @@ def batch_start_domain():
 def batch_pause_domain():
     domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)
     return guestAPI.batch_pause_domains(domains_uuid_list).to_json_str()
+
+@guest_bp.route("/batchResumeDomains", methods=["POST"])
+def batch_resume_domain():
+    domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)
+    return guestAPI.batch_restart_domains(domains_uuid_list).to_json_str()
 
 @guest_bp.route("/batchShutdownDomains", methods=["POST"])
 def batch_shutdown_domain():
@@ -227,6 +237,7 @@ def change_graphic_passwd():
     return guestAPI.change_graphic_passwd(domain_uuid, 
                                           port, passwd, flags = flags,
                                           vnc = vnc).to_json_str()
+
 
 
 @guest_bp.route("/attachDisk", methods=["POST"])

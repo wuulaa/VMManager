@@ -86,3 +86,7 @@ class NetworkAPI():
     
     def interface_detail(self, interface_name: str) -> APIResponse:
         return network_service.interface_detail(interface_name)
+    
+    
+    def get_domain_interface_names(self, domain_uuid: str) -> APIResponse:
+        return network_service.get_domain_interface_names(domain_uuid=domain_uuid)

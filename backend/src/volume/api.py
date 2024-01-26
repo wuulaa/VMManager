@@ -147,7 +147,7 @@ class StorageAPI(object):
         except Exception as e:
             return APIResponse.error(400, e)
 
-    def delete_volume_by_uuid(self, uuid: str) -> APIResponse:
+    def delete_volume(self, uuid: str) -> APIResponse:
         try:
             storage_service.delete_volume_by_uuid(uuid)
             return APIResponse.success(msg='Volume deleted successfully')

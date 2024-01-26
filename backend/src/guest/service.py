@@ -62,6 +62,14 @@ class GuestService():
         if(response.code == 0):
             guestDB.status_update(session, domain_uuid, status=status[5])
         return response
+    
+    @enginefacade.transactional
+    def get_domain_detail(self, session, domain_uuid: str) -> APIResponse:
+        guest = guestDB.get_domain_by_uuid(session, domain_uuid)
+        if guest is None:
+            return APIResponse(code=400, msg = "domian is None")
+        else:
+            return APIResponse.success(data=guest.to_dict())
 
     @enginefacade.transactional
     def destroy_domain(self, session, domain_uuid: str) -> APIResponse:
@@ -118,7 +126,18 @@ class GuestService():
         
         return response
 
-    @enginefacade.transactional
+    def batch_domains_detail(self, domains_uuid_list) -> APIResponse:
+        error_list = []
+        data = {}
+        for domain_uuid in domains_uuid_list:
+            response: APIResponse = self.get_domain_detail(domain_uuid)
+            if response.get_code() == 0:
+                data[domain_uuid] = response.get_data()
+            else:
+                error_list.append(domain_uuid)
+        return APIResponse.success(data=data, msg = "error list: " + str(error_list))
+
+
     def batch_start_domains(self, domains_uuid_list) -> APIResponse:
         success_list = []
         error_list = []
@@ -136,7 +155,7 @@ class GuestService():
         else:
             return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
 
-    @enginefacade.transactional
+
     def batch_pause_domains(self, domains_uuid_list) -> APIResponse:
         success_list = []
         error_list = []
@@ -154,7 +173,7 @@ class GuestService():
         else:
             return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
 
-    @enginefacade.transactional
+
     def batch_shutdown_domains(self, domains_uuid_list) -> APIResponse:
         success_list = []
         error_list = []
@@ -172,7 +191,7 @@ class GuestService():
         else:
             return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
 
-    @enginefacade.transactional
+
     def batch_delete_domains(self, domains_uuid_list) -> APIResponse:
         success_list = []
         error_list = []
@@ -190,13 +209,31 @@ class GuestService():
         else:
             return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
 
-    @enginefacade.transactional
+
     def batch_restart_domains(self, domains_uuid_list) -> APIResponse:
         success_list = []
         error_list = []
         msg_list = []
         for domain_uuid in domains_uuid_list:
             response: APIResponse = self.reboot_domain(domain_uuid)
+            if response.get_code() == 0:
+                success_list.append(domain_uuid)
+            else:
+                error_list.append(domain_uuid)
+                msg_list.append(response.get_msg())
+        response = APIResponse()
+        if len(error_list) == 0:
+            return APIResponse.success()
+        else:
+            return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
+        
+        
+    def batch_resume_domains(self, domains_uuid_list) -> APIResponse:
+        success_list = []
+        error_list = []
+        msg_list = []
+        for domain_uuid in domains_uuid_list:
+            response: APIResponse = self.resume_domain(domain_uuid)
             if response.get_code() == 0:
                 success_list.append(domain_uuid)
             else:
@@ -243,7 +280,7 @@ class GuestService():
             #删除磁盘
             if(flags == 0):
                 for volume in volume_list:
-                    storage_api.delete_volume_by_uuid(volume.uuid)
+                    storage_api.delete_volume(volume.uuid)
             else:
                 for volume in volume_list:
                     storage_api.detach_volume_from_guest(volume.uuid)
@@ -284,6 +321,21 @@ class GuestService():
         
         response = networkapi.detach_interface_from_domain(domain_uuid, interface_name)
         return response
+    
+    
+    @enginefacade.transactional
+    def detach_all_nic_from_domain(self, session, domain_uuid, flags: int=2) -> APIResponse:
+        interface_names = networkapi.get_domain_interface_names(domain_uuid).get_data()
+        responses: list[APIResponse] = []
+        for name in interface_names:
+            response =self.detach_nic(session, domain_uuid, name, flags)
+            responses.append(response)
+        
+        for resp in responses:
+            if resp.get_code() != 0:
+                return APIResponse.error(code=400, msg=f"detach not complete")
+        return APIResponse.success()
+    
     
     @enginefacade.transactional
     def list_nic(self, session, domain_uuid: str) -> APIResponse:
@@ -579,3 +631,12 @@ class SlaveService():
             create_res =self.create_slave(session, slave_name, slave_addr).get_data()
             res.append(create_res)
         return APIResponse.success(data=res) 
+    
+    
+    def get_slave_status(self, slave_name) -> APIResponse:
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.get(url="http://"+url+"/getSystemInfo/").json())
+        if response.code != 0:
+            return APIResponse.error(code=400, msg=response.msg)
+        
+        return response

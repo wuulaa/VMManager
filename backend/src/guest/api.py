@@ -58,6 +58,9 @@ def TO_INT(list: list):
 class GuestAPI():
     def create_domain(self, domain_name: str, slave_name: str, **kwargs) -> APIResponse:
         return guestService.create_domain(domain_name , slave_name, **kwargs)
+    
+    def get_domain_detail(self, domain_uuid: str) -> APIResponse:
+        return guestService.get_domain_detail(domain_uuid)
 
     def shutdown_domain(self, domain_uuid: str) -> APIResponse:
         return guestService.shutdown_domain(domain_uuid)
@@ -77,11 +80,17 @@ class GuestAPI():
     def start_domain(self, domain_uuid: str) -> APIResponse:
         return guestService.start_domain(domain_uuid)
 
+    def batch_domains_detail(self, domains_uuid_list: str) -> APIResponse:
+        return guestService.batch_domains_detail(domains_uuid_list)
+
     def batch_start_domains(self, domains_uuid_list ) -> APIResponse:
         return guestService.batch_start_domains(domains_uuid_list)
 
     def batch_pause_domains(self, domains_uuid_list ) -> APIResponse:
         return guestService.batch_pause_domains(domains_uuid_list)
+    
+    def batch_resume_domains(self, domains_uuid_list ) -> APIResponse:
+        return guestService.batch_resume_domains(domains_uuid_list)
     
     def batch_shutdown_domains(self, domains_uuid_list ) -> APIResponse:
         return guestService.batch_shutdown_domains(domains_uuid_list)
@@ -204,3 +213,6 @@ class SlaveAPI():
     
     def get_slave_guests(self, name: str) -> APIResponse:
         return slaveService.get_slave_guests(name=name)
+    
+    def get_slave_status(self, slave_name) -> APIResponse:
+        return slaveService.get_slave_status(slave_name)

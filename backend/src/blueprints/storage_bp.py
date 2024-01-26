@@ -22,7 +22,7 @@ def create_backup():
 def remove_backup():
     ''' remove a backup from a volume'''
     volume_uuid = request.values.get(consts.P_VOLUME_UUID)
-    return storage_api.delete_volume_by_uuid(volume_uuid)
+    return storage_api.delete_volume(volume_uuid)
 
 
 @storage_bp.get("/backup/detail")
@@ -73,7 +73,7 @@ def create_volume():
 @storage_bp.post("/delete")
 def delete_volume():
     volmue_uuid = request.values.get(consts.P_VOLUME_UUID)
-    return storage_api.delete_volume_by_uuid(volmue_uuid).to_json_str()
+    return storage_api.delete_volume(volmue_uuid).to_json_str()
 
 @storage_bp.post("/list")
 def get_volumes():
