@@ -276,7 +276,7 @@ class GuestService():
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/delDomain/", data=data).json())
         if(response.code == 0):
             guestDB.delete_domain_by_uuid(session, uuid = domain_uuid)
-            volume_list = storage_api.get_all_volumes(guest_uuid=domain_uuid)
+            volume_list = storage_api.get_all_volumes(guest_uuid=domain_uuid).get_data()
             #删除磁盘
             if(flags == 0):
                 for volume in volume_list:
