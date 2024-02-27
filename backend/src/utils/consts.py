@@ -19,6 +19,14 @@ P_DOMAINS_UUID_LIST = "domains_uuid_list"
 P_USER_NAME = "user_name"
 P_PASSWD = "passwd"
 P_FLAGS = "flags"
+P_STATUS = "status"
+P_DESCRIPTION = "description"
+p_ARCHITECTURE = "architecture"
+P_CPU = "cpu_num"
+P_MAX_CPU = "max_cpu"
+P_MEMORY = "memory"
+P_MAX_MEMORY = "max_memory"
+
 
 # Network
 P_NETWORK_ADDRESS = "network_address"

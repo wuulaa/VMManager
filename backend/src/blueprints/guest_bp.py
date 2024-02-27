@@ -24,6 +24,13 @@ def get_domains_list():
         guest[consts.P_DOMAIN_NAME] = item.name
         guest[consts.P_DOMAIN_UUID] = item.uuid
         guest[consts.P_SLAVE_NAME] = item.slave_name
+        guest[consts.P_STATUS] = item.status
+        guest[consts.p_ARCHITECTURE] = item.architecture
+        guest[consts.P_DESCRIPTION] = item.description
+        guest[consts.P_CPU] = item.cpu
+        guest[consts.P_MAX_CPU] = item.max_cpu
+        guest[consts.P_MEMORY] = item.memory
+        guest[consts.P_MAX_MEMORY] = item.max_memory
         guest_list.append(guest)
     response.set_data(guest_list)
     return response.to_json_str()
