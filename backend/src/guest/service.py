@@ -640,3 +640,4 @@ class SlaveService():
             return APIResponse.error(code=400, msg=response.msg)
         
         return response
+    

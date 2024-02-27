@@ -312,3 +312,6 @@ def info_snap(pool_name: str, rbd_name: str, snap_name: str) -> APIResponse:
         if image is not None:
             image.close()
     
+# snaps_list = query_snaps(pool_name="volume-pool", rbd_name="template1").get_data()
+# for snap in snaps_list:
+#     delete_snap(pool_name="volume-pool", rbd_name="template1", snap_name=snap)
