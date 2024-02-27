@@ -62,7 +62,7 @@ def put_description():
 def delete_domain():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     flags = request.values.get(consts.P_FLAGS)
-    return guestAPI.delete_domain(domain_uuid, flags).to_json_str()
+    return guestAPI.delete_domain(domain_uuid, flags = flags).to_json_str()
 
 
 @guest_bp.route("/start", methods=["POST"])
