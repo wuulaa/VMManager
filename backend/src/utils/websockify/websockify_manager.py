@@ -40,7 +40,7 @@ class WebSockifyManager:
             self._write_conf_file(file_path, config)
     
     
-    def _read_conf_file(file_path) -> dict:
+    def _read_conf_file(self, file_path) -> dict:
         config = {}
         with open(file_path, 'r') as f:
             for line in f:
@@ -50,7 +50,7 @@ class WebSockifyManager:
         return config
 
 
-    def _write_conf_file(file_path, config):
+    def _write_conf_file(self, file_path, config):
         with open(file_path, 'w') as f:
             for key, value in config.items():
                 f.write(f"{key}: {value}\n")

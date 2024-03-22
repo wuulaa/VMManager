@@ -371,8 +371,8 @@ class GuestService():
             port = int(port)
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
-            
-        vnc_address = f"{url}:{port}"
+        url_ip = url.split(':')[0]
+        vnc_address = f"{url_ip}:{port}"
         
         if self.is_graphic_address_used(session, vnc_address):
             return APIResponse.error(code=400, msg="port has been used")
@@ -386,9 +386,9 @@ class GuestService():
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
         if response.code != 0:
             return APIResponse.error(code=400, msg=response.msg)
-        
-        address = f"{url}:{port}:{passwd}"
-        websockify_config = f"{url}:{port}"
+         
+        address = f"{url_ip}:{port}:{passwd}"
+        websockify_config = f"{url_ip}:{port}"
         websockify_manager.update_web_sockify_conf(domain_uuid, websockify_config)
         guestDB.update_guest(session, domain_uuid, values={"vnc_address":address })
         return response
