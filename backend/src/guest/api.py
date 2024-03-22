@@ -222,3 +222,6 @@ class SlaveAPI():
     
     def get_slave_status(self, slave_name) -> APIResponse:
         return slaveService.get_slave_status(slave_name)
+
+    def get_all_slave_status(self) -> APIResponse:
+        return slaveService.get_all_slave_status()

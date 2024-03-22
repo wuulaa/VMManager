@@ -43,3 +43,7 @@ def get_slave_guests():
 def slave_status():
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     return slaveAPI.get_slave_status(slave_name).to_json_str()
+
+@slave_bp.route("/allStatus")
+def slave_status():
+    return slaveAPI.get_all_slave_status().to_json_str()
