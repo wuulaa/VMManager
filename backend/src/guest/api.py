@@ -142,6 +142,12 @@ class GuestAPI():
         if (flags is None):
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
         return guestService.add_vnc(domain_uuid, port, passwd, flags)
+    
+    @TO_INT(list = ["flags"])    
+    def delete_vnc(self, domain_uuid: str, flags) -> APIResponse:
+        if (flags is None):
+            flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
+        return guestService.delete_vnc(domain_uuid, flags)
 
     @TO_INT(list = ["flags"])    
     def add_spice(self, domain_uuid: str , port:str, passwd: str, flags)-> APIResponse:

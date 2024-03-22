@@ -1,6 +1,9 @@
+from time import sleep
 import requests
 import configparser
+import atexit
 from flask import Flask
+from src.utils.websockify.websockify_manager import WebSockifyManager
 from src.blueprints.network_bp import network_bp
 from src.blueprints.guest_bp import guest_bp
 from src.blueprints.slave_bp import slave_bp
@@ -26,4 +29,7 @@ def test():
     return "Failed"
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    websockify_manager = WebSockifyManager()
+    atexit.register(websockify_manager.stop_websockify)
+    websockify_manager.start_websockify()
+    app.run(host="127.0.0.1", port=5000)

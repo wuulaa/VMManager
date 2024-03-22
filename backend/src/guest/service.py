@@ -15,6 +15,7 @@ from src.domain_xml.domain.guest import Guest as GuestBuilder
 import src.utils.generator as generator
 from src.guest.db.models import Guest as GuestModel
 import src.utils.consts as consts 
+from src.utils.websockify.websockify_manager import WebSockifyManager
 
 status = {
     0:"nostate",
@@ -30,6 +31,7 @@ status = {
 storage_api = StorageAPI()
 networkapi = NetworkAPI()
 generator =UUIDGenerator()
+websockify_manager = WebSockifyManager()
 
 class GuestService():
     @enginefacade.transactional
@@ -386,7 +388,30 @@ class GuestService():
             return APIResponse.error(code=400, msg=response.msg)
         
         address = f"{url}:{port}:{passwd}"
+        websockify_config = f"{url}:{port}"
+        websockify_manager.update_web_sockify_conf(domain_uuid, websockify_config)
         guestDB.update_guest(session, domain_uuid, values={"vnc_address":address })
+        return response
+    
+    
+    @enginefacade.transactional
+    def delete_vnc(self, session, domain_uuid, flags: int) -> APIResponse:
+        slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
+        url = CONF['slaves'][slave_name]
+        
+        # reset the vnc address to the init value
+        xml = graphics.create_local_auto_port_vnc_viewer().get_xml_string()
+        data = {
+            consts.P_DOMAIN_UUID : domain_uuid,
+            consts.P_DEVICE_XML: xml,
+            consts.P_FLAGS : flags
+        }
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
+        if response.code != 0:
+            return APIResponse.error(code=400, msg=response.msg)
+        
+        websockify_manager.delete_web_sockify_conf(domain_uuid)
+        guestDB.update_guest(session, domain_uuid, values={"vnc_address": None})
         return response
     
     
