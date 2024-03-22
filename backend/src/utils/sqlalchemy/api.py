@@ -24,7 +24,7 @@ def condition_update(session,
     instance = select_by_uuid(session, model_type, uuid)
     if instance is not None:
         for key, value in values.items():
-            if (key in instance.get_field_list()):
+            if (key in instance.__table__.columns.keys()):
                 setattr(instance, key, value)
     else:
         raise Exception(
