@@ -45,5 +45,5 @@ def slave_status():
     return slaveAPI.get_slave_status(slave_name).to_json_str()
 
 @slave_bp.route("/allStatus")
-def slave_status():
+def all_slave_status():
     return slaveAPI.get_all_slave_status().to_json_str()
