@@ -141,13 +141,17 @@ class GuestAPI():
     def add_vnc(self, domain_uuid: str , port:int, passwd: str, flags) -> APIResponse:
         if (flags is None):
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
-        return guestService.add_vnc(domain_uuid, port, passwd, flags)
+        return guestService.add_vnc(domain_uuid, port=port, passwd=passwd, flags=flags)
     
     @TO_INT(list = ["flags"])    
     def delete_vnc(self, domain_uuid: str, flags) -> APIResponse:
         if (flags is None):
             flags = libvirt.VIR_DOMAIN_VCPU_CURRENT
         return guestService.delete_vnc(domain_uuid, flags)
+       
+    def get_vnc_addr(self, domain_uuid: str) -> APIResponse:
+        return guestService.get_vnc_addr(domain_uuid)
+    
 
     @TO_INT(list = ["flags"])    
     def add_spice(self, domain_uuid: str , port:str, passwd: str, flags)-> APIResponse:

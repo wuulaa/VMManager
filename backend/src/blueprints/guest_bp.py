@@ -227,6 +227,15 @@ def delete_vnc():
     return guestAPI.delete_vnc(domain_uuid, flags = flags).to_json_str()
 
 
+@guest_bp.route("/getVNC", methods=["POST"])
+def get_vnc_addr():
+    """
+    get domain's vnc addr
+    """
+    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
+    return guestAPI.get_vnc_addr(domain_uuid).to_json_str()
+
+
 @guest_bp.route("/addSPICE", methods=["POST"])
 def add_spice():
     """

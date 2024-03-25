@@ -1,4 +1,5 @@
 import requests
+import src.utils.port as NetPort
 from src.domain_xml.xml_init import create_initial_xml
 from src.utils.config import CONF
 from src.volume.xml.volume.rbd_builder import RbdVolumeXMLBuilder
@@ -366,16 +367,24 @@ class GuestService():
     
     
     @enginefacade.transactional
-    def add_vnc(self, session, domain_uuid, port: str, passwd: str, flags: int) -> APIResponse:
+    def add_vnc(self, session, domain_uuid, port: str=None, passwd: str=None, flags: int=2) -> APIResponse:
         if port:
             port = int(port)
+        if passwd is None:
+            passwd = "locked"
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
         url_ip = url.split(':')[0]
-        vnc_address = f"{url_ip}:{port}"
-        
-        if self.is_graphic_address_used(session, vnc_address):
-            return APIResponse.error(code=400, msg="port has been used")
+        if port is not None:
+            vnc_address = f"{url_ip}:{port}"
+            if NetPort.is_port_in_use(url_ip, port):
+                return APIResponse.error(code=400, msg="port has been used")
+            
+            if self.is_graphic_address_used(session, vnc_address):
+                return APIResponse.error(code=400, msg="port has been used")
+        else:
+            vnc_address = self.find_first_avaliable_address(session, ip=url_ip)
+            port = vnc_address.split(':')[1]
         
         xml = graphics.create_vnc_viewer(port, passwd).get_xml_string()
         data = {
@@ -391,7 +400,7 @@ class GuestService():
         websockify_config = f"{url_ip}:{port}"
         websockify_manager.update_web_sockify_conf(domain_uuid, websockify_config)
         guestDB.update_guest(session, domain_uuid, values={"vnc_address":address })
-        return response
+        return APIResponse.success(data=address)
     
     
     @enginefacade.transactional
@@ -413,6 +422,14 @@ class GuestService():
         websockify_manager.delete_web_sockify_conf(domain_uuid)
         guestDB.update_guest(session, domain_uuid, values={"vnc_address": None})
         return response
+    
+    
+    @enginefacade.transactional
+    def get_vnc_addr(self, session, domain_uuid) -> APIResponse:
+        guest = guestDB.get_domain_by_uuid(session, domain_uuid)
+        guest_vnc_addr = guest.vnc_address
+        return APIResponse.success(guest_vnc_addr)
+    
     
     
     @enginefacade.transactional
@@ -578,7 +595,6 @@ class GuestService():
     def is_graphic_address_used(self, session, address: str):
         """
         determine whether a ip:port has been used by other vnc/spice
-
         """
         guests: list[GuestModel] = guestDB.get_domain_list(session)
         address_list: list[str] = []
@@ -595,6 +611,34 @@ class GuestService():
             ip_ports.append(ip_port)
         
         return address in ip_ports
+    
+    @enginefacade.transactional    
+    def find_first_avaliable_address(self, session, ip: str, start_port:int=6000, max_attempts:int=200):
+        """
+        find the first avaliable vnc/spice address 
+        """
+        guests: list[GuestModel] = guestDB.get_domain_list(session)
+        address_list: list[str] = []
+        for guest in guests:
+            if guest.vnc_address is not None:
+                address_list.append(guest.vnc_address)
+            if guest.spice_address is not None:
+                address_list.append(guest.spice_address)
+        
+        ip_ports: list[str] = []
+        for s in address_list:
+            parts = s.split(":")
+            ip_port = f"{parts[0]}:{parts[1]}"
+            ip_ports.append(ip_port)
+            
+        for port in range(start_port, start_port + max_attempts):
+            address = f"{ip}:{port}"
+            if address in ip_ports:
+                continue
+            if NetPort.is_port_in_use(ip, port):
+                continue
+            return address
+        raise RuntimeError("Unable to find an available port.")
         
 
 class SlaveService():
@@ -674,7 +718,7 @@ class SlaveService():
             slave_name = key
             url = value
             data = APIResponse().deserialize_response(requests.get(url="http://"+url+"/getSystemInfo/").json()).get_data()
-            res.append(data)
+            res.append({slave_name: data})
         return APIResponse.success(data)
             
     
