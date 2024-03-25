@@ -113,6 +113,17 @@ def monitor_domain():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     return guestAPI.monitor(domain_uuid).to_json_str()
 
+@guest_bp.route("/getStoredMonitor", methods=["POST"])
+def get_stored_monitor_domain():
+    """
+    get stored domain monitor status, note that if domain was not running
+    there would be no data.
+    store at most one hour's data in redis
+    """
+    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
+    return guestAPI.get_stored_monitor_data(domain_uuid).to_json_str()
+
+
 @guest_bp.route("/setUserPasswd")
 def set_user_passwd():
     """

@@ -485,6 +485,9 @@ class GuestService():
         
     @enginefacade.transactional    
     def monitor(self, session, domain_uuid: str) -> APIResponse:
+        domain_status = guestDB.get_domain_status(session, domain_uuid)
+        if domain_status != "running":
+            return APIResponse.success(data=None, msg="Domain is not running")
         data = {
             consts.P_DOMAIN_UUID : domain_uuid,
         }
@@ -494,6 +497,18 @@ class GuestService():
         if response.code != 0:
             return APIResponse.error(code=400, msg=response.msg)
         return response
+    
+    @enginefacade.transactional    
+    def monitor_all(self, session) -> APIResponse:
+        domains: list[GuestModel] = guestDB.get_domain_list(session)
+        res = []
+        for domain in domains:
+            uuid = domain.uuid
+            response = self.monitor(session, uuid)
+            if response.is_success():
+                data = response.get_data()
+                res.append(data)
+        return APIResponse.success(data=res)
         
     @enginefacade.transactional    
     def set_user_passwd(self, session, domain_uuid: str, user_name: str, passwd: str) -> APIResponse:

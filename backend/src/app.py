@@ -1,9 +1,9 @@
-from time import sleep
 import requests
-import configparser
+from flask import request
 import atexit
 from flask import Flask
 from src.utils.websockify.websockify_manager import WebSockifyManager
+from src.common.scheduler import DomainMonitor
 from src.blueprints.network_bp import network_bp
 from src.blueprints.guest_bp import guest_bp
 from src.blueprints.slave_bp import slave_bp
@@ -14,7 +14,8 @@ app.register_blueprint(network_bp)
 app.register_blueprint(guest_bp)
 app.register_blueprint(slave_bp)
 app.register_blueprint(storage_bp)
-
+domainMonitor = DomainMonitor()
+domainMonitor.start_monitoring()
 
 @app.route("/")
 def backend():
@@ -23,10 +24,7 @@ def backend():
 
 @app.route("/test")
 def test():
-    response = requests.get("http://127.0.0.1:5000/test")
-    if response.status_code == 200:
-        return response.text
-    return "Failed"
+    pass
 
 if __name__ == "__main__":
     websockify_manager = WebSockifyManager()

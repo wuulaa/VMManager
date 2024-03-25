@@ -1,4 +1,5 @@
 import libvirt
+import time
 from xml.etree import ElementTree
 from src.utils.response import APIResponse
 
@@ -294,6 +295,8 @@ def get_domain_monitor_status(conn: libvirt.virConnect, domain_uuid: str):
         
         res = {
             "name": domain.name(),
+            "uuid": domain_uuid,
+            "time": time.localtime(),
             "memory": memory_status,
             "cpu": cpu_status,
             "interface": iface_stats,

@@ -2,8 +2,10 @@ from functools import wraps
 from src.guest.service import GuestService, SlaveService
 from src.utils.response import APIResponse
 from src.utils.config import CONF
+from src.common.scheduler import DomainMonitor
 import libvirt
 import inspect
+domainMonitor = DomainMonitor()
 
 status = {
     0:"nostate",
@@ -167,6 +169,12 @@ class GuestAPI():
     
     def monitor(self, domain_uuid: str) -> APIResponse:
         return guestService.monitor(domain_uuid)
+    
+    def monitor_all(self) -> APIResponse:
+        return guestService.monitor_all()
+    
+    def get_stored_monitor_data(self, domain_uuid) -> APIResponse:
+        return APIResponse.success(domainMonitor.get_stored_domain_status(domain_uuid))
     
     def set_user_passwd(self, domain_uuid: str , user_name: str, passwd: str) -> APIResponse:
         return guestService.set_user_passwd(domain_uuid, user_name, passwd)
