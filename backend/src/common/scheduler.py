@@ -2,6 +2,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from src.utils.singleton import singleton
 from src.common.redis import RedisClient
 from src.utils.config import CONF
+from src.storage.storage_api import get_cluster_info
 import json
 
 scheduler_interval = CONF["redis"].getint("scheduler_interval")
@@ -65,6 +66,7 @@ class DomainMonitor:
         """
         slaves = CONF['slaves']
         res = {}
+        res["cluster_usage_info"] = self.redis.get_list("cluster_usage_info")
         for key, value in slaves.items():
             slave_name = key
             status_list = self.get_stored_slave_status(slave_name)
@@ -98,9 +100,11 @@ class DomainMonitor:
         from src.guest.api import SlaveAPI
         slaveapi = SlaveAPI()
         data_dict:dict = slaveapi.get_all_slave_status().get_data()
+        cluster_usage_info = get_cluster_info().get_data()
         name_2_data = {}
         for key in data_dict.keys():
             value = data_dict.get(key)
             value_str = json.dumps(value)
             name_2_data[key] = value_str
         self.redis.add_values_to_list_transaction(name_2_data)
+        self.redis.add_value_to_list("cluster_usage_info", json.dumps(cluster_usage_info))

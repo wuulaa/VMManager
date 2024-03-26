@@ -2,6 +2,8 @@ from src.storage.entity.rbd_manager import RbdManager
 from src.utils.response import APIResponse
 from src.image.snapshot.snapshot import SnapShot
 from src.storage.conf import pool
+from src.storage.conf import cluster
+import time
 
 error_info = {
     1:"pool isn't exist.",
@@ -311,7 +313,18 @@ def info_snap(pool_name: str, rbd_name: str, snap_name: str) -> APIResponse:
     finally:
         if image is not None:
             image.close()
+
+def get_cluster_info() -> APIResponse:
+    '''read usage info about the cluster'''
+    try:
+        dict = cluster.get_cluster_info()
+        dict["time"] = time.localtime()
+        return APIResponse.success(dict)
+    except Exception as err:
+        return APIResponse.error(code=400, msg=str(err))
     
 # snaps_list = query_snaps(pool_name="volume-pool", rbd_name="template1").get_data()
 # for snap in snaps_list:
 #     delete_snap(pool_name="volume-pool", rbd_name="template1", snap_name=snap)
+
+# print(get_cluster_info().to_json_str())

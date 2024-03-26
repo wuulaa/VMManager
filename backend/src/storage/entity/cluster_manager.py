@@ -36,4 +36,7 @@ class Cluster(object):
         
     def get_cluster_info(self):
         '''read usage info about the cluster'''
-        return self.cluster.get_cluster_stats()
+        try:
+            return self.cluster.get_cluster_stats()
+        except Exception as err:
+            raise Exception(str(err))

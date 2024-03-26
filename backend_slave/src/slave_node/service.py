@@ -1,4 +1,5 @@
 import psutil
+import time
 from src.utils.response import APIResponse
 
 def convert_bytes_to_gb(bytes_value):
@@ -43,6 +44,7 @@ def get_all_node_info():
     # Get network information
     network_info = get_network_info()
     info = {
+        "time": time.localtime(), 
         "cpu": cpu_info,
         "memeory": memory_info,
         "network": network_info
