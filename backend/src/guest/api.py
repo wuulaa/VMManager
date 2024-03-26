@@ -237,3 +237,10 @@ class SlaveAPI():
 
     def get_all_slave_status(self) -> APIResponse:
         return slaveService.get_all_slave_status()
+    
+    def get_stored_slave_status(self, slave_name) -> APIResponse:
+        return APIResponse.success(domainMonitor.get_stored_slave_status(slave_name))
+    
+    def get_all_stored_Slave_status(self) -> APIResponse:
+        return APIResponse.success(domainMonitor.get_all_stored_slave_status())
+        

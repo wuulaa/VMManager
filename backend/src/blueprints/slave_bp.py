@@ -47,3 +47,8 @@ def slave_status():
 @slave_bp.route("/allStatus")
 def all_slave_status():
     return slaveAPI.get_all_slave_status().to_json_str()
+
+
+@slave_bp.route("/allStoredStatus")
+def all_stored_slave_status():
+    return slaveAPI.get_all_stored_Slave_status().to_json_str()

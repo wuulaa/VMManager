@@ -33,6 +33,7 @@ class DomainMonitor:
         self.redis = RedisClient()
         
         self.scheduler.add_interval_job(self.batch_store_domain_status)
+        self.scheduler.add_interval_job(self.batch_store_slave_status)
         
     def start_monitoring(self):
         self.scheduler.start_scheduler()
@@ -46,9 +47,29 @@ class DomainMonitor:
         
     def get_stored_domain_status(self, domain_uuid:str):
         """
-        get all domain status stored in redis
+        get domain status stored in redis
         """
         return self.redis.get_list(domain_uuid)
+    
+    
+    def get_stored_slave_status(self, slave_name:str):
+        """
+        get slave status stored in redis
+        """
+        return self.redis.get_list(slave_name)
+    
+    
+    def get_all_stored_slave_status(self) -> dict:
+        """
+        get all slave status stored in redis
+        """
+        slaves = CONF['slaves']
+        res = {}
+        for key, value in slaves.items():
+            slave_name = key
+            status_list = self.get_stored_slave_status(slave_name)
+            res[slave_name] = status_list
+        return res
     
     
     def batch_store_domain_status(self):
@@ -67,6 +88,19 @@ class DomainMonitor:
                 uuid_2_data[uuid] = data_str
     
         self.redis.add_values_to_list_transaction(uuid_2_data)
+       
         
-        
-    
+    def batch_store_slave_status(self):
+        """
+        store monitored slave data to redis,
+        this function should be called every one minute    
+        """
+        from src.guest.api import SlaveAPI
+        slaveapi = SlaveAPI()
+        data_dict:dict = slaveapi.get_all_slave_status().get_data()
+        name_2_data = {}
+        for key in data_dict.keys():
+            value = data_dict.get(key)
+            value_str = json.dumps(value)
+            name_2_data[key] = value_str
+        self.redis.add_values_to_list_transaction(name_2_data)
