@@ -188,7 +188,7 @@ def start_domain(conn: libvirt.virConnect, domain_uuid):
             domain.create()
             return APIResponse.success()
         else:
-            return APIResponse.error(code=1, msg="error: Failed to shutdown domain. Domain"
+            return APIResponse.error(code=1, msg="error: Failed to start domain. Domain"
                     + domain_uuid+"state is error. ")
         
 def rename_domain(conn: libvirt.virConnect, domain_uuid: str, domain_new_name: str):
