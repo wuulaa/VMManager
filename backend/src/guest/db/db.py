@@ -6,7 +6,7 @@ import src.volume.db as db
 def create_guest(session, uuid: str, name: str, slave_name: str, **kwargs):
     title = kwargs.get("title", None)
     description = kwargs.get("description", None)
-    status = kwargs.get("status", None)
+    status = kwargs.get("status", "shutoff")
     architecture = kwargs.get("architecture", None)
     cpu = kwargs.get("cpu", None)
     max_cpu = kwargs.get("max_cpu", None)
