@@ -46,7 +46,7 @@ def get_all_node_info():
     info = {
         "time": time.localtime(), 
         "cpu": cpu_info,
-        "memeory": memory_info,
+        "memory": memory_info,
         "network": network_info
     }
     
