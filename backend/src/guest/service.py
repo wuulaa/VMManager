@@ -733,7 +733,8 @@ class SlaveService():
             slave_name = key
             url = value
             data:dict = APIResponse().deserialize_response(requests.get(url="http://"+url+"/getSystemInfo/").json()).get_data()
-            res[slave_name] = data
+            data["slave_name"] = slave_name
+            res.append(data)
         return APIResponse.success(res)
             
     
