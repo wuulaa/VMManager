@@ -728,7 +728,7 @@ class SlaveService():
     
     def get_all_slave_status(self) -> APIResponse:
         slaves = CONF['slaves']
-        res = {}
+        res = []
         for key, value in slaves.items():
             slave_name = key
             url = value
