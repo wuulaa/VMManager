@@ -728,13 +728,13 @@ class SlaveService():
     
     def get_all_slave_status(self) -> APIResponse:
         slaves = CONF['slaves']
-        res = []
+        res = {}
         for key, value in slaves.items():
             slave_name = key
             url = value
             data:dict = APIResponse().deserialize_response(requests.get(url="http://"+url+"/getSystemInfo/").json()).get_data()
             data["slave_name"] = slave_name
-            res.append(data)
+            res[slave_name] = data
         return APIResponse.success(res)
             
     
