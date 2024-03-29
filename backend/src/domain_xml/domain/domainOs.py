@@ -165,17 +165,22 @@ class DomainOs(XMLBuilder):
     #             self.init = "/bin/sh"
 
     @staticmethod
-    def create_default_os_builder(domain_name: str):
+    def create_default_os_builder(domain_name: str, arch: str):
         domainOS = DomainOs()
-        domainOS.arch = "aarch64"
-        domainOS.machine = "virt-6.2"
-        domainOS.os_type = 'hvm'
-        # loader
-        domainOS.loader_ro = 'yes'
-        domainOS.loader_type = 'pflash'
-        domainOS.loader = '/usr/share/AAVMF/AAVMF_CODE.ms.fd'
-        # nvram
-        domainOS.nvram_template = '/usr/share/AAVMF/AAVMF_CODE.ms.fd'
-        domainOS.nvram = '/var/lib/libvirt/qemu/nvram/%s_VARS.fd' % domain_name
+        if arch == "x86" :
+            domainOS.arch = "x86"
+            domainOS.machine = "pc-q35-4.2"
+            domainOS.os_type = 'hvm'
+        else:
+            domainOS.arch = "aarch64"
+            domainOS.machine = "virt-6.2"
+            domainOS.os_type = 'hvm'
+            # loader
+            domainOS.loader_ro = 'yes'
+            domainOS.loader_type = 'pflash'
+            domainOS.loader = '/usr/share/AAVMF/AAVMF_CODE.ms.fd'
+            # nvram
+            domainOS.nvram_template = '/usr/share/AAVMF/AAVMF_CODE.ms.fd'
+            domainOS.nvram = '/var/lib/libvirt/qemu/nvram/%s_VARS.fd' % domain_name
         return domainOS
 

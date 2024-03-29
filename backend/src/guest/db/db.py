@@ -7,11 +7,11 @@ def create_guest(session, uuid: str, name: str, slave_name: str, **kwargs):
     title = kwargs.get("title", None)
     description = kwargs.get("description", None)
     status = kwargs.get("status", "shutoff")
-    architecture = kwargs.get("architecture", None)
-    cpu = kwargs.get("cpu", None)
-    max_cpu = kwargs.get("max_cpu", None)
-    memory = kwargs.get("memory", None)
-    max_memory = kwargs.get("max_memory", None)
+    architecture = kwargs.get("architecture", "aarch64")
+    cpu = kwargs.get("cpu", 2)
+    max_cpu = kwargs.get("max_cpu", 2)
+    memory = kwargs.get("memory", 20480)
+    max_memory = kwargs.get("max_memory", 20480)
     boot_option = kwargs.get("boot_option", None)
     spice_address = kwargs.get("spice_address", None)
     vnc_address = kwargs.get("vnc_address", None)
@@ -21,7 +21,7 @@ def create_guest(session, uuid: str, name: str, slave_name: str, **kwargs):
     guest = Guest(uuid ,name, slave_name, title, description, status, architecture, cpu, max_cpu,
                     memory, max_memory, boot_option, spice_address, vnc_address, parent_uuid,
                     children_list, backups_list)
-    guest = Guest(uuid, name, slave_name)
+    # guest = Guest(uuid, name, slave_name)
     db.insert(session, guest)
     return guest
 

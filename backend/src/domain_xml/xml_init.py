@@ -8,7 +8,7 @@ from src.domain_xml.device.graphics import create_local_auto_port_vnc_viewer, cr
 from src.domain_xml.device.input import DeviceInput
 from src.domain_xml.domain.guest import Guest, DomainDevices
 
-def create_initial_xml(domain_name: str, uuid: str):
+def create_initial_xml(domain_name: str, uuid: str, cpu: int, max_cpu: int, memory: int, max_memory: int, arch: str):
     guest = Guest()
 
     # set guest basic values
@@ -16,13 +16,14 @@ def create_initial_xml(domain_name: str, uuid: str):
     guest.uuid = uuid
     guest.type = "kvm"
     guest.memoryUnit = "KiB"
-    guest.memory = 1048576
-    guest.currentMemory = 1048576
-    guest.vcpus = 2
+    guest.memory = max_memory
+    guest.currentMemory = memory
+    guest.vcpus = max_cpu
+    guest.vcpu_current = cpu
     guest.vcpu_placement = "static"
 
     # set os related values
-    domainOS = DomainOs.create_default_os_builder(guest.domain_name)
+    domainOS = DomainOs.create_default_os_builder(guest.domain_name, arch)
 
     # add two boot devices
     bootDevice = BootDevice()
@@ -129,3 +130,5 @@ def create_initial_xml(domain_name: str, uuid: str):
 
     guest.emulator = "/usr/bin/qemu-system-aarch64"
     return guest
+
+print(create_initial_xml("test", "test", 2, 2, 20480, 20480, "x86").get_xml_string())

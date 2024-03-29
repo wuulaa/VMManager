@@ -41,7 +41,23 @@ class GuestService():
         for guest in guestDB.get_domain_list(session):
             exist_uuids.append(guest.uuid)
         guest_uuid = generator.get_uuid(exist_uuids)
-        guest: GuestBuilder = create_initial_xml(domain_name, guest_uuid)
+
+        title = kwargs.get("title", None)
+        description = kwargs.get("description", None)
+        status = kwargs.get("status", "shutoff")
+        architecture = kwargs.get("architecture", "aarch64")
+        cpu = kwargs.get("cpu", 2)
+        max_cpu = kwargs.get("max_cpu", 2)
+        memory = kwargs.get("memory", 2048)
+        max_memory = kwargs.get("max_memory", 2048)
+        boot_option = kwargs.get("boot_option", None)
+        spice_address = kwargs.get("spice_address", None)
+        vnc_address = kwargs.get("vnc_address", None)
+        parent_uuid = kwargs.get("parent_uuid", None)
+        children_list = kwargs.get("children_list", None)
+        backups_list = kwargs.get("backups_list", None)
+
+        guest: GuestBuilder = create_initial_xml(domain_name, guest_uuid, cpu, max_cpu, memory, max_memory, architecture)
         response = storage_api.clone_volume("8388ad7f-e58b-4d94-bf41-6e95b23d0d4a", domain_name, guest_uuid, rt_flag=1)
         guest.devices.disk.append(response.get_data()["disk"]) 
 
