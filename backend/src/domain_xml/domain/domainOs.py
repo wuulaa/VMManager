@@ -168,7 +168,7 @@ class DomainOs(XMLBuilder):
     def create_default_os_builder(domain_name: str, arch: str):
         domainOS = DomainOs()
         if arch == "x86" :
-            domainOS.arch = "x86"
+            domainOS.arch = "x86_64"
             domainOS.machine = "pc-q35-4.2"
             domainOS.os_type = 'hvm'
         else:

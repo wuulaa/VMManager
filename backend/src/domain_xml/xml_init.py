@@ -38,7 +38,11 @@ def create_initial_xml(domain_name: str, uuid: str, cpu: int, max_cpu: int, memo
     # set domain features
     domainFeatures = DomainFeatures()
     domainFeatures.acpi = ''
-    domainFeatures.gic = '3'
+    if arch == 'arrch64':
+        domainFeatures.gic = '3'
+    else:
+        domainFeatures.apic = ''
+        domainFeatures.vmport = False
     guest.features = domainFeatures
 
     # set domain cpu configs
@@ -102,10 +106,15 @@ def create_initial_xml(domain_name: str, uuid: str, cpu: int, max_cpu: int, memo
 
     serial = DeviceSerial()
     serial.type = 'pty'
-    serial.target_type = 'system-serial'
-    serial.target_port = '0'
-    serial.target_model_name = 'pl011'
-    serial.source = char_source
+    if arch == 'arrch64':
+        serial.target_type = 'system-serial'
+        serial.target_port = '0'
+        serial.target_model_name = 'pl011'
+        serial.source = char_source
+    else:
+        serial.target_type = 'isa-serial'
+        serial.target_port = '0'
+        serial.target_model_name = 'isa-serial'
 
     # console
     console_source = CharSource()
@@ -128,7 +137,11 @@ def create_initial_xml(domain_name: str, uuid: str, cpu: int, max_cpu: int, memo
     channel.target_name = "org.qemu.guest_agent.0"
     devices.channel.append(channel)
 
-    guest.emulator = "/usr/bin/qemu-system-aarch64"
+    if arch == 'x86':
+        guest.emulator = "/usr/bin/qemu-system-x86_64"
+    else:
+        guest.emulator = "/usr/bin/qemu-system-aarch64"
+        domainFeatures.gic = '3'
     return guest
 
-print(create_initial_xml("test", "test", 2, 2, 20480, 20480, "x86").get_xml_string())
+# print(create_initial_xml("test", "test", 2, 2, 20480, 20480, "x86").get_xml_string())

@@ -7,7 +7,7 @@ def create_guest(session, uuid: str, name: str, slave_name: str, **kwargs):
     title = kwargs.get("title", None)
     description = kwargs.get("description", None)
     status = kwargs.get("status", "shutoff")
-    architecture = kwargs.get("architecture", "aarch64")
+    architecture = kwargs.get("architecture", "x86_64")
     cpu = kwargs.get("cpu", 2)
     max_cpu = kwargs.get("max_cpu", 2)
     memory = kwargs.get("memory", 20480)

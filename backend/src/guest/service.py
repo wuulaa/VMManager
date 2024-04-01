@@ -45,7 +45,7 @@ class GuestService():
         title = kwargs.get("title", None)
         description = kwargs.get("description", None)
         status = kwargs.get("status", "shutoff")
-        architecture = kwargs.get("architecture", "aarch64")
+        architecture = kwargs.get("architecture", "x86")
         cpu = kwargs.get("cpu", 2)
         max_cpu = kwargs.get("max_cpu", 2)
         memory = kwargs.get("memory", 2048)
@@ -134,6 +134,7 @@ class GuestService():
     def start_domain(self, session, domain_uuid: str) -> APIResponse:
         data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
+        print(slave_name)
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/startDomain/", data=data).json())
         if(response.code == 0):
@@ -674,7 +675,7 @@ class GuestService():
 
 class SlaveService():
     @enginefacade.transactional
-    def create_slave(self, session, slave_address, slave_name) -> APIResponse:
+    def create_slave(self, session, slave_name, slave_address) -> APIResponse:
        slave = guestDB.create_slave(session, slave_name, slave_address)
        if slave:
            return APIResponse.success(data=slave.uuid)

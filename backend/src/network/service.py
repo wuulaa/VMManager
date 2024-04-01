@@ -66,7 +66,7 @@ class NetworkService:
                 response2 = APIResponse(requests.post(url + "/addVxlanPort/", data))
                 i = i+1
                 # TODO: single machine cannot hava same vlan ports, uncomment this for real cluster
-                # netapi.add_vxlan_port_to_bridge(master_bridge_name, f"vxlan_master_{i}", slave_ip)
+                netapi.add_vxlan_port_to_bridge(master_bridge_name, f"vxlan_master_{i}", slave_ip)
                 
             
             return APIResponse.success()

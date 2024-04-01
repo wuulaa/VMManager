@@ -23,7 +23,7 @@ class UUIDGenerator(object):
         raise Exception("Failed to generate non-conflicting UUID")
 
 
-def generate_unique_ip(network_str: str, used_ips: list[str]) -> str:
+def generate_unique_ip(network_str: str, used_ips: list) -> str:
     """
     Get an unused IP address from the network.
     """
@@ -39,7 +39,7 @@ def generate_unique_ip(network_str: str, used_ips: list[str]) -> str:
         return None
    
     
-def generage_unused_name(old_name_list: list[str]):
+def generage_unused_name(old_name_list: list):
     """
     get a name , and it's not in the list
     """
