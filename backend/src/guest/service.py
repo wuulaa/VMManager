@@ -134,15 +134,12 @@ class GuestService():
     def start_domain(self, session, domain_uuid: str) -> APIResponse:
         data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
-        print(slave_name)
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/startDomain/", data=data).json())
         if(response.code == 0):
             guestDB.status_update(session, domain_uuid, status=status[1])
         
-        # this invoke is used for juding whether domain interfaces' ip is modified
-        # while domain is not running. Related operations would be done within this func
-        # networkapi.domain_ip_modified(uuid)    
+        self.post_domain_start(session, domain_uuid)
         
         return response
 

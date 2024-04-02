@@ -6,6 +6,7 @@ from src.network_manager.iptables import nat
 from src.network_manager import qemu_guest_agent as qa
 from src.utils.response import APIResponse
 from src.utils import connect
+from src.network_manager import ip as iptools
 
 connection = connect.get_libvirt_connection()
 
@@ -240,6 +241,7 @@ network:
     
 
 def retry_with_delay(func, *args, max_retries = 10, delay = 2):
+    time.sleep(delay)
     for attempt in range(1, max_retries + 1):
         try:
             result = func(*args)
@@ -250,3 +252,14 @@ def retry_with_delay(func, *args, max_retries = 10, delay = 2):
                time.sleep(delay)
     
     return APIResponse.error(code=400, msg=f"Function {func.__name__} failed after {max_retries} attempts")
+
+
+def ip_link_set_up(interface_name:str):
+    iptools.ip_link_set_up(interface_name)
+    
+
+def ip_link_add_addr(interface_name:str, addr:str):
+    iptools.ip_addr_add(interface_name, addr)
+    
+def ip_link_del_addr(interface_name:str, addr:str):
+    iptools.ip_addr_del(interface_name, addr)

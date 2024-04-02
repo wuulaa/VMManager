@@ -67,8 +67,9 @@ class NetworkService:
                 i = i+1
                 # TODO: single machine cannot hava same vlan ports, uncomment this for real cluster
                 netapi.add_vxlan_port_to_bridge(master_bridge_name, f"vxlan_master_{i}", slave_ip)
-                
             
+            # call ip link to set master up
+            netapi.ip_link_set_up(bridge_prefix + "_master")
             return APIResponse.success()
         
         except Exception as e:
@@ -121,6 +122,7 @@ class NetworkService:
         """
         create virtual network,
         this only needs to write db
+        and add the gateway address to master bridge
         
         Args:
             name (str): name of the network
@@ -130,6 +132,10 @@ class NetworkService:
             if is_network_ip_used(ip_address):
                 return APIResponse.error(code=400, msg="network ip has been used")
             network: Network = db.create_network(session, name=name, ip_address=ip_address)
+            
+            master_bridge_name = CONF.get("network", "bridge_prefix") + "_master"
+            gateway = get_network_gateway_with_mask(ip_address)
+            netapi.ip_link_add_addr(master_bridge_name, gateway)
             return APIResponse.success(network.uuid)
         
         except Exception as e:
@@ -147,12 +153,18 @@ class NetworkService:
         """
         try:
             network: Network = db.get_network_by_name(session, name)
+            address = network.address
             if network is None:
                 return APIResponse.error(code=400, msg=f'cannot find a network which name={name}')
             interfaces: list[Interface] = network.interfaces
             for interface in interfaces:
                 self.delete_interface(session, interface.uuid)
             db.delete_network_by_name(session, name)
+            
+            master_bridge_name = CONF.get("network", "bridge_prefix") + "_master"
+            gateway = get_network_gateway_with_mask(address)
+            netapi.ip_link_del_addr(master_bridge_name, gateway)
+            
             return APIResponse.success()
         
         except Exception as e:
@@ -194,7 +206,7 @@ class NetworkService:
         # write interface db
         network: Network = db.get_network_by_name(session, network_name)
         if network is None:
-            return APIResponse.error(400, f'cannot find a network which name={name}')
+            return APIResponse.error(400, f'cannot find a network which name={network_name}')
         
         
         try:
@@ -434,6 +446,7 @@ class NetworkService:
             db.update_interface_status(session, interface_uuid, "unbound")
             db.update_interface_slave_uuid(session, interface_uuid, None)
             db.update_interface_xml(session, interface_uuid, None)
+            db.update_interface_veth_name(session, interface_uuid, None)
             
             return APIResponse.success()
         except Exception as e:
@@ -485,6 +498,9 @@ class NetworkService:
             
             
             interfaces: list[Interface] = db.condition_select(session, Interface, values={"guest_uuid" : domain_uuid})
+            if len(interfaces) == 0:
+                return APIResponse.success()
+            
             veth_names = [interface.veth_name for interface in interfaces]
             ips = [interface.ip_address for interface in interfaces]
             gateways = [interface.gateway for interface in interfaces]
@@ -701,6 +717,21 @@ def get_network_gateway(ip_address_str: str) -> str:
         # 获取网络的第一个地址作为网关
         gateway_ip = str(network.network_address + 1)
         return gateway_ip
+
+    except ValueError as e:
+        print(f"Error: {e}")
+        return None
+
+def get_network_gateway_with_mask(ip_address_str: str) -> str:
+    try:
+        ip_interface = ipaddress.IPv4Interface(ip_address_str)
+        network = ip_interface.network
+
+        # 获取网络的第一个地址作为网关
+        gateway_ip = str(network.network_address + 1)
+        subnet_mask = '/' + str(network.prefixlen)
+
+        return gateway_ip + subnet_mask
 
     except ValueError as e:
         print(f"Error: {e}")

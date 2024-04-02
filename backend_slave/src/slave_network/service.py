@@ -2,7 +2,9 @@ from src.network_manager import service as netapi
 
 
 def create_bridge(bridge_name: str):
-    return netapi.create_bridge(bridge_name)
+    response = netapi.create_bridge(bridge_name)
+    netapi.ip_link_set_up(bridge_name)
+    return response
 
 
 def delete_bridge(bridge_name: str):
