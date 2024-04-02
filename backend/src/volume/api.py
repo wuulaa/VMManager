@@ -236,6 +236,10 @@ class StorageAPI(object):
             return APIResponse.error(400, e)
 
 
+# storage_api = StorageAPI()
+# storage_api.detach_volume_from_guest("0749b403-a42a-49c7-a179-df51f04ac780")
+# print(storage_api.delete_volume("0749b403-a42a-49c7-a179-df51f04ac780").get_msg())
+
 # POOL_UUID = 'd38681d3-07fd-41c7-b457-1667ef9354c7'
 # volume_api = VolumeAPI()
 # res = volume_api.rollback_to_snap(

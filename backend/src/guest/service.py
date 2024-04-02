@@ -48,8 +48,8 @@ class GuestService():
         architecture = kwargs.get("architecture", "x86")
         cpu = kwargs.get("cpu", 2)
         max_cpu = kwargs.get("max_cpu", 2)
-        memory = kwargs.get("memory", 20480)
-        max_memory = kwargs.get("max_memory", 20480)
+        memory = kwargs.get("memory", 2097152)
+        max_memory = kwargs.get("max_memory", 2097152)
         boot_option = kwargs.get("boot_option", None)
         spice_address = kwargs.get("spice_address", None)
         vnc_address = kwargs.get("vnc_address", None)
@@ -300,6 +300,7 @@ class GuestService():
             #删除磁盘
             if(flags == 0):
                 for volume in volume_list:
+                    storage_api.detach_volume_from_guest(volume.uuid)
                     storage_api.delete_volume(volume.uuid)
             else:
                 for volume in volume_list:
