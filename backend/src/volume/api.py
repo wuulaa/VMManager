@@ -5,34 +5,35 @@ from .service.pool import PoolService
 from .service.volume import StorageService
 
 storage_service = StorageService()
+pool_service = PoolService()
 
 
 class StorageAPI(object):
 
     def create_pool(self, name: str, allocation: int, user_id: str) -> APIResponse:
         try:
-            pool = storage_service.create_pool(name, allocation, user_id)
+            pool = pool_service.create_pool(name, allocation, user_id)
             return APIResponse.success(pool)
         except Exception as e:
             return APIResponse.error(400, e)
 
     def delete_pool(self, uuid) -> APIResponse:
         try:
-            storage_service.delete_pool_by_uuid(uuid)
+            pool_service.delete_pool_by_uuid(uuid)
             return APIResponse.success(msg='Pool deleted successfully')
         except Exception as e:
             return APIResponse.error(400, e)
 
     def get_pool(self, uuid) -> APIResponse:
         try:
-            pool = storage_service.get_pool_by_uuid(uuid)
+            pool = pool_service.get_pool_by_uuid(uuid)
             return APIResponse.success(pool)
         except Exception as e:
             return APIResponse.error(400, e)
 
     def get_all_pools(self) -> APIResponse:
         try:
-            pool_list = storage_service.list_pools()
+            pool_list = pool_service.list_pools()
             return APIResponse.success(pool_list)
         except Exception as e:
             return APIResponse.error(400, e)
@@ -234,7 +235,20 @@ class StorageAPI(object):
             return APIResponse.success(snap_list)
         except Exception as e:
             return APIResponse.error(400, e)
-
+        
+    def get_pool_user_uuid(self, pool_uuid: str) -> APIResponse:
+        try:
+            user_uuid = pool_service.get_pool_user_uuid(pool_uuid=pool_uuid)
+            return APIResponse.success(user_uuid)
+        except Exception as e:
+            return APIResponse.error(400, e)
+        
+    def get_volume_user_uuid(self, volume_uuid: str)-> APIResponse:
+        try:
+            user_uuid = storage_service.get_volume_user_uuid(uuid=volume_uuid)
+            return APIResponse.success(user_uuid)
+        except Exception as e:
+            return APIResponse.error(400, e)
 
 # storage_api = StorageAPI()
 # storage_api.detach_volume_from_guest("0749b403-a42a-49c7-a179-df51f04ac780")

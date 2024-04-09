@@ -276,7 +276,15 @@ class StorageService():
         else:
             raise Exception('The new capacity is smaller '
                             'than the used capacity')
-
+            
+    @enginefacade.transactional
+    def get_volume_user_uuid(self, session, uuid:str):
+        volume: Volume = db.select_by_uuid(session, Volume, uuid)
+        if volume is not None:
+            user_uuid = volume.pool.owner
+            return user_uuid
+        return None
+            
     @enginefacade.transactional
     def rollback_to_snapshot(self, session,
                              volume_uuid: str,
