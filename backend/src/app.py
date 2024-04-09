@@ -43,6 +43,6 @@ if __name__ == "__main__":
     websockify_manager = WebSockifyManager()
     atexit.register(websockify_manager.stop_websockify)
     websockify_manager.start_websockify()
-    app.run(host="0.0.0.0", port=5010)
+    app.run(host="0.0.0.0", port=5000)
 
 
