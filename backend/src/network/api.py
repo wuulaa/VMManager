@@ -1,7 +1,10 @@
 from src.network.service import NetworkService
 from src.utils.response import APIResponse
+from src.utils.singleton import singleton
 
 network_service = NetworkService()
+
+@singleton
 class NetworkAPI():
     
     def create_top_network(self, network_address: str) -> APIResponse:
@@ -17,7 +20,7 @@ class NetworkAPI():
                          gateway: str, 
                          mac: str = None,
                          inerface_type: str = "direct") -> APIResponse:
-        return network_service.create_interface(name=name,
+        return network_service.create_interface(interface_name=name,
                                                 network_name=network_name,
                                                 ip_address=ip_address,
                                                 gateway=gateway,
@@ -25,7 +28,7 @@ class NetworkAPI():
                                                 inerface_type=inerface_type)
     
     def delete_interface(self, interface_name: str) -> APIResponse:
-        return network_service.delete_interface(name=interface_name)
+        return network_service.delete_interface(interface_name=interface_name)
     
     def interface_exists(self, interface_name: str)-> APIResponse:
         return network_service.interface_exists(interface_name=interface_name)
@@ -35,7 +38,7 @@ class NetworkAPI():
     
     
     def modify_interface(self, interface_name: str, ip_addr: str, gateway:str) -> APIResponse:
-        return network_service.modify_interface(interface_uuid=None, name=interface_name,
+        return network_service.modify_interface(interface_uuid=None, interface_name=interface_name,
                                                 ip_addr=ip_addr, gateway=gateway)
     
     
@@ -44,11 +47,11 @@ class NetworkAPI():
                                               network_address)
     
     def delete_network(self, name) -> APIResponse:
-        return network_service.delete_network(name=name)
+        return network_service.delete_network(network_name=name)
     
     
     def get_interface_xml(self, interface_name) -> APIResponse:
-        return network_service.get_interface_xml(name=interface_name)
+        return network_service.get_interface_xml(interface_name=interface_name)
     
     
     def attach_interface_to_domain(self, domain_uuid: str, interface_name: str)-> APIResponse:
@@ -90,3 +93,11 @@ class NetworkAPI():
     
     def get_domain_interface_names(self, domain_uuid: str) -> APIResponse:
         return network_service.get_domain_interface_names(domain_uuid=domain_uuid)
+    
+
+    def get_network_user_uuid(self, network_name) -> APIResponse:
+        return network_service.get_network_user_uuid(network_name=network_name)
+    
+   
+    def get_interface_user_uuid(self, interface_name) -> APIResponse:
+        return network_service.get_interface_user_uuid(interface_name=interface_name)

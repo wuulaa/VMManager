@@ -14,11 +14,12 @@ def create_interface(session,
                     ip_address: str,
                     gateway: str,
                     mac: str = None,
-                    inerface_type: str = "direct"
+                    inerface_type: str = "direct",
+                    user_uuid = None
                    ):
     network_uuid = select_by_name(session, Network, network_name).uuid
     interface = Interface(name, network_uuid, ip_address, gateway,
-                          mac, inerface_type)
+                          mac, inerface_type, user_uuid)
     insert(session, interface)
     return interface 
 
@@ -126,8 +127,9 @@ def get_interface_list(session):
 @enginefacade.auto_session
 def create_network(session,
                    name: str,
-                   ip_address: str):
-    network = Network(name, ip_address)
+                   ip_address: str,
+                   user_uuid: str):
+    network = Network(name, ip_address, user_uuid)
     insert(session, network)
     return network
 

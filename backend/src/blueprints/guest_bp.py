@@ -25,7 +25,7 @@ def get_domains_list():
         guest[consts.P_DOMAIN_UUID] = item.uuid
         guest[consts.P_SLAVE_NAME] = item.slave_name
         guest[consts.P_STATUS] = item.status
-        guest[consts.p_ARCHITECTURE] = item.architecture
+        guest[consts.P_ARCHITECTURE] = item.architecture
         guest[consts.P_DESCRIPTION] = item.description
         guest[consts.P_CPU] = item.cpu
         guest[consts.P_MAX_CPU] = item.max_cpu

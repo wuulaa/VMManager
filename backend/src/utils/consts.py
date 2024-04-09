@@ -21,7 +21,7 @@ P_PASSWD = "passwd"
 P_FLAGS = "flags"
 P_STATUS = "status"
 P_DESCRIPTION = "description"
-p_ARCHITECTURE = "architecture"
+P_ARCHITECTURE = "architecture"
 P_CPU = "cpu_num"
 P_MAX_CPU = "max_cpu"
 P_MEMORY = "memory"
@@ -60,3 +60,8 @@ P_SNAP_UUID = "snap_uuid"
 # Graphic
 P_VNC = "vnc"
 P_SPICE = "spice"
+
+# User
+P_IS_ADMIN = "is_admin"
+P_NEW_PASSWORD = "new_password"
+P_OLD_PASSWORD = "old_password"

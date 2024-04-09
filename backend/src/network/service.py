@@ -11,8 +11,10 @@ from src.utils.sqlalchemy import enginefacade
 from src.utils.config import CONF
 from src.utils import consts, generator
 from faker import Faker
-
-
+import inspect
+from src.utils.jwt import check_user
+from src.user.api import UserAPI
+user_api = UserAPI()
 
 @singleton
 class NetworkService:
@@ -129,9 +131,10 @@ class NetworkService:
             ip_address (str): address of the network, eg: 1.2.3.4/24
         """
         try:
+            user_uuid = user_api.get_current_user_uuid().get_data()
             if is_network_ip_used(ip_address):
                 return APIResponse.error(code=400, msg="network ip has been used")
-            network: Network = db.create_network(session, name=name, ip_address=ip_address)
+            network: Network = db.create_network(session, name=name, ip_address=ip_address, user_uuid=user_uuid)
             
             master_bridge_name = CONF.get("network", "bridge_prefix") + "_master"
             gateway = get_network_gateway_with_mask(ip_address)
@@ -143,7 +146,7 @@ class NetworkService:
     
     
     @enginefacade.transactional
-    def delete_network(self, session, name):
+    def delete_network(self, session, network_name):
         """
         delete virtual network,
         all virtual interfaces of the network would also be deleted
@@ -152,14 +155,16 @@ class NetworkService:
             name (str): network name
         """
         try:
-            network: Network = db.get_network_by_name(session, name)
+            if not check_user(network_name, Network):
+                return APIResponse.error(code=501, msg="wrong user")
+            network: Network = db.get_network_by_name(session, network_name)
             address = network.address
             if network is None:
-                return APIResponse.error(code=400, msg=f'cannot find a network which name={name}')
+                return APIResponse.error(code=400, msg=f'cannot find a network which name={network_name}')
             interfaces: list[Interface] = network.interfaces
             for interface in interfaces:
                 self.delete_interface(session, interface.uuid)
-            db.delete_network_by_name(session, name)
+            db.delete_network_by_name(session, network_name)
             
             master_bridge_name = CONF.get("network", "bridge_prefix") + "_master"
             gateway = get_network_gateway_with_mask(address)
@@ -190,7 +195,7 @@ class NetworkService:
     
     @enginefacade.transactional
     def create_interface(self, session,
-                         name: str,
+                         interface_name: str,
                          network_name: str,
                          ip_address: str,
                          gateway: str, 
@@ -213,8 +218,8 @@ class NetworkService:
             interfaces: list[Interface] = db.get_interface_list()
             used_names: list[str] = [interface.name for interface in interfaces]
             ips: list[str] = [interface.ip_address for interface in interfaces]
-            if name is None:
-                name = generator.generage_unused_name(used_names)
+            if interface_name is None:
+                interface_name = generator.generage_unused_name(used_names)
             if ip_address is None:
                 ip_address = generator.generate_unique_ip(network.address, ips)
             if mac is None:
@@ -229,14 +234,15 @@ class NetworkService:
             if is_interface_ip_used(ip_address):
                 return APIResponse.error(400, f'interface address has been used')
             
+            user_uuid = user_api.get_current_user_uuid().get_data()
             interface: Interface = db.create_interface(session,
-                                            name=name,
+                                            name=interface_name,
                                             network_name=network_name,
                                             ip_address=ip_address,
                                             gateway=gateway,
                                             mac=mac,
-                                            inerface_type=inerface_type
-                                            )
+                                            inerface_type=inerface_type,
+                                            user_uuid=user_uuid)
             uuid = interface.uuid
             return APIResponse.success(data={"interface_uuid": uuid})
         except Exception as e:
@@ -245,16 +251,16 @@ class NetworkService:
     
         
     @enginefacade.transactional
-    def delete_interface(self, session, interface_uuid: str=None, name: str = None):
+    def delete_interface(self, session, interface_uuid: str=None, interface_name: str = None):
         try:
             if interface_uuid:
                 interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
-            elif name:
-                interface: Interface = db.get_interface_by_name(session, name)
+            elif interface_name:
+                interface: Interface = db.get_interface_by_name(session, interface_name)
                 
         
             if interface is None:
-                return APIResponse.error(code=400, msg=f'cannot find a interface which name={name}, uuid={interface_uuid}')
+                return APIResponse.error(code=400, msg=f'cannot find a interface which name={interface_name}, uuid={interface_uuid}')
             
             interface_uuid = interface.uuid
             if interface.guest_uuid is not None:
@@ -303,13 +309,13 @@ class NetworkService:
             
         mac = generator.generate_random_mac()
          
-        return self.create_interface(session, name=new_name, network_name=network.name,
+        return self.create_interface(session, interface_name=new_name, network_name=network.name,
                               ip_address=new_ip, gateway=interface.gateway, mac=mac)
     
     
     
     @enginefacade.transactional
-    def modify_interface(self, session, interface_uuid: str = None, name: str = None, ip_addr: str = None, gateway:str =None):
+    def modify_interface(self, session, interface_uuid: str = None, interface_name: str = None, ip_addr: str = None, gateway:str =None):
         """
         modify interface, currently supports ip and gateway only,
         make sure to pass them both
@@ -320,11 +326,11 @@ class NetworkService:
         try:
             if interface_uuid:
                 interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
-            elif name:
-                interface: Interface = db.get_interface_by_name(session, name)
+            elif interface_name:
+                interface: Interface = db.get_interface_by_name(session, interface_name)
                 
             if interface is None:
-                return APIResponse.error(code=400, msg=f'cannot find a interface which name={name}, uuid = {interface_uuid}')
+                return APIResponse.error(code=400, msg=f'cannot find a interface which name={interface_name}, uuid = {interface_uuid}')
             
             remove_domain_ip = False
             if gateway is None and ip_addr is None:
@@ -521,10 +527,10 @@ class NetworkService:
     
     
     @enginefacade.transactional
-    def get_interface_xml(self, session, name: str):
-        interface: Interface = db.get_interface_by_name(session, name)
+    def get_interface_xml(self, session, interface_name: str):
+        interface: Interface = db.get_interface_by_name(session, interface_name)
         if interface is None:
-            return APIResponse.error(400, f"cannot find interface with name = {name}")
+            return APIResponse.error(400, f"cannot find interface with name = {interface_name}")
         return APIResponse.success(interface.xml)
         
         
@@ -662,6 +668,20 @@ class NetworkService:
         names = [interface.name  for interface in res]
         return APIResponse.success(names)
     
+    @enginefacade.transactional
+    def get_network_user_uuid(self, session, network_name):
+        network:Network = db.get_network_by_name(session, name=network_name)
+        if network is None:
+            return APIResponse.error(code=400)
+        return APIResponse.success(network.user_uuid)
+    
+    @enginefacade.transactional
+    def get_interface_user_uuid(self, session, interface_name):
+        interface:Interface = db.get_interface_by_name(session, name=interface_name)
+        if interface is None:
+             return APIResponse.error(code=400)
+        return APIResponse.success(interface.user_uuid)
+    
     ####################
     # helper functions #
     ####################
@@ -736,3 +756,42 @@ def get_network_gateway_with_mask(ip_address_str: str) -> str:
     except ValueError as e:
         print(f"Error: {e}")
         return None
+
+
+# def check_user_decorator(identifier, model):
+#     """
+#     decorator for checking user uuid
+#     for example, check whether current user has the domain/interface/volume
+#     """
+#     def decorator(func):
+#         def wrapper(*args, **kwargs):
+#             from src.user.api import UserAPI
+#             user_api = UserAPI()
+#             network_service = NetworkService()
+            
+#             # 使用inspect模块的signature函数获取函数的参数签名
+#             signature = inspect.signature(func)
+#             # 获取参数名列表
+#             parameter_names = list(signature.parameters.keys())
+#             parameters_dict = {param_name: arg for param_name, arg in zip(parameter_names, args)}
+#             parameters_dict.update(kwargs)
+            
+#             identifier_value = None
+#             for key, value in parameters_dict.items():
+#                 if key == identifier:
+#                     identifier_value = value
+            
+#             if model == Network:
+#                 network_user_uuid = network_service.get_network_user_uuid(network_name=identifier_value).get_data()
+#                 current_user_uuid = user_api.get_current_user_uuid().get_data()
+#                 if network_user_uuid != current_user_uuid:
+#                     return APIResponse.error(code=405, msg="wrong user")
+                
+            
+#             # 调用原始函数并返回结果
+#             return func(*args, **kwargs)
+#         return wrapper
+#     return decorator
+
+
+        

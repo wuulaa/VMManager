@@ -21,11 +21,19 @@ class Network(Base):
     address: Mapped[str] = mapped_column(String(64),
                                         unique=True,
                                         comment="network address ,eg: 1.2.3.4/24")
+    
+    user_uuid: Mapped[str] = mapped_column(String(64),
+                                            nullable=True,
+                                            comment="UUID of the user this network belongs to")
+    
     interfaces: Mapped[List["Interface"]] = relationship(back_populates="network")
     
-    def __init__(self, name: str, address: str):
+    def __init__(self, name: str,
+                 address: str,
+                 user_uuid: str = None):
         self.name = name
         self.address = address
+        self.user_uuid = user_uuid
         self.uuid = self._gen_uuid()
    
 
@@ -86,6 +94,9 @@ class Interface(Base):
     slave_uuid: Mapped[str] = mapped_column(String(64),
                                             nullable=True,
                                             comment="UUID of the slave node this interface is bound to")
+    user_uuid: Mapped[str] = mapped_column(String(64),
+                                            nullable=True,
+                                            comment="UUID of the user this interface belongs to")
     
     ip_modified: Mapped[Boolean] = mapped_column(Boolean,
                                              default=False,
@@ -103,8 +114,8 @@ class Interface(Base):
                  ip_address: str,
                  gateway: str,
                  mac: str = None,
-                 inerface_type: str = "direct"
-                 ):
+                 inerface_type: str = "direct",
+                 user_uuid: str = None):
         if ip_address:
             self.name = name
             self.uuid = self._gen_uuid()
@@ -112,6 +123,7 @@ class Interface(Base):
             self.interface_type = inerface_type
             self.ip_address = ip_address
             self.gateway = gateway
+            self.user_uuid = user_uuid
             if mac is not None:
                 self.mac = mac
     

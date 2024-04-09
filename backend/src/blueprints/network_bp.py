@@ -3,9 +3,13 @@ from flask import Blueprint
 from flask import request
 from src.network.api import NetworkAPI
 from src.utils import consts
+from src.utils.jwt import jwt_set_user
+from flask import g
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 network_bp = Blueprint("network-bp", __name__, url_prefix="/kvm")
 network_api = NetworkAPI()
+# pdb.set_trace()
 
 @network_bp.route("/network/list")
 def list():
@@ -86,6 +90,7 @@ def port_put():
 
 
 @network_bp.route("/network/virtualAdd", methods=["POST"])
+@jwt_set_user
 def virtual_add():
     """
     add virtual network
@@ -96,6 +101,7 @@ def virtual_add():
 
 
 @network_bp.route("/network/virtualDel", methods=["POST"])
+@jwt_set_user
 def virtual_del():
     """
     delete virtual network
