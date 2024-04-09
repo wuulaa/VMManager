@@ -20,6 +20,7 @@ def list():
 
 
 @network_bp.route("/network/detail")
+@jwt_set_user
 def network_detail():
     """
     get detail of a network
@@ -29,6 +30,7 @@ def network_detail():
 
 
 @network_bp.route("/network/ports")
+@jwt_set_user
 def list_ethernets():
     """
     list all virtual interfaces
@@ -37,6 +39,7 @@ def list_ethernets():
 
 
 @network_bp.route("/network/detailPort")
+@jwt_set_user
 def detailEthernet():
     """
     get a all virtual interfaces detail
@@ -46,6 +49,7 @@ def detailEthernet():
 
 
 @network_bp.route("/network/portAdd", methods=["POST"])
+@jwt_set_user
 def port_add():
     """
     add virtual port to a internet
@@ -59,6 +63,7 @@ def port_add():
 
 
 @network_bp.route("/network/portDel", methods=["POST"])
+@jwt_set_user
 def port_del():
     """
     delete virtual port from internet
@@ -68,6 +73,7 @@ def port_del():
 
 
 @network_bp.route("/network/portClone", methods=["POST"])
+@jwt_set_user
 def port_clone():
     """
     add virtual port to a internet
@@ -79,6 +85,7 @@ def port_clone():
 
 
 @network_bp.route("/network/portPut", methods=["POST"])
+@jwt_set_user
 def port_put():
     """
     modify a virtual port, currently supports gateway and ipaddr only

@@ -187,7 +187,7 @@ class NetworkService:
     
     @enginefacade.transactional
     def interface_exists(self, session, interface_name: str):
-        interface = db.get_interface_by_name(interface_name)
+        interface = db.get_interface_by_name(session, interface_name)
         res = True
         if interface is None:
             res = False
@@ -252,6 +252,8 @@ class NetworkService:
         
     @enginefacade.transactional
     def delete_interface(self, session, interface_uuid: str=None, interface_name: str = None):
+        if not check_user(interface_name, Network):
+            return APIResponse.error(code=501, msg="wrong user")
         try:
             if interface_uuid:
                 interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
@@ -286,6 +288,8 @@ class NetworkService:
         this is also a purly db function
 
         """
+        if not check_user(interface_name, Network):
+            return APIResponse.error(code=501, msg="wrong user")
         if interface_uuid is not None:
             interface: Interface = db.get_interface_by_uuid(interface_uuid)
         else:
@@ -323,6 +327,8 @@ class NetworkService:
         from src.guest.api import GuestAPI
         guest_api = GuestAPI()
         
+        if not check_user(interface_name, Network):
+            return APIResponse.error(code=501, msg="wrong user")
         try:
             if interface_uuid:
                 interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
@@ -627,6 +633,8 @@ class NetworkService:
         
     @enginefacade.transactional
     def list_networks(self, session):
+        if not check_user(None, Network):
+            return APIResponse.error(code=501, msg="wrong user")
         network_list: list[Network] = db.get_network_list(session)
         res = [network.to_dict() for network in network_list]
         return APIResponse.success(res)
@@ -634,6 +642,8 @@ class NetworkService:
     
     @enginefacade.transactional
     def list_interfaces(self, session):
+        if not check_user(None, Network):
+            return APIResponse.error(code=501, msg="wrong user")
         interface_list: list[Interface] = db.get_interface_list(session)
         res = [interface.to_dict() for interface in interface_list]
         return APIResponse.success(res)
@@ -648,6 +658,8 @@ class NetworkService:
     
     @enginefacade.transactional
     def network_detail(self, session, network_name: str):
+        if not check_user(network_name, Network):
+            return APIResponse.error(code=501, msg="wrong user")
         network: Network = db.get_network_by_name(session, network_name)
         if network is None:
             return APIResponse.error(code=400, msg=f'cannot find a network which name={network_name}')
@@ -656,6 +668,8 @@ class NetworkService:
     
     @enginefacade.transactional
     def interface_detail(self, session, interface_name: str):
+        if not check_user(interface_name, Network):
+            return APIResponse.error(code=501, msg="wrong user")
         interface: Interface = db.get_interface_by_name(session, interface_name)
         if interface is None:
             return APIResponse.error(code=400, msg=f'cannot find a interface which name={interface_name}')
