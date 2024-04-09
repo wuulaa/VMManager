@@ -1,6 +1,7 @@
 from flask import Blueprint
 from flask import request
 import requests
+from src.utils.jwt import jwt_set_user
 from src.domain_xml.xml_init import create_initial_xml
 from src.guest.api import GuestAPI, SlaveAPI
 from src.utils.response import APIResponse
@@ -36,29 +37,34 @@ def get_domains_list():
     return response.to_json_str()
 
 @guest_bp.route("/detail", methods=["GET"])
+@jwt_set_user
 def get_domain_detail():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     return guestAPI.get_domain_detail(domain_uuid).to_json_str()
 
 @guest_bp.route("/add", methods=["POST"])
+@jwt_set_user
 def create_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     return guestAPI.create_domain(domain_name, slave_name ).to_json_str()
 
 @guest_bp.route("/putName", methods=["POST"])
+@jwt_set_user
 def rename_domain():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     new_name = request.values.get(consts.P_NEW_NAME)
     return guestAPI.rename_domain(domain_uuid, new_name).to_json_str()
 
 @guest_bp.route("/putDes", methods=["POST"])
+@jwt_set_user
 def put_description():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     new_description = request.values.get(consts.P_NEW_DESCRIPTION)
     return guestAPI.put_description(domain_uuid, new_description).to_json_str()
 
 @guest_bp.route("/del", methods=["POST"])
+@jwt_set_user
 def delete_domain():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     flags = request.values.get(consts.P_FLAGS)
@@ -66,42 +72,50 @@ def delete_domain():
 
 
 @guest_bp.route("/start", methods=["POST"])
+@jwt_set_user
 def start():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     return guestAPI.start_domain(domain_uuid).to_json_str()
 
 
 @guest_bp.route("/shutdown", methods=["POST"])
+@jwt_set_user
 def shutdown_domain():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     return guestAPI.shutdown_domain(domain_uuid).to_json_str()
 
 @guest_bp.route("/destroy", methods=["POST"])
+@jwt_set_user
 def destroy_domain():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     return guestAPI.destroy_domain(domain_uuid).to_json_str()
 
 @guest_bp.route("/pause", methods=["POST"])
+@jwt_set_user
 def pause_domain():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     return guestAPI.pause_domain(domain_uuid).to_json_str()
 
 @guest_bp.route("/resume", methods=["POST"])
+@jwt_set_user
 def resume_domain():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     return guestAPI.resume_domain(domain_uuid).to_json_str()
 
 @guest_bp.route("/reboot", methods=["POST"])
+@jwt_set_user
 def reboot():
     domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
     return guestAPI.reboot_domain(domain_uuid).to_json_str()
 
 @guest_bp.route("/clone", methods=["POST"])
+@jwt_set_user
 def clone():
     pass
     
     
 @guest_bp.route("/migrate", methods=["POST"])
+@jwt_set_user
 def migrate():
     pass
  
@@ -125,6 +139,7 @@ def get_stored_monitor_domain():
 
 
 @guest_bp.route("/setUserPasswd")
+@jwt_set_user
 def set_user_passwd():
     """
     set domain user passwd, domain should be running
@@ -135,6 +150,7 @@ def set_user_passwd():
     return guestAPI.set_user_passwd(domain_uuid, user_name, passwd).to_json_str()
 
 @guest_bp.route("/setCPU", methods=["POST"])
+@jwt_set_user
 def set_cpu():
     cpu_num = request.values.get(consts.P_CPU_NUM)
     flags = request.values.get(consts.P_FLAGS)
@@ -142,6 +158,7 @@ def set_cpu():
     return guestAPI.set_domain_vcpu(domain_uuid, cpu_num = cpu_num, flags = flags).to_json_str()
 
 @guest_bp.route("/setMemory", methods=["POST"])
+@jwt_set_user
 def set_memory():
     memory_size = request.values.get(consts.P_MEMORY_SIZE)
     flags = request.values.get(consts.P_FLAGS)
@@ -149,42 +166,50 @@ def set_memory():
     return guestAPI.set_domain_memory(domain_uuid, memory_size = memory_size, flags = flags).to_json_str()
 
 @guest_bp.route("/batchGetDoaminsDetail", methods=["POST"])
+@jwt_set_user
 def batch_get_domains_detail():
     domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)
     return guestAPI.batch_domains_detail(domains_uuid_list).to_json_str()
 
 @guest_bp.route("/batchStartDomains", methods=["POST"])
+@jwt_set_user
 def batch_start_domain():
     domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)
     return guestAPI.batch_start_domains(domains_uuid_list).to_json_str()
 
 @guest_bp.route("/batchPauseDomains", methods=["POST"])
+@jwt_set_user
 def batch_pause_domain():
     domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)
     return guestAPI.batch_pause_domains(domains_uuid_list).to_json_str()
 
 @guest_bp.route("/batchResumeDomains", methods=["POST"])
+@jwt_set_user
 def batch_resume_domain():
     domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)
     return guestAPI.batch_restart_domains(domains_uuid_list).to_json_str()
 
 @guest_bp.route("/batchShutdownDomains", methods=["POST"])
+@jwt_set_user
 def batch_shutdown_domain():
     domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)
     return guestAPI.batch_shutdown_domains(domains_uuid_list).to_json_str()
 
 @guest_bp.route("/batchDeleteDomains", methods=["POST"])
+@jwt_set_user
 def batch_delete_domain():
     domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)
     return guestAPI.batch_delete_domains(domains_uuid_list).to_json_str()
 
 @guest_bp.route("/batchRestartDomains", methods=["POST"])
+@jwt_set_user
 def batch_restart_domain():
     domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)
     return guestAPI.batch_restart_domains(domains_uuid_list).to_json_str()
 
 
 @guest_bp.route("/attachNic", methods=["POST"])
+@jwt_set_user
 def attach_nic():
     """
     attach a interface to domain
@@ -196,6 +221,7 @@ def attach_nic():
 
 
 @guest_bp.route("/detachNic", methods=["POST"])
+@jwt_set_user
 def detach_nic():
     """
     detach a nic from domain
@@ -207,6 +233,7 @@ def detach_nic():
 
 
 @guest_bp.route("/listNic", methods=["POST"])
+@jwt_set_user
 def list_nic():
     """
     list nics of domain
@@ -217,6 +244,7 @@ def list_nic():
 
 
 @guest_bp.route("/addVNC", methods=["POST"])
+@jwt_set_user
 def add_vnc():
     """
     attach a vnc to domain
@@ -229,6 +257,7 @@ def add_vnc():
 
 
 @guest_bp.route("/deleteVNC", methods=["POST"])
+@jwt_set_user
 def delete_vnc():
     """
     delete a vnc from domain
@@ -239,6 +268,7 @@ def delete_vnc():
 
 
 @guest_bp.route("/getVNC", methods=["POST"])
+@jwt_set_user
 def get_vnc_addr():
     """
     get domain's vnc addr
@@ -248,6 +278,7 @@ def get_vnc_addr():
 
 
 @guest_bp.route("/addSPICE", methods=["POST"])
+@jwt_set_user
 def add_spice():
     """
     attach a vnc to domain
@@ -260,6 +291,7 @@ def add_spice():
 
 
 @guest_bp.route("/setGraphicPasswd", methods=["POST"])
+@jwt_set_user
 def change_graphic_passwd():
     """
     change passwd for vnc or spice
@@ -278,6 +310,7 @@ def change_graphic_passwd():
 
 
 @guest_bp.route("/attachDisk", methods=["POST"])
+@jwt_set_user
 def attach_disk():
     guest_uuid = request.values.get(consts.P_GUEST_UUID)
     volume_uuid = request.values.get(consts.P_VOLUME_UUID)
@@ -288,6 +321,7 @@ def attach_disk():
 
 
 @guest_bp.route("/detachDisk", methods=["POST"])
+@jwt_set_user
 def detach_disk():
     domain_uuid = request.values.get(consts.P_GUEST_UUID)
     volume_uuid = request.values.get(consts.P_VOLUME_UUID)
@@ -295,6 +329,7 @@ def detach_disk():
 
 
 @guest_bp.route("/snapshotAdd", methods=["POST"])
+@jwt_set_user
 def add_snapshot():
     volume_uuid = request.values.get(consts.P_VOLUME_UUID)
     snap_name = request.values.get(consts.P_SNAP_NAME)    
@@ -302,33 +337,39 @@ def add_snapshot():
 
 
 @guest_bp.route("/putSnapshotName", methods=["POST"])
+@jwt_set_user
 def put_snapshot_name():
     pass
 
 
 @guest_bp.route("/snapshotDetail", methods=["POST"])
+@jwt_set_user
 def snapshot_detail():
     snap_uuid = request.values.get(consts.P_SNAP_UUID)
     return guestAPI.get_snap_info(snap_uuid).to_json_str()
     
 
 @guest_bp.route("/snapshotDel", methods=["POST"])
+@jwt_set_user
 def del_snapshot():
     snap_uuid = request.values.get(consts.P_SNAP_UUID)
     return guestAPI.del_snapshot(snap_uuid).to_json_str()
 
 
 @guest_bp.route("/snapshotRestore", methods=["POST"])
+@jwt_set_user
 def restore_snapshot():
     snap_uuid = request.values.get(consts.P_SNAP_UUID)
     return guestAPI.rollback_to_snapshot(snap_uuid).to_json_str()
 
 
 @guest_bp.route("/snapshotSave", methods=["POST"])
+@jwt_set_user
 def save_snapshot():
     pass
 
 
 @guest_bp.route("/snapshotToImage", methods=["POST"])
+@jwt_set_user
 def snapshot_to_image():
     pass

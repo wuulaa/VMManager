@@ -26,8 +26,11 @@ def check_user(identifier:str, model):
     from src.user.api import UserAPI
     from src.network.api import NetworkAPI
     from src.network.db.models import Network, Interface
+    from src.guest.db.models import Guest
+    from src.guest.api import GuestAPI
     user_api = UserAPI()
     network_api = NetworkAPI()
+    guest_api = GuestAPI()
     
     if user_api.is_current_user_admin().get_data():
         return True
@@ -41,3 +44,8 @@ def check_user(identifier:str, model):
         interface_user_uuid = network_api.get_interface_user_uuid(interface_name=identifier).get_data()
         current_user_uuid = user_api.get_current_user_uuid().get_data()
         return interface_user_uuid == current_user_uuid
+    
+    if model == Guest:
+        guest_user_uuid = guest_api.get_guest_user_uuid(domain_uuid = identifier).get_data()
+        current_user_uuid = user_api.get_current_user_uuid().get_data()
+        return guest_user_uuid == current_user_uuid

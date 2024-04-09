@@ -57,7 +57,7 @@ def TO_INT(list: list):
     return revert
 
 
-class GuestAPI():
+class GuestAPI:
     def create_domain(self, domain_name: str, slave_name: str, **kwargs) -> APIResponse:
         return guestService.create_domain(domain_name , slave_name, **kwargs)
     
@@ -111,6 +111,9 @@ class GuestAPI():
 
     def put_description(self, domain_uuid: str, new_description: str) -> APIResponse:
         return guestService.put_description(domain_uuid, new_description)
+    
+    def get_guest_user_uuid(self, domain_uuid: str) -> APIResponse:
+        return guestService.get_guest_user_uuid(domain_uuid)
     
     @TO_INT(list = ["flags"])
     def delete_domain(self, domain_uuid: str, flags: int) -> APIResponse:

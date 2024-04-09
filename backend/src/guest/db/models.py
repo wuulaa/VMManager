@@ -33,6 +33,10 @@ class Guest(Base):
                                       unique=False,
                                       nullable=False,
                                       comment="Guest name")
+    user_uuid: Mapped[str] = mapped_column(String(64),
+                                      unique=False,
+                                      nullable=False,
+                                      comment="User UUID")
     slave_name: Mapped[str] = mapped_column(String(64),
                                       unique=False,
                                       nullable=False,
@@ -93,6 +97,7 @@ class Guest(Base):
     def __init__(self,
                  uuid,
                  name,
+                 user_uuid,
                  slave_name,
                  title: str = None,
                  description: str = None,
@@ -110,6 +115,7 @@ class Guest(Base):
                  backups_list: str = None):
         self.uuid = uuid
         self.name = name
+        self.user_uuid = user_uuid
         self.slave_name = slave_name
         self.title = title
         self.description = description

@@ -3,7 +3,7 @@ from src.guest.db.models import Guest, Slave
 import src.volume.db as db
 
 @enginefacade.auto_session
-def create_guest(session, uuid: str, name: str, slave_name: str, **kwargs):
+def create_guest(session, uuid: str, name: str, user_uuid: str, slave_name: str, **kwargs):
     title = kwargs.get("title", None)
     description = kwargs.get("description", None)
     status = kwargs.get("status", "shutoff")
@@ -18,7 +18,7 @@ def create_guest(session, uuid: str, name: str, slave_name: str, **kwargs):
     parent_uuid = kwargs.get("parent_uuid", None)
     children_list = kwargs.get("children_list", None)
     backups_list = kwargs.get("backups_list", None)
-    guest = Guest(uuid ,name, slave_name, title, description, status, architecture, cpu, max_cpu,
+    guest = Guest(uuid ,name, user_uuid, slave_name, title, description, status, architecture, cpu, max_cpu,
                     memory, max_memory, boot_option, spice_address, vnc_address, parent_uuid,
                     children_list, backups_list)
     # guest = Guest(uuid, name, slave_name)
