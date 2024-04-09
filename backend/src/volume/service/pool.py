@@ -62,6 +62,10 @@ class PoolService():
     @enginefacade.transactional
     def get_pool_user_uuid(self, session, uuid):
         return db.select_by_uuid(session, Pool, uuid).owner
+    
+    @enginefacade.transactional
+    def get_pool_by_user_uuid(self, session, user_uuid):
+        return db.condition_select(session, Pool, values={"owner": user_uuid}).uuid
 
     def resize_pool(self, session, uuid: str, new_size: int):
         pool = db.select_by_uuid(session, Pool, uuid)

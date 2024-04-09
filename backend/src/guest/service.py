@@ -42,6 +42,10 @@ user_api = UserAPI()
 class GuestService():
     @enginefacade.transactional
     def create_domain(self, session, domain_name: str, slave_name: str, **kwargs) -> APIResponse:
+        user_uuid = user_api.get_current_user_uuid().get_data()
+        if user_uuid is None:
+            return APIResponse.error(code = 400, msg = 'user_uuid is None.')
+        pool_uuid = storage_api.get_pool_by_user_uuid(user_uuid)
         exist_uuids =[]
         for guest in guestDB.get_domain_list(session):
             exist_uuids.append(guest.uuid)
@@ -63,7 +67,7 @@ class GuestService():
         backups_list = kwargs.get("backups_list", None)
 
         guest: GuestBuilder = create_initial_xml(domain_name, guest_uuid, cpu, max_cpu, memory, max_memory, architecture)
-        response = storage_api.clone_volume("8388ad7f-e58b-4d94-bf41-6e95b23d0d4a", domain_name, guest_uuid, rt_flag=1)
+        response = storage_api.clone_volume("8388ad7f-e58b-4d94-bf41-6e95b23d0d4a", domain_name, guest_uuid,pool_uuid, rt_flag=1)
         guest.devices.disk.append(response.get_data()["disk"]) 
 
         # rbdXML = RbdVolumeXMLBuilder()
@@ -74,7 +78,6 @@ class GuestService():
         xml = {consts.P_DOMAIN_XML : guest.get_xml_string(), consts.P_DOMAIN_NAME : domain_name}
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/addDomain/", data=xml).json())
         if(response.code == 0):
-            user_uuid = user_api.get_current_user_uuid().get_data()
             guestDB.create_guest(session, guest_uuid, domain_name, user_uuid, slave_name, **kwargs)
         return response
 

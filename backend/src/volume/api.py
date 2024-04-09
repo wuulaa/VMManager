@@ -126,15 +126,15 @@ class StorageAPI(object):
                      src_volume_uuid: str,
                      dest_volume_name: str,
                      guest_uuid: Optional[str] = None,
-                     rt_flag: Optional[int] = 0,
-                     *,
-                     dest_pool_uuid: str = CONF['volume']['pool_uuid']) -> APIResponse:
+                     dest_pool_uuid: str = CONF['volume']['pool_uuid'],
+                     rt_flag: Optional[int] = 0
+                     ) -> APIResponse:
         try:
             response = APIResponse.success()
             dest_volume = storage_service.clone_volume(src_volume_uuid,
                                                        dest_pool_uuid,
                                                        dest_volume_name,
-                                                       guest_uuid=guest_uuid)
+                                                       guest_uuid = guest_uuid)
             if rt_flag == 0:
                 response.set_data(dest_volume)
             elif rt_flag == 1:
@@ -247,6 +247,13 @@ class StorageAPI(object):
         try:
             user_uuid = storage_service.get_volume_user_uuid(uuid=volume_uuid)
             return APIResponse.success(user_uuid)
+        except Exception as e:
+            return APIResponse.error(400, e)
+        
+    def get_pool_by_user_uuid(self, user_uuid: str)-> APIResponse:
+        try:
+            pool_uuid = pool_service.get_pool_by_user_uuid(user_uuid = user_uuid)
+            return APIResponse.success(pool_uuid)
         except Exception as e:
             return APIResponse.error(400, e)
 

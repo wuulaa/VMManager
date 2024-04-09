@@ -10,6 +10,9 @@ from flask_jwt_extended import create_access_token
 import datetime
 from flask import g
 from flask_jwt_extended import get_jwt_identity
+from src.volume.api import StorageAPI
+
+storage_api = StorageAPI()
 
 
 @singleton
@@ -75,6 +78,7 @@ class UserService:
             en_password = encrypt_passwd(password)
             user = db.create_user(session, user_name, en_password, is_admin)
             uuid = user.uuid
+            storage_api.create_pool(name = user_name, allocation = CONF['volume']['pool_default_allocation'], user_id = uuid)
             return APIResponse.success(data=uuid)
         except Exception as e:
             return APIResponse.error(code=400, msg=str(e))
