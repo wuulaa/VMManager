@@ -152,6 +152,15 @@ class UserService:
         else:
             uuid = None
         return APIResponse.success(uuid)
+    
+    
+    @enginefacade.transactional
+    def is_current_user_admin(self, session):
+        user_name = g.get("user")
+        user: User = db.get_user_by_name(session, user_name)
+        if user and user.is_admin:
+            return APIResponse.success(True)
+        return APIResponse.success(False)
 
 
 ####################

@@ -32,3 +32,6 @@ class UserAPI:
     def get_current_user_uuid(self) -> APIResponse:
         return user_service.get_current_user_uuid()
     
+    def is_current_user_admin(self) -> APIResponse:
+        return user_service.is_current_user_admin()
+    

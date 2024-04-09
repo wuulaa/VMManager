@@ -29,6 +29,8 @@ def check_user(identifier:str, model):
     user_api = UserAPI()
     network_api = NetworkAPI()
     
+    if user_api.is_current_user_admin().get_data():
+        return True
     
     if model == Network:
         network_user_uuid = network_api.get_network_user_uuid(network_name=identifier).get_data()
