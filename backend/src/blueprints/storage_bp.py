@@ -5,6 +5,7 @@ from src.utils import consts
 from src.utils.response import APIResponse
 from src.utils.serializable import JsonSerializable
 from src.volume.api import StorageAPI
+from src.utils.jwt import jwt_set_user
 
 storage_bp = Blueprint("storage-bp", __name__, url_prefix="/kvm/storage")
 storage_api = StorageAPI()
@@ -61,6 +62,7 @@ def fetch_disk_list():
 
 
 @storage_bp.post("/create")
+@jwt_set_user
 def create_volume():
     pool_uuid = request.values.get(consts.P_POOL_UUID)
     volume_name = request.values.get(consts.P_VOLUME_NAME)
@@ -71,13 +73,30 @@ def create_volume():
 
 
 @storage_bp.post("/delete")
+@jwt_set_user
 def delete_volume():
     volmue_uuid = request.values.get(consts.P_VOLUME_UUID)
     return storage_api.delete_volume(volmue_uuid).to_json_str()
 
-@storage_bp.post("/list")
+
+@storage_bp.post("/listVolumes")
+@jwt_set_user
 def get_volumes():
-    pass
+    user_name = request.values.get(consts.P_USER_NAME)
+    if user_name:
+        return storage_api.list_all_volumes(user_name).to_json_str()
+    else:
+        return storage_api.list_all_volumes().to_json_str()
+
+    
+@storage_bp.post("/listPools")
+@jwt_set_user
+def get_pools():
+    user_name = request.values.get(consts.P_USER_NAME)
+    if user_name:
+        return storage_api.get_all_pools(user_name).to_json_str()
+    else:
+        return storage_api.get_all_pools(user_name=None).to_json_str()
 
 
 @storage_bp.route("/template/add")

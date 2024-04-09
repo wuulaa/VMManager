@@ -119,6 +119,10 @@ def update_interface_removed(session, uuid, removed: bool):
 @enginefacade.auto_session
 def get_interface_list(session):
     return condition_select(session, Interface)
+
+@enginefacade.auto_session
+def get_user_interface_list(session, user_uuid):
+    return condition_select(session, Interface, values={"user_uuid" : user_uuid})
     
 #############
 ## network ##
@@ -172,6 +176,12 @@ def get_network_list(session):
 @enginefacade.auto_session
 def get_network_interface_list(session, network_uuid):
     return condition_select(session, Interface, values={"network_uuid" : network_uuid})
+
+
+@enginefacade.auto_session
+def get_user_network_list(session, user_uuid):
+    return condition_select(session, Network, values={"user_uuid" : user_uuid})
+
 
 
 ##############

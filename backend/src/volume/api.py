@@ -31,9 +31,9 @@ class StorageAPI(object):
         except Exception as e:
             return APIResponse.error(400, e)
 
-    def get_all_pools(self) -> APIResponse:
+    def get_all_pools(self, user_name=None) -> APIResponse:
         try:
-            pool_list = pool_service.list_pools()
+            pool_list = pool_service.list_pools(user_name=user_name)
             return APIResponse.success(pool_list)
         except Exception as e:
             return APIResponse.error(400, e)
@@ -173,8 +173,8 @@ class StorageAPI(object):
             return APIResponse.error(400, e)
 
     def get_all_volumes(self, **kwargs) -> APIResponse:
-        if 'pool_uuid' not in kwargs or kwargs['pool_uuid'] is None:
-            kwargs['pool_uuid'] = CONF['volume']['pool_uuid']
+        # if 'pool_uuid' not in kwargs or kwargs['pool_uuid'] is None:
+        #     kwargs['pool_uuid'] = CONF['volume']['pool_uuid']
 
         # 删除空值
         for key in list(kwargs.keys()):
@@ -183,6 +183,14 @@ class StorageAPI(object):
 
         try:
             volume_list = storage_service.get_all_volumes(**kwargs)
+            return APIResponse.success(volume_list)
+        except Exception as e:
+            return APIResponse.error(400, e)
+        
+    
+    def list_all_volumes(self, user_name=None) -> APIResponse:
+        try:
+            volume_list = storage_service.list_all_volumes(user_name)
             return APIResponse.success(volume_list)
         except Exception as e:
             return APIResponse.error(400, e)

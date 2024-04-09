@@ -285,8 +285,18 @@ class GuestService():
         else:
             return APIResponse(code = 400, data = {"error_list" : error_list}, msg = str(msg_list))
 
-    def get_domains_list(self) -> APIResponse:
-        return guestDB.get_domain_list()
+    @enginefacade.transactional
+    def get_domains_list(self, session, user_name) -> APIResponse:
+        if user_name is None:
+            if not check_user(None, None):
+                return APIResponse.error(code=400, msg="user_uuid error")
+            return guestDB.get_domain_list(session=session)
+        else:
+            if user_api.get_current_user_name().get_data() != user_name and user_api.is_current_user_admin().get_data() == False:
+                return APIResponse.error(code=400, msg="user_uuid error")
+            user_uuid = user_api.get_current_user_uuid().get_data()
+            return guestDB.get_domain_list(session=session, user_uuid=user_uuid)
+        
 
     @enginefacade.transactional
     def rename_domain(self, session, domain_uuid, new_name) -> APIResponse:
@@ -322,6 +332,7 @@ class GuestService():
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/delDomain/", data=data).json())
         if(response.code == 0):
             guestDB.delete_domain_by_uuid(session, uuid = domain_uuid)
+            
             volume_list = storage_api.get_all_volumes(guest_uuid=domain_uuid).get_data()
             #删除磁盘
             if(flags == 0):

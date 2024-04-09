@@ -9,7 +9,9 @@ from src.volume import db
 from src.volume.common import config
 from src.volume.db.models import Pool, Volume, Snapshot
 from src.volume.xml.volume.rbd_builder import RbdVolumeXMLBuilder
+from src.user.api import UserAPI
 
+user_api = UserAPI()
 CONF = config.CONF
 
 # 通过配置信息动态加载对应的类
@@ -260,6 +262,20 @@ class StorageService():
     @enginefacade.transactional
     def get_all_volumes(self, session, **kwargs):
         return db.select_volumes(session, **kwargs)
+        
+    @enginefacade.transactional
+    def list_all_volumes(self, session, user_name=None):
+        from src.volume.api import StorageAPI
+        if user_name is None:
+            if user_api.is_current_user_admin().get_data() == False:
+                return []
+            return db.condition_select(session, Volume)
+        else:
+            user_uuid = user_api.get_user_uuid_by_name(user_name).get_data()
+            current_user_uuid = user_api.get_current_user_uuid().get_data()
+            if current_user_uuid != user_uuid and user_api.is_current_user_admin().get_data() == False:
+                return []
+            return db.condition_select(session, Pool, values={"owner": user_uuid})[0].volumes
 
     @enginefacade.transactional
     def fetch_backup_list(self, session, parent_uuid: str) -> List[Volume]:

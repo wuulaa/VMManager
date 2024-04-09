@@ -26,12 +26,18 @@ class UserAPI:
     def get_user_list(self) -> APIResponse:
         return user_service.get_user_list()
     
-    def get_user_uuid_by_name(self) -> APIResponse:
-        return user_service.get_user_uuid_by_name()
+    def get_user_uuid_by_name(self, user_name) -> APIResponse:
+        return user_service.get_user_uuid_by_name(user_name=user_name)
+    
+    def get_user_name_by_uuid(self, user_uuid) -> APIResponse:
+        return user_service.get_user_name_by_uuid(user_uuid=user_uuid)
     
     def get_current_user_uuid(self) -> APIResponse:
         return user_service.get_current_user_uuid()
     
     def is_current_user_admin(self) -> APIResponse:
         return user_service.is_current_user_admin()
+    
+    def get_current_user_name(self) -> APIResponse:
+        return user_service.get_current_user_name()
     

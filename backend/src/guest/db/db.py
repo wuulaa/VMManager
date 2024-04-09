@@ -40,8 +40,11 @@ def get_domain_uuid_by_name(session, domain_name: str, slave_name: str):
     return db.condition_select(session, Guest, values = {"name": domain_name, "slave_name": slave_name})[0].uuid
 
 @enginefacade.auto_session
-def get_domain_list(session):
-    return db.condition_select(session, Guest)
+def get_domain_list(session, user_uuid=None):
+    if user_uuid is None:
+        return db.condition_select(session, Guest)
+    else:
+        return db.condition_select(session, Guest, values = {"user_uuid": user_uuid})
 
 @enginefacade.auto_session
 def delete_domain_by_uuid(session, uuid: str):

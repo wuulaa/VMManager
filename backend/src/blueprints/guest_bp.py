@@ -15,12 +15,18 @@ def guest():
     response: requests.Response = requests.get(url="http://127.0.0.1:5001/test")
     return APIResponse().deserialize_response(response.json()).to_json_str()
 
-@guest_bp.route("/list", methods=["GET"])
+@guest_bp.route("/list", methods=["POST"])
+@jwt_set_user
 def get_domains_list():
+    user_name = request.values.get(consts.P_USER_NAME)
     response =APIResponse()
     response.set_code(0)
+    resp = guestAPI.get_domains_list(user_name=user_name)
+    if not resp.is_success():
+        return resp.to_json_str()
+       
     guest_list = []
-    for item in guestAPI.get_domains_list():
+    for item in guestAPI.get_domains_list(user_name=user_name).get_data():
         guest = {}
         guest[consts.P_DOMAIN_NAME] = item.name
         guest[consts.P_DOMAIN_UUID] = item.uuid

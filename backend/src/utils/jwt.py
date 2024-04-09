@@ -64,3 +64,5 @@ def check_user(identifier:str, model):
         current_user_uuid = user_api.get_current_user_uuid().get_data()
         return volume_user_uuid == current_user_uuid
     
+    return False
+    

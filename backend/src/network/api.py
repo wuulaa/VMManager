@@ -71,12 +71,12 @@ class NetworkAPI():
         return network_service.update_domain_veth_name(domain_uuid=domain_uuid)
     
         
-    def list_networks(self) -> APIResponse:
-        return network_service.list_networks()
+    def list_networks(self, user_name) -> APIResponse:
+        return network_service.list_networks(user_name=user_name)
     
     
-    def list_interfaces(self) -> APIResponse:
-        return network_service.list_interfaces()
+    def list_interfaces(self, user_name) -> APIResponse:
+        return network_service.list_interfaces(user_name=user_name)
     
     
     def list_domain_interfaces(self, domain_uuid)-> APIResponse:

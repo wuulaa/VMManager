@@ -11,12 +11,14 @@ network_bp = Blueprint("network-bp", __name__, url_prefix="/kvm")
 network_api = NetworkAPI()
 # pdb.set_trace()
 
-@network_bp.route("/network/list")
+@network_bp.route("/network/list", methods=["POST"])
+@jwt_set_user
 def list():
     """
     list all networks
     """
-    return network_api.list_networks().to_json_str()
+    user_name = request.values.get(consts.P_USER_NAME)
+    return network_api.list_networks(user_name).to_json_str()
 
 
 @network_bp.route("/network/detail")
@@ -29,13 +31,14 @@ def network_detail():
     return network_api.network_detail(network_name).to_json_str()
 
 
-@network_bp.route("/network/ports")
+@network_bp.route("/network/ports", methods=["POST"])
 @jwt_set_user
 def list_ethernets():
     """
     list all virtual interfaces
     """
-    return network_api.list_interfaces().to_json_str()
+    user_name = request.values.get(consts.P_USER_NAME)
+    return network_api.list_interfaces(user_name).to_json_str()
 
 
 @network_bp.route("/network/detailPort")

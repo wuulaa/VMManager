@@ -1,11 +1,15 @@
 import importlib
 
+from src.utils.jwt import check_user
+from src.utils.response import APIResponse
 from src.utils.singleton import singleton
 from src.utils.sqlalchemy import enginefacade
 from src.volume import db
 from src.volume.common import config
 from src.volume.db.models import Pool
+from src.user.api import UserAPI
 
+user_api = UserAPI()
 
 # 加载配置信息
 CONF = config.CONF
@@ -55,9 +59,19 @@ class PoolService():
         return db.select_by_name(session, Pool, name)
 
     @enginefacade.transactional
-    def list_pools(self, session):
-        pool_list = db.condition_select(session, Pool)
-        return pool_list
+    def list_pools(self, session, user_name=None):
+        if user_name is None:
+            if not check_user(None, None):
+                return APIResponse.error(code=501, msg="wrong user")
+            pool_list = db.condition_select(session, Pool)
+            return pool_list
+        else:
+            if user_api.get_current_user_name().get_data() != user_name and user_api.is_current_user_admin().get_data() == False:
+                return APIResponse.error(code=501, msg="wrong user")
+            user_uuid = user_api.get_user_uuid_by_name(user_name).get_data()
+            pool_list = db.condition_select(session, Pool, values={"owner": user_uuid})
+            return pool_list
+
     
     @enginefacade.transactional
     def get_pool_user_uuid(self, session, uuid):

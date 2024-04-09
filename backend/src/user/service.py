@@ -148,6 +148,17 @@ class UserService:
         
         
     @enginefacade.transactional
+    def get_user_name_by_uuid(self, session, user_uuid):
+        try:
+            user: User = db.get_user_by_uuid(session, user_uuid)
+            if user is not None:
+                return APIResponse.success(user.uuid)
+            return APIResponse.error(code=401, msg="user does not exist")
+        except Exception as e:
+            return APIResponse.error(code=400, msg=str(e))
+        
+        
+    @enginefacade.transactional
     def get_current_user_uuid(self, session):
         user_name = g.get("user")
         user: User = db.get_user_by_name(session, user_name)
@@ -165,6 +176,10 @@ class UserService:
         if user and user.is_admin:
             return APIResponse.success(True)
         return APIResponse.success(False)
+    
+    def get_current_user_name(self, session):
+        user_name = g.get("user")
+        return APIResponse.success(user_name)
 
 
 ####################
