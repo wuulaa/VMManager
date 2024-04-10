@@ -14,6 +14,7 @@ from faker import Faker
 import inspect
 from src.utils.jwt import check_user
 from src.user.api import UserAPI
+from src.user.db.models import User
 user_api = UserAPI()
 
 @singleton
@@ -632,16 +633,14 @@ class NetworkService:
         
         
     @enginefacade.transactional
-    def list_networks(self, session, user_name):
+    def list_networks(self, session, user_name=None):
+        if not check_user(user_name, User):
+            return APIResponse.error(code=501, msg="wrong user")
         if user_name is None:
-            if not check_user(None, None):
-                return APIResponse.error(code=501, msg="wrong user")
             network_list: list[Network] = db.get_network_list(session)
             res = [network.to_dict() for network in network_list]
             return APIResponse.success(res)
         else:
-            if user_api.get_current_user_name().get_data() != user_name and user_api.is_current_user_admin().get_data() == False:
-                return APIResponse.error(code=501, msg="wrong user")
             user_uuid = user_api.get_user_uuid_by_name(user_name).get_data()
             network_list: list[Network] = db.get_user_network_list(session, user_uuid)
             res = [network.to_dict() for network in network_list]
@@ -649,16 +648,14 @@ class NetworkService:
     
     
     @enginefacade.transactional
-    def list_interfaces(self, session, user_name):
+    def list_interfaces(self, session, user_name=None):
+        if not check_user(user_name, User):
+            return APIResponse.error(code=501, msg="wrong user")
         if user_name is None:
-            if not check_user(None, None):
-                return APIResponse.error(code=501, msg="wrong user")
             interface_list: list[Interface] = db.get_interface_list(session)
             res = [interface.to_dict() for interface in interface_list]
             return APIResponse.success(res)
         else:
-            if user_api.get_current_user_name().get_data() != user_name and user_api.is_current_user_admin().get_data() == False:
-                return APIResponse.error(code=501, msg="wrong user")
             user_uuid = user_api.get_user_uuid_by_name(user_name).get_data()
             interface_list: list[Interface] = db.get_user_interface_list(session, user_uuid)
             res = [interface.to_dict() for interface in interface_list]

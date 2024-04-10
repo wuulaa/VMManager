@@ -15,7 +15,8 @@ network_api = NetworkAPI()
 @jwt_set_user
 def list():
     """
-    list all networks
+    list all networks,
+    if user_name is given, list user's interfaces
     """
     user_name = request.values.get(consts.P_USER_NAME)
     return network_api.list_networks(user_name).to_json_str()
@@ -35,7 +36,8 @@ def network_detail():
 @jwt_set_user
 def list_ethernets():
     """
-    list all virtual interfaces
+    list all virtual interfaces,
+    if user_name is given, list user's interfaces
     """
     user_name = request.values.get(consts.P_USER_NAME)
     return network_api.list_interfaces(user_name).to_json_str()
@@ -121,6 +123,7 @@ def virtual_del():
 
 
 @network_bp.route("/network/createTop", methods=["POST"])
+@jwt_set_user
 def create_top():
     """
     create top bridges and nat network
@@ -130,6 +133,7 @@ def create_top():
 
 
 @network_bp.route("/network/deleteTop", methods=["POST"])
+@jwt_set_user
 def delete_top():
     """
     delete top bridges and nat network

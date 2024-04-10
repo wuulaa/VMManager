@@ -11,6 +11,10 @@ from src.volume.db.models import Pool, Volume, Snapshot
 from src.volume.xml.volume.rbd_builder import RbdVolumeXMLBuilder
 from src.user.api import UserAPI
 
+from src.user.db.models import User
+from src.utils.jwt import check_user
+from src.utils.response import APIResponse
+
 user_api = UserAPI()
 CONF = config.CONF
 
@@ -265,16 +269,12 @@ class StorageService():
         
     @enginefacade.transactional
     def list_all_volumes(self, session, user_name=None):
-        from src.volume.api import StorageAPI
+        if not check_user(user_name, User):
+            return []
         if user_name is None:
-            if user_api.is_current_user_admin().get_data() == False:
-                return []
             return db.condition_select(session, Volume)
         else:
             user_uuid = user_api.get_user_uuid_by_name(user_name).get_data()
-            current_user_uuid = user_api.get_current_user_uuid().get_data()
-            if current_user_uuid != user_uuid and user_api.is_current_user_admin().get_data() == False:
-                return []
             return db.condition_select(session, Pool, values={"owner": user_uuid})[0].volumes
 
     @enginefacade.transactional

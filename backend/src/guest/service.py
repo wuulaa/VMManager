@@ -21,6 +21,7 @@ from src.utils.jwt import check_user
 from src.guest.db.models import Guest
 from src.network.db.models import Interface
 from src.user.api import UserAPI
+from src.user.db.models import User
 
 status = {
     0:"nostate",
@@ -287,13 +288,11 @@ class GuestService():
 
     @enginefacade.transactional
     def get_domains_list(self, session, user_name) -> APIResponse:
+        if not check_user(user_name, User):
+            return APIResponse.error(code=400, msg="user_uuid error")
         if user_name is None:
-            if not check_user(None, None):
-                return APIResponse.error(code=400, msg="user_uuid error")
             return guestDB.get_domain_list(session=session)
         else:
-            if user_api.get_current_user_name().get_data() != user_name and user_api.is_current_user_admin().get_data() == False:
-                return APIResponse.error(code=400, msg="user_uuid error")
             user_uuid = user_api.get_current_user_uuid().get_data()
             return guestDB.get_domain_list(session=session, user_uuid=user_uuid)
         

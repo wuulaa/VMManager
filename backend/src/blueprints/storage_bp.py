@@ -49,6 +49,7 @@ def create_snapshot():
 
 
 @storage_bp.get("/list")
+@jwt_set_user
 def fetch_disk_list():
     ''' get disk list (of a volume) '''
     guest_uuid = request.values.get(consts.P_GUEST_UUID)

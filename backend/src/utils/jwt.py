@@ -30,6 +30,7 @@ def check_user(identifier:str, model):
     from src.guest.api import GuestAPI
     from src.volume.db.models import Volume, Pool
     from src.volume.api import StorageAPI
+    from src.user.db.models import User
     
     user_api = UserAPI()
     network_api = NetworkAPI()
@@ -63,6 +64,10 @@ def check_user(identifier:str, model):
         volume_user_uuid = storage_api.get_volume_user_uuid(volume_uuid=identifier).get_data()
         current_user_uuid = user_api.get_current_user_uuid().get_data()
         return volume_user_uuid == current_user_uuid
+    
+    if model == User:
+        current_user_name = user_api.get_current_user_name().get_data()
+        return current_user_name == identifier or user_api.is_current_user_admin().get_data() == True
     
     return False
     

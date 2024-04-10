@@ -8,6 +8,7 @@ from src.volume import db
 from src.volume.common import config
 from src.volume.db.models import Pool
 from src.user.api import UserAPI
+from src.user.db.models import User
 
 user_api = UserAPI()
 
@@ -60,14 +61,12 @@ class PoolService():
 
     @enginefacade.transactional
     def list_pools(self, session, user_name=None):
+        if not check_user(user_name, User):
+            return []
         if user_name is None:
-            if not check_user(None, None):
-                return APIResponse.error(code=501, msg="wrong user")
             pool_list = db.condition_select(session, Pool)
             return pool_list
         else:
-            if user_api.get_current_user_name().get_data() != user_name and user_api.is_current_user_admin().get_data() == False:
-                return APIResponse.error(code=501, msg="wrong user")
             user_uuid = user_api.get_user_uuid_by_name(user_name).get_data()
             pool_list = db.condition_select(session, Pool, values={"owner": user_uuid})
             return pool_list
