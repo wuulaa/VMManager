@@ -10,9 +10,7 @@ from flask_jwt_extended import create_access_token
 import datetime
 from flask import g
 from flask_jwt_extended import get_jwt_identity
-from src.volume.api import StorageAPI
 
-storage_api = StorageAPI()
 
 
 @singleton
@@ -71,6 +69,8 @@ class UserService:
         """
         create user
         """
+        from src.volume.api import StorageAPI
+        storage_api = StorageAPI()
         try:
             user = db.get_user_by_name(session, user_name)
             if user is not None:
@@ -177,6 +177,7 @@ class UserService:
             return APIResponse.success(True)
         return APIResponse.success(False)
     
+    @enginefacade.transactional
     def get_current_user_name(self, session):
         user_name = g.get("user")
         return APIResponse.success(user_name)

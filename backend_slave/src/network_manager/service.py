@@ -241,7 +241,7 @@ network:
     
 
 def retry_with_delay(func, *args, max_retries = 10, delay = 2):
-    time.sleep(delay)
+    time.sleep(2)
     for attempt in range(1, max_retries + 1):
         try:
             result = func(*args)

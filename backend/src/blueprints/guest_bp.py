@@ -24,6 +24,10 @@ def get_domains_list():
     resp = guestAPI.get_domains_list(user_name=user_name)
     if not resp.is_success():
         return resp.to_json_str()
+    
+    if resp.get_data() is None:
+        return resp.to_json_str()
+       
        
     guest_list = []
     for item in guestAPI.get_domains_list(user_name=user_name).get_data():

@@ -65,11 +65,13 @@ class PoolService():
             return []
         if user_name is None:
             pool_list = db.condition_select(session, Pool)
-            return pool_list
+            res = [pool.to_dict() for pool in pool_list]
+            return res
         else:
             user_uuid = user_api.get_user_uuid_by_name(user_name).get_data()
             pool_list = db.condition_select(session, Pool, values={"owner": user_uuid})
-            return pool_list
+            res = [pool.to_dict() for pool in pool_list]
+            return res
 
     
     @enginefacade.transactional
@@ -78,7 +80,7 @@ class PoolService():
     
     @enginefacade.transactional
     def get_pool_by_user_uuid(self, session, user_uuid):
-        return db.condition_select(session, Pool, values={"owner": user_uuid}).uuid
+        return db.condition_select(session, Pool, values={"owner": user_uuid})[0].uuid
 
     def resize_pool(self, session, uuid: str, new_size: int):
         pool = db.select_by_uuid(session, Pool, uuid)

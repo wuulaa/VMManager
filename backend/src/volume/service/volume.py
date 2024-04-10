@@ -270,12 +270,17 @@ class StorageService():
     @enginefacade.transactional
     def list_all_volumes(self, session, user_name=None):
         if not check_user(user_name, User):
+            print("++++++++++++++++++")
             return []
         if user_name is None:
-            return db.condition_select(session, Volume)
+            volumes =  db.condition_select(session, Volume)
+            res = [volume.to_dict() for volume in volumes]
+            return res
         else:
             user_uuid = user_api.get_user_uuid_by_name(user_name).get_data()
-            return db.condition_select(session, Pool, values={"owner": user_uuid})[0].volumes
+            volumes = db.condition_select(session, Pool, values={"owner": user_uuid})[0].volumes
+            res = [volume.to_dict() for volume in volumes]
+            return res
 
     @enginefacade.transactional
     def fetch_backup_list(self, session, parent_uuid: str) -> List[Volume]:

@@ -253,7 +253,7 @@ class NetworkService:
         
     @enginefacade.transactional
     def delete_interface(self, session, interface_uuid: str=None, interface_name: str = None):
-        if not check_user(interface_name, Network):
+        if not check_user(interface_name, Interface):
             return APIResponse.error(code=501, msg="wrong user")
         try:
             if interface_uuid:
@@ -289,7 +289,7 @@ class NetworkService:
         this is also a purly db function
 
         """
-        if not check_user(interface_name, Network):
+        if not check_user(interface_name, Interface):
             return APIResponse.error(code=501, msg="wrong user")
         if interface_uuid is not None:
             interface: Interface = db.get_interface_by_uuid(interface_uuid)
@@ -328,7 +328,7 @@ class NetworkService:
         from src.guest.api import GuestAPI
         guest_api = GuestAPI()
         
-        if not check_user(interface_name, Network):
+        if not check_user(interface_name, Interface):
             return APIResponse.error(code=501, msg="wrong user")
         try:
             if interface_uuid:
@@ -681,7 +681,7 @@ class NetworkService:
     
     @enginefacade.transactional
     def interface_detail(self, session, interface_name: str):
-        if not check_user(interface_name, Network):
+        if not check_user(interface_name, Interface):
             return APIResponse.error(code=501, msg="wrong user")
         interface: Interface = db.get_interface_by_name(session, interface_name)
         if interface is None:

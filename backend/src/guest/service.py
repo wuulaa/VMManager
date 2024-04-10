@@ -1,3 +1,4 @@
+import time
 import requests
 import src.utils.port as NetPort
 from src.domain_xml.xml_init import create_initial_xml
@@ -46,7 +47,7 @@ class GuestService():
         user_uuid = user_api.get_current_user_uuid().get_data()
         if user_uuid is None:
             return APIResponse.error(code = 400, msg = 'user_uuid is None.')
-        pool_uuid = storage_api.get_pool_by_user_uuid(user_uuid)
+        pool_uuid = storage_api.get_pool_by_user_uuid(user_uuid).get_data()
         exist_uuids =[]
         for guest in guestDB.get_domain_list(session):
             exist_uuids.append(guest.uuid)
@@ -68,7 +69,7 @@ class GuestService():
         backups_list = kwargs.get("backups_list", None)
 
         guest: GuestBuilder = create_initial_xml(domain_name, guest_uuid, cpu, max_cpu, memory, max_memory, architecture)
-        response = storage_api.clone_volume("8388ad7f-e58b-4d94-bf41-6e95b23d0d4a", domain_name, guest_uuid,pool_uuid, rt_flag=1)
+        response = storage_api.clone_volume("8388ad7f-e58b-4d94-bf41-6e95b23d0d4a", domain_name, guest_uuid, pool_uuid, rt_flag=1)
         guest.devices.disk.append(response.get_data()["disk"]) 
 
         # rbdXML = RbdVolumeXMLBuilder()
@@ -291,10 +292,10 @@ class GuestService():
         if not check_user(user_name, User):
             return APIResponse.error(code=400, msg="user_uuid error")
         if user_name is None:
-            return guestDB.get_domain_list(session=session)
+            return APIResponse.success(guestDB.get_domain_list())
         else:
             user_uuid = user_api.get_current_user_uuid().get_data()
-            return guestDB.get_domain_list(session=session, user_uuid=user_uuid)
+            return APIResponse.success(guestDB.get_domain_list(user_uuid=user_uuid))
         
 
     @enginefacade.transactional
@@ -613,7 +614,10 @@ class GuestService():
     
     @enginefacade.transactional
     def get_guest_user_uuid(self, session, domain_uuid: str) -> APIResponse:
-        return APIResponse.success(guestDB.get_domain_by_uuid(session, domain_uuid).user_uuid)
+        try:
+            return APIResponse.success(guestDB.get_domain_by_uuid(session, domain_uuid).user_uuid)
+        except Exception as e:
+            return APIResponse.error(code=400, msg=str(e))
 
     @enginefacade.transactional
     def attach_disk_to_guest(self, session,
@@ -672,6 +676,7 @@ class GuestService():
         Called after domain start.
         Currently only has static ip init
         """
+        time.sleep(5)
         networkapi.init_set_domain_static_ip(domain_uuid)
 
     @enginefacade.transactional
