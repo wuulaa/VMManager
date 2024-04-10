@@ -39,10 +39,10 @@ class UserService:
             access_token = create_access_token(identity=username,
                                             additional_claims=additional_claims,
                                             expires_delta=expire_time)
-            user = db.get_user_by_name(session, username).to_dict()
+            user_res = db.get_user_by_name(session, username).to_dict()
             res = {
                 "access_token": access_token,
-                "user": user
+                "user": user_res
             }
             # store token in db (is this necessary?)
             db.update_user_token(session, user.uuid, access_token)
