@@ -21,7 +21,6 @@ def create_guest(session, uuid: str, name: str, user_uuid: str, slave_name: str,
     guest = Guest(uuid ,name, user_uuid, slave_name, title, description, status, architecture, cpu, max_cpu,
                     memory, max_memory, boot_option, spice_address, vnc_address, parent_uuid,
                     children_list, backups_list)
-    # guest = Guest(uuid, name, slave_name)
     db.insert(session, guest)
     return guest
 

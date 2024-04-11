@@ -22,15 +22,15 @@ def get_domains_list():
     response = APIResponse()
     response.set_code(0)
     resp = guestAPI.get_domains_list(user_name = user_name)
+
     if not resp.is_success():
         return resp.to_json_str()
     
     if resp.get_data() is None:
         return resp.to_json_str()
-       
-       
+    
     guest_list = []
-    for item in guestAPI.get_domains_list(user_name=user_name).get_data():
+    for item in resp.get_data():
         guest = {}
         guest[consts.P_DOMAIN_NAME] = item.name
         guest[consts.P_DOMAIN_UUID] = item.uuid

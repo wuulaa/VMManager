@@ -104,7 +104,7 @@ class GuestAPI:
         return guestService.batch_restart_domains(domains_uuid_list)
 
     def get_domains_list(self, user_name) -> APIResponse:
-        return guestService.get_domains_list(user_name=user_name)
+        return guestService.get_domains_list(user_name = user_name)
 
     def rename_domain(self, domain_uuid: str, new_name: str) -> APIResponse:
         return guestService.rename_domain(domain_uuid, new_name)
