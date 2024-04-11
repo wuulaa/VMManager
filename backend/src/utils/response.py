@@ -1,7 +1,7 @@
 from __future__ import annotations
 import sys
 import json
-
+from flask import current_app
 
 SUCCESS_CODE: int = 0
 
@@ -60,6 +60,10 @@ class APIResponse(object):
     _msg = property(get_msg, set_msg)
 
     def to_json_str(self) -> str:
+        if self.is_success():
+            current_app.logger.info(self.get_msg())
+        else:
+            current_app.logger.error(self.get_msg())
         return json.dumps(self.__dict__)
 
     def deserialize_response(self, content: json):
