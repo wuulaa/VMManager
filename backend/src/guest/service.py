@@ -53,20 +53,11 @@ class GuestService():
             exist_uuids.append(guest.uuid)
         guest_uuid = generator.get_uuid(exist_uuids)
 
-        title = kwargs.get("title", None)
-        description = kwargs.get("description", None)
-        status = kwargs.get("status", "shutoff")
         architecture = kwargs.get("architecture", "x86")
         cpu = kwargs.get("cpu", 2)
         max_cpu = kwargs.get("max_cpu", 2)
         memory = kwargs.get("memory", 2097152)
         max_memory = kwargs.get("max_memory", 2097152)
-        boot_option = kwargs.get("boot_option", None)
-        spice_address = kwargs.get("spice_address", None)
-        vnc_address = kwargs.get("vnc_address", None)
-        parent_uuid = kwargs.get("parent_uuid", None)
-        children_list = kwargs.get("children_list", None)
-        backups_list = kwargs.get("backups_list", None)
 
         guest: GuestBuilder = create_initial_xml(domain_name, guest_uuid, cpu, max_cpu, memory, max_memory, architecture)
         response = storage_api.clone_volume("8388ad7f-e58b-4d94-bf41-6e95b23d0d4a", domain_name, guest_uuid, pool_uuid, rt_flag=1)
@@ -86,7 +77,7 @@ class GuestService():
     @enginefacade.transactional
     def shutdown_domain(self, session, domain_uuid: str) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')        
+            return APIResponse.error(code = 400, msg = 'user_uuid error')        
         data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
@@ -98,17 +89,17 @@ class GuestService():
     @enginefacade.transactional
     def get_domain_detail(self, session, domain_uuid: str) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         guest = guestDB.get_domain_by_uuid(session, domain_uuid)
         if guest is None:
-            return APIResponse(code=400, msg = "domian is None")
+            return APIResponse(code = 400, msg = "domian is None")
         else:
             return APIResponse.success(data=guest.to_dict())
 
     @enginefacade.transactional
     def destroy_domain(self, session, domain_uuid: str) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
@@ -120,7 +111,7 @@ class GuestService():
     @enginefacade.transactional
     def pause_domain(self, session, domain_uuid: str) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
@@ -132,7 +123,7 @@ class GuestService():
     @enginefacade.transactional
     def resume_domain(self, session, domain_uuid: str) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
@@ -144,7 +135,7 @@ class GuestService():
     @enginefacade.transactional
     def reboot_domain(self, session, domain_uuid: str) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
@@ -156,7 +147,7 @@ class GuestService():
     @enginefacade.transactional
     def start_domain(self, session, domain_uuid: str) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
@@ -290,7 +281,7 @@ class GuestService():
     @enginefacade.transactional
     def get_domains_list(self, session, user_name) -> APIResponse:
         if not check_user(user_name, User):
-            return APIResponse.error(code=400, msg="user_uuid error")
+            return APIResponse.error(code = 400, msg="user_uuid error")
         if user_name is None:
             return APIResponse.success(guestDB.get_domain_list())
         else:
@@ -301,7 +292,7 @@ class GuestService():
     @enginefacade.transactional
     def rename_domain(self, session, domain_uuid, new_name) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         data = {consts.P_DOMAIN_UUID : domain_uuid, consts.P_NEW_NAME : new_name}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
@@ -313,7 +304,7 @@ class GuestService():
     @enginefacade.transactional
     def put_description(self, session, domain_uuid, new_description) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         data = {consts.P_DOMAIN_UUID : domain_uuid, consts.P_NEW_DESCRIPTION : new_description}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
@@ -325,7 +316,7 @@ class GuestService():
     @enginefacade.transactional
     def delete_domain(self, session, domain_uuid, flags) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
@@ -347,7 +338,7 @@ class GuestService():
     @enginefacade.transactional
     def attach_nic(self, session, domain_uuid, interface_name, flags: int) -> APIResponse:
         if not check_user(domain_uuid, Guest) or not check_user(interface_name, Interface):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         response = networkapi.attach_interface_to_domain(domain_uuid, interface_name)
         xml = networkapi.get_interface_xml(interface_name).get_data()
         data = {
@@ -360,14 +351,14 @@ class GuestService():
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/attachDevice/", data=data).json())
         if response.code != 0:
             networkapi.detach_interface_from_domain(domain_uuid, interface_name)
-            return APIResponse.error(code=400, msg=response.msg)
+            return APIResponse.error(code = 400, msg=response.msg)
         return response
     
     
     @enginefacade.transactional
     def detach_nic(self, session, domain_uuid, interface_name, flags: int) -> APIResponse:
         if not check_user(domain_uuid, Guest) or not check_user(interface_name, Interface):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         xml = networkapi.get_interface_xml(interface_name).get_data()
         data = {
             consts.P_DOMAIN_UUID : domain_uuid,
@@ -378,7 +369,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/detachDevice/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(code=400, msg=response.msg)
+            return APIResponse.error(code = 400, msg=response.msg)
         
         response = networkapi.detach_interface_from_domain(domain_uuid, interface_name)
         return response
@@ -387,7 +378,7 @@ class GuestService():
     @enginefacade.transactional
     def detach_all_nic_from_domain(self, session, domain_uuid, flags: int=2) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         interface_names = networkapi.get_domain_interface_names(domain_uuid).get_data()
         responses: list[APIResponse] = []
         for name in interface_names:
@@ -396,21 +387,21 @@ class GuestService():
         
         for resp in responses:
             if resp.get_code() != 0:
-                return APIResponse.error(code=400, msg=f"detach not complete")
+                return APIResponse.error(code = 400, msg=f"detach not complete")
         return APIResponse.success()
     
     
     @enginefacade.transactional
     def list_nic(self, session, domain_uuid: str) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         return networkapi.list_domain_interfaces(domain_uuid)
     
     
     @enginefacade.transactional
     def set_domain_vcpu(self, session, domain_uuid: str, cpu_num: int, flags: int) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         data = {consts.P_DOMAIN_UUID : domain_uuid, consts.P_CPU_NUM : cpu_num, consts.P_FLAGS : flags}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
@@ -422,7 +413,7 @@ class GuestService():
     @enginefacade.transactional
     def set_domain_memory(self, session, domain_uuid: str, memory_size: int, flags: int) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         data = {consts.P_DOMAIN_UUID : domain_uuid, consts.P_MEMORY_SIZE : memory_size, consts.P_FLAGS : flags}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
@@ -435,7 +426,7 @@ class GuestService():
     @enginefacade.transactional
     def add_vnc(self, session, domain_uuid, port: str=None, passwd: str=None, flags: int=2) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         if port:
             port = int(port)
         if passwd is None:
@@ -446,10 +437,10 @@ class GuestService():
         if port is not None:
             vnc_address = f"{url_ip}:{port}"
             if NetPort.is_port_in_use(url_ip, port):
-                return APIResponse.error(code=400, msg="port has been used")
+                return APIResponse.error(code = 400, msg="port has been used")
             
             if self.is_graphic_address_used(session, vnc_address):
-                return APIResponse.error(code=400, msg="port has been used")
+                return APIResponse.error(code = 400, msg="port has been used")
         else:
             vnc_address = self.find_first_avaliable_address(session, ip=url_ip)
             port = vnc_address.split(':')[1]
@@ -462,7 +453,7 @@ class GuestService():
         }
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(code=400, msg=response.msg)
+            return APIResponse.error(code = 400, msg=response.msg)
          
         address = f"{url_ip}:{port}:{passwd}"
         websockify_config = f"{url_ip}:{port}"
@@ -474,7 +465,7 @@ class GuestService():
     @enginefacade.transactional
     def delete_vnc(self, session, domain_uuid, flags: int) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
         
@@ -487,7 +478,7 @@ class GuestService():
         }
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(code=400, msg=response.msg)
+            return APIResponse.error(code = 400, msg=response.msg)
         
         websockify_manager.delete_web_sockify_conf(domain_uuid)
         guestDB.update_guest(session, domain_uuid, values={"vnc_address": None})
@@ -497,7 +488,7 @@ class GuestService():
     @enginefacade.transactional
     def get_vnc_addr(self, session, domain_uuid) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         guest = guestDB.get_domain_by_uuid(session, domain_uuid)
         guest_vnc_addr = guest.vnc_address
         return APIResponse.success(guest_vnc_addr)
@@ -507,7 +498,7 @@ class GuestService():
     @enginefacade.transactional
     def add_spice(self, session, domain_uuid, port: str, passwd: str, flags: int) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         if port:
             port = int(port)
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
@@ -516,7 +507,7 @@ class GuestService():
         vnc_address = f"{url}:{port}"
         
         if self.is_graphic_address_used(session, vnc_address):
-            return APIResponse.error(code=400, msg="port has been used")
+            return APIResponse.error(code = 400, msg="port has been used")
         
         xml = graphics.create_spice_viewer(port, passwd).get_xml_string()
         data = {
@@ -526,7 +517,7 @@ class GuestService():
         }
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(code=400, msg=response.msg)
+            return APIResponse.error(code = 400, msg=response.msg)
         
         address = f"{url}:{port}:{passwd}"
         guestDB.update_guest(session, domain_uuid, values={"spice_address":address })
@@ -536,7 +527,7 @@ class GuestService():
     @enginefacade.transactional
     def change_graphic_passwd(self, session, domain_uuid: str, port:int, passwd: str, flags: int, vnc=True) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         if vnc:
             xml = graphics.create_vnc_viewer(port, passwd).get_xml_string()
         else:
@@ -550,7 +541,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/updateDevice/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(code=400, msg=response.msg)
+            return APIResponse.error(code = 400, msg=response.msg)
        
         address = f"{url}:{port}:{passwd}"
         if vnc:
@@ -571,7 +562,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/monitor/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(code=400, msg=response.msg)
+            return APIResponse.error(code = 400, msg=response.msg)
         return response
     
     @enginefacade.transactional    
@@ -589,7 +580,7 @@ class GuestService():
     @enginefacade.transactional    
     def set_user_passwd(self, session, domain_uuid: str, user_name: str, passwd: str) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         data = {
             consts.P_DOMAIN_UUID : domain_uuid,
             consts.P_USER_NAME: user_name,
@@ -599,7 +590,7 @@ class GuestService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/setUserPasswd/", data=data).json())
         if response.code != 0:
-            return APIResponse.error(code=400, msg=response.msg)
+            return APIResponse.error(code = 400, msg=response.msg)
         return response
 
     @enginefacade.transactional
@@ -609,7 +600,7 @@ class GuestService():
     @enginefacade.transactional
     def get_domain_status(self, session, domain_uuid: str) -> APIResponse:
         if not check_user(domain_uuid, Guest):
-            return APIResponse.error(code=400, msg='user_uuid error')
+            return APIResponse.error(code = 400, msg = 'user_uuid error')
         return APIResponse.success(guestDB.get_domain_status(session, domain_uuid))
     
     @enginefacade.transactional
@@ -617,7 +608,7 @@ class GuestService():
         try:
             return APIResponse.success(guestDB.get_domain_by_uuid(session, domain_uuid).user_uuid)
         except Exception as e:
-            return APIResponse.error(code=400, msg=str(e))
+            return APIResponse.error(code = 400, msg=str(e))
 
     @enginefacade.transactional
     def attach_disk_to_guest(self, session,
@@ -755,7 +746,7 @@ class SlaveService():
     def delete_slave(self, session, slave_name) -> APIResponse:
         slave = guestDB.get_slave_by_name(session, slave_name)
         if slave is None:
-            return APIResponse.error(code=400, msg=f"Cannot find a slave where name = {slave_name}")
+            return APIResponse.error(code = 400, msg=f"Cannot find a slave where name = {slave_name}")
         guestDB.delete_slave(session, slave_name)
         return APIResponse.success()
     
@@ -763,7 +754,7 @@ class SlaveService():
     def slave_detail(self, session, slave_name) -> APIResponse:
         slave = guestDB.get_slave_by_name(session, slave_name)
         if slave is None:
-            return APIResponse.error(code=400, msg=f"Cannot find a slave where name = {slave_name}")
+            return APIResponse.error(code = 400, msg=f"Cannot find a slave where name = {slave_name}")
         data = slave.to_dict()
         return APIResponse.success(data)
     
@@ -809,7 +800,7 @@ class SlaveService():
         url = CONF['slaves'][slave_name]
         response: APIResponse = APIResponse().deserialize_response(requests.get(url="http://"+url+"/getSystemInfo/").json())
         if response.code != 0:
-            return APIResponse.error(code=400, msg=response.msg)
+            return APIResponse.error(code = 400, msg=response.msg)
         
         return response
     

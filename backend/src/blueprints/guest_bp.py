@@ -19,9 +19,9 @@ def guest():
 @jwt_set_user
 def get_domains_list():
     user_name = request.values.get(consts.P_USER_NAME)
-    response =APIResponse()
+    response = APIResponse()
     response.set_code(0)
-    resp = guestAPI.get_domains_list(user_name=user_name)
+    resp = guestAPI.get_domains_list(user_name = user_name)
     if not resp.is_success():
         return resp.to_json_str()
     
