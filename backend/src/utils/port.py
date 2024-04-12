@@ -15,9 +15,13 @@ def find_first_available_port(remote_ip, start_port=6000, max_attempts=100):
 
 
 def is_port_in_use(ip, port):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        try:
-            s.bind((ip, port))
-            return False
-        except:
-            return True
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        # 尝试连接到指定的主机和端口
+        sock.connect((ip, port))
+        return True
+    except Exception as e:
+        return False
+    finally:
+        # 关闭套接字连接
+        sock.close()
