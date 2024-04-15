@@ -47,6 +47,7 @@ class UserService:
             # store token in db (is this necessary?)
             db.update_user_token(session, user.uuid, access_token)
             db.update_user_state(session, user.uuid, 'online')
+            db.update_user_login_time(session, user.uuid, datetime.datetime.now())
             return APIResponse.success(res)
         except Exception as e:
             return APIResponse.error(code=400, msg=str(e))
@@ -185,6 +186,13 @@ class UserService:
     def get_current_user_name(self, session):
         user_name = g.get("user")
         return APIResponse.success(user_name)
+    
+    @enginefacade.transactional
+    def get_user_last_login(self, session, user_name):
+        user: User = db.get_user_by_name(session, user_name)
+        last_login = user.last_login
+        return APIResponse.success(str(last_login))
+        
 
 
 ####################

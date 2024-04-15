@@ -1,6 +1,7 @@
 from src.utils.sqlalchemy import enginefacade
 from src.user.db.models import User
 from src.utils.sqlalchemy.api import *
+import datetime
 
 @enginefacade.auto_session
 def create_user(session,
@@ -47,6 +48,11 @@ def update_user_state(session, uuid, state: str):
 @enginefacade.auto_session
 def update_user_token(session, uuid, token: str):
     condition_update(session, User, uuid, {"token": token})
+    return select_by_uuid(session, User, uuid)
+
+@enginefacade.auto_session
+def update_user_login_time(session, uuid, time: datetime.datetime):
+    condition_update(session, User, uuid, {"last_login": time})
     return select_by_uuid(session, User, uuid)
 
 @enginefacade.auto_session

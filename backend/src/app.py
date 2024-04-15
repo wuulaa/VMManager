@@ -15,7 +15,7 @@ from src.utils.jwt import jwt_set_user
 import logging
 from logging.handlers import TimedRotatingFileHandler
 from src.utils.response import APIResponse
-
+from src.utils.config import CONF
 
 app = Flask(__name__)
 
@@ -53,7 +53,7 @@ if __name__ == "__main__":
     websockify_manager.start_websockify()
     
     # logging
-    logging.basicConfig(level=logging.INFO)
+    # logging.basicConfig(level=logging.INFO)
     formatter = logging.Formatter(
         "[%(asctime)s][%(filename)s:%(lineno)d][%(levelname)s][%(thread)d] - %(message)s")
     handler = TimedRotatingFileHandler(
@@ -62,8 +62,8 @@ if __name__ == "__main__":
     handler.setFormatter(formatter)
     app.logger.addHandler(handler)
 
-    
     # run app
-    app.run(host="0.0.0.0", port=5010)
+    port = CONF["flask"]["port"]
+    app.run(host="0.0.0.0", port=port)
 
 

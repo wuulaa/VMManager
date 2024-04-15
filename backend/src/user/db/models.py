@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from typing import Any, List
 from sqlalchemy import ForeignKey
-from sqlalchemy import Boolean, String, Enum
+from sqlalchemy import Boolean, String, Enum, DateTime
 from sqlalchemy import SmallInteger, Integer
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import relationship
 from src.utils.sqlalchemy.model import Base
 from src.utils.sqlalchemy import enginefacade
+import datetime
 
 
 class User(Base):
@@ -36,6 +37,9 @@ class User(Base):
     state: Mapped[str] = mapped_column(Enum("online", "offline"),
                                        default="offline",
                                        comment="user state, online or offline")
+    last_login: Mapped[datetime.datetime] = mapped_column(DateTime(),
+                                                          nullable=True,
+                                                          comment="last login datetime"),
     
 
     def __init__(self, name: str, password: str, is_admin: bool):

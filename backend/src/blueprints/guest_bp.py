@@ -57,7 +57,20 @@ def get_domain_detail():
 def create_domain():
     domain_name = request.values.get(consts.P_DOMAIN_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
-    return guestAPI.create_domain(domain_name, slave_name ).to_json_str()
+    cpu_num = request.values.get(consts.P_CPU)
+    memory_size = request.values.get(consts.P_MEMORY_SIZE, 2097152)
+    architecture = request.values.get(consts.P_ARCHITECTURE, "x86")
+    max_cpu =  request.values.get(consts.P_MAX_CPU, 2)
+    max_memory =  request.values.get(consts.P_MAX_MEMORY, 2097152)
+    
+    
+    return guestAPI.create_domain(domain_name,
+                                  slave_name,
+                                  architecture=architecture,
+                                  cpu=cpu_num,
+                                  memory=memory_size, 
+                                  max_cpu=max_cpu,
+                                  max_memory=max_memory).to_json_str()
 
 @guest_bp.route("/putName", methods=["POST"])
 @jwt_set_user

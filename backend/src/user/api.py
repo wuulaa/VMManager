@@ -41,3 +41,6 @@ class UserAPI:
     def get_current_user_name(self) -> APIResponse:
         return user_service.get_current_user_name()
     
+    def get_user_last_login(self, user_name) -> APIResponse:
+        return user_service.get_user_last_login(user_name=user_name)
+    

@@ -48,3 +48,8 @@ def change_user_password():
     old_password = request.values.get(consts.P_OLD_PASSWORD)
     new_password = request.values.get(consts.P_NEW_PASSWORD)
     return user_api.change_password(user_name, old_password, new_password).to_json_str()
+
+@user_bp.route("/getUserLastLogin")
+def get_user_last_login():
+    user_name = request.values.get(consts.P_USER_NAME)
+    return user_api.get_user_last_login(user_name).to_json_str()
