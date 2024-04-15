@@ -39,7 +39,7 @@ class User(Base):
                                        comment="user state, online or offline")
     last_login: Mapped[datetime.datetime] = mapped_column(DateTime(),
                                                           nullable=True,
-                                                          comment="last login datetime"),
+                                                          comment="last login datetime")
     
 
     def __init__(self, name: str, password: str, is_admin: bool):

@@ -39,15 +39,17 @@ class UserService:
             access_token = create_access_token(identity=username,
                                             additional_claims=additional_claims,
                                             expires_delta=expire_time)
+        
+            # store token in db (is this necessary?)
+            db.update_user_token(session, user.uuid, access_token)
+            db.update_user_state(session, user.uuid, 'online')
+            db.update_user_login_time(session, user.uuid, datetime.datetime.now())
+            
             user_res = db.get_user_by_name(session, username).to_dict()
             res = {
                 "access_token": access_token,
                 "user": user_res
             }
-            # store token in db (is this necessary?)
-            db.update_user_token(session, user.uuid, access_token)
-            db.update_user_state(session, user.uuid, 'online')
-            db.update_user_login_time(session, user.uuid, datetime.datetime.now())
             return APIResponse.success(res)
         except Exception as e:
             return APIResponse.error(code=400, msg=str(e))
@@ -191,6 +193,7 @@ class UserService:
     def get_user_last_login(self, session, user_name):
         user: User = db.get_user_by_name(session, user_name)
         last_login = user.last_login
+        print(last_login)
         return APIResponse.success(str(last_login))
         
 
