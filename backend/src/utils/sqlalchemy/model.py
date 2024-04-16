@@ -10,7 +10,7 @@ from sqlalchemy.orm import mapped_column
 from . import enginefacade
 from src.utils.generator import UUIDGenerator
 from src.utils.serializable import JsonSerializable
-
+import datetime
 
 # model 基类
 class Base(DeclarativeBase, JsonSerializable):
@@ -33,7 +33,10 @@ class Base(DeclarativeBase, JsonSerializable):
         dict = {}
         for field in self.__table__.columns.keys():
             if field in self.__dict__ and self.__dict__[field] is not None:
-                dict[field] = self.__dict__[field]
+                if isinstance(self.__dict__[field], datetime.datetime):
+                    dict[field] = str(self.__dict__[field])
+                else:
+                    dict[field] = self.__dict__[field]
         return dict
 
 
