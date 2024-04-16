@@ -97,8 +97,9 @@ class GuestAPI:
     def batch_shutdown_domains(self, domains_uuid_list ) -> APIResponse:
         return guestService.batch_shutdown_domains(domains_uuid_list)
 
-    def batch_delete_domains(self, domains_uuid_list ) -> APIResponse:
-        return guestService.batch_delete_domains(domains_uuid_list)
+    @TO_INT(list = ["flags"])
+    def batch_delete_domains(self, domains_uuid_list, flags ) -> APIResponse:
+        return guestService.batch_delete_domains(domains_uuid_list, flags)
 
     def batch_restart_domains(self, domains_uuid_list ) -> APIResponse:
         return guestService.batch_restart_domains(domains_uuid_list)

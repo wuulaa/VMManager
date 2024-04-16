@@ -221,8 +221,9 @@ def batch_shutdown_domain():
 @guest_bp.route("/batchDeleteDomains", methods=["POST"])
 @jwt_set_user
 def batch_delete_domain():
+    flags = request.values.get(consts.P_FLAGS)
     domains_uuid_list = request.values.getlist(consts.P_DOMAINS_UUID_LIST)
-    return guestAPI.batch_delete_domains(domains_uuid_list).to_json_str()
+    return guestAPI.batch_delete_domains(domains_uuid_list, flags = flags).to_json_str()
 
 @guest_bp.route("/batchRestartDomains", methods=["POST"])
 @jwt_set_user
