@@ -64,7 +64,7 @@ def delete_domain(conn: libvirt.virConnect, domain_uuid, flags=4):
             domain.undefineFlags(flags)
             return APIResponse.success()
         else:
-            return APIResponse.error(code=1,mas="error: Failed to undefine domain. Domain"
+            return APIResponse.error(code=1, msg="error: Failed to undefine domain. Domain"
                     + domain_uuid+"isn't shutoff.")
         
 
