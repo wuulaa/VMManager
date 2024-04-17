@@ -1,5 +1,15 @@
 #!/bin/bash
 
+function readIni() {
+    INIFILE=$1; SECTION=$2; ITEM=$3
+    _readIni=`awk -F '=' '/\['$SECTION'\]/{a=1}a==1&&$1~/'$ITEM'/{print $2;exit}' $INIFILE`
+
+    echo ${_readIni}
+}
+
+manager=$(readIni ./config.ini ovs manager)
+echo $manager 
+
 # 更新apt
 apt-get update
 
@@ -24,5 +34,7 @@ cd /usr/local/share/openvswitch/scripts
 sleep 2
 ./ovs-ctl start
 
+
+
 # 设置manager
-ovs-vsctl set-manager ptcp:6640
+ovs-vsctl set-manager $manager
