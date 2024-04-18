@@ -15,7 +15,7 @@ for ((i=1;i<=$((slaveNum+1));i++))
 do
     curIP=$(readIni config.ini slave slave$i)
     curName=$(readIni config.ini slave hostname$i)
-    hosts="$hosts \n $curIP $curName"
+    hosts="$hosts\n$curIP $curName"
 done
 
 #配置hostname
@@ -27,9 +27,9 @@ apt -y install chrony
 
 mv /etc/chrony/chrony.conf /etc/chrony/chrony.conf.bak
 
-time_master="server ntp.aliyun.com iburst\nallow 192.168.201.34/24"
+time_master="server ntp.aliyun.com iburst \nallow 192.168.201.34/24"
 
-echo - e "$time_master" >> /etc/chrony/chrony.conf
+echo -e "$time_master" >> /etc/chrony/chrony.conf
 
 service chrony restart
 
@@ -42,7 +42,7 @@ ssh-keygen -t rsa -P ''
 for ((i=1;i<=$((slaveNum+1));i++))
 do
     curIP=$(readIni config.ini slave slave$i)
-    ssh-copy-id -i .ssh/id_rsa.pub root@$curIP
+    ssh-copy-id -i ~/.ssh/id_rsa.pub root@$curIP
 done
 
 #安装ceph基本安装包
