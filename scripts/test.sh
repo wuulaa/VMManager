@@ -8,6 +8,6 @@ function readIni() {
 }
 
 #示例
-value=$(readIni config.ini ovs manager)
+value=$(readIni /home/zyq/VMManager/backend_slave/config.ini ovs manager)
 echo $value 
 
