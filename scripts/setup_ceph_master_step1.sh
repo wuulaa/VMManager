@@ -1,5 +1,4 @@
 #!/bin/bash
-#需要在主节点Step1执行完毕后执行，在step2前执行
 function readIni() {
     INIFILE=$1; SECTION=$2; ITEM=$3
     _readIni=`awk -F '=' '/\['$SECTION'\]/{a=1}a==1&&$1~/'$ITEM'/{print $2;exit}' $INIFILE`
@@ -16,27 +15,22 @@ for ((i=1;i<=$((slaveNum+1));i++))
 do
     curIP=$(readIni config.ini slave slave$i)
     curName=$(readIni config.ini slave hostname$i)
-    hosts="$hosts \n $curIP $curName"
+    hosts="$hosts\n$curIP $curName"
 done
 
 #配置hostname
 echo -e "$hosts" >> /etc/hosts
 
-#配置时间同步
+
+#时间同步
 apt -y install chrony
 
 mv /etc/chrony/chrony.conf /etc/chrony/chrony.conf.bak
 
-time_slave="server $masterIP iburst"
+time_master="server ntp.aliyun.com iburst \nallow 192.168.201.34/24"
 
-echo - e "$time_slave" >> /etc/chrony/chrony.conf
+echo -e "$time_master" >> /etc/chrony/chrony.conf
 
 service chrony restart
 
 chronyc sources
-
-#安装ceph基本安装包
-apt install -y ceph-common
-
-apt install -y cephadm
-
