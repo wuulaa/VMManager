@@ -320,6 +320,15 @@ class GuestService():
         data = {consts.P_DOMAIN_UUID : domain_uuid}
         slave_name = guestDB.get_domain_slave_name(session, domain_uuid)
         url = CONF['slaves'][slave_name]
+        
+        # delete interfaces
+        interface_names = networkapi.get_domain_interface_names(domain_uuid=domain_uuid).get_data()
+        self.detach_all_nic_from_domain(session, domain_uuid)
+        if(flags == 0):
+            for interface_name in interface_names:
+                networkapi.delete_interface(interface_name)
+        
+        
         response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/delDomain/", data=data).json())
         if(response.code == 0):
             guestDB.delete_domain_by_uuid(session, uuid = domain_uuid)
@@ -333,6 +342,7 @@ class GuestService():
             else:
                 for volume in volume_list:
                     storage_api.detach_volume_from_guest(volume.uuid)
+                
         return response
     
     @enginefacade.transactional
