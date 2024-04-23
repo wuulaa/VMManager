@@ -19,6 +19,8 @@ pip3 install six
 
 # Git clone
 apt-get install -y git
+
+cd ../
 git clone https://github.com/openvswitch/ovs.git
 
 # Make
