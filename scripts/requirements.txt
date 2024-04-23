@@ -1,0 +1,15 @@
+flask
+numpy
+ovs
+ovsdbapp
+pymysql
+lxml
+pyyaml
+names
+apscheduler
+python-iptables
+faker
+psutil
+redis
+sqlalchemy
+flask_jwt_extended
