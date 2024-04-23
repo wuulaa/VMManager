@@ -1,4 +1,4 @@
-# import iptc
+import iptc
 import subprocess
 from src.utils.response import APIResponse
 
@@ -8,10 +8,10 @@ PREROUTING = "PREROUTING"
 POSTROUTING = "POSTROUTING"
 FORWARD = "FORWARD"
 
-# FILTER = iptc.Table.FILTER
-# MANGLE = iptc.Table.MANGLE
-# RAW = iptc.Table.RAW
-# NAT = iptc.Table.NAT
+FILTER = "filter"
+MANGLE = "mangle"
+RAW = "raw"
+NAT = "nat"
 
 MASQUERADE = "MASQUERADE"
 

@@ -769,10 +769,16 @@ class SlaveService():
         return APIResponse.success(data)
     
     @enginefacade.transactional
+    def get_all_slave_names(self, session) -> APIResponse:
+        slaves = guestDB.get_all_slaves(session)
+        res = [slave.name for slave in slaves]
+        return APIResponse.success(data=res)
+    
+    @enginefacade.transactional
     def get_slave_by_uuid(self, session, uuid: str) -> APIResponse:
-       slave = guestDB.get_slave_by_uuid(session, uuid)
-       return APIResponse.success(data=slave)
-   
+        slave = guestDB.get_slave_by_uuid(session, uuid)
+        return APIResponse.success(data=slave)
+    
     @enginefacade.transactional
     def get_slave_by_name(self, session, name: str) -> APIResponse:
        slave = guestDB.get_slave_by_name(session, name)

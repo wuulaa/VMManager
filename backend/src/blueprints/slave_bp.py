@@ -32,6 +32,10 @@ def slave_detail():
     slave_name = request.values.get(consts.P_SLAVE_NAME)
     return slaveAPI.slave_detail(slave_name).to_json_str()
 
+@slave_bp.route("/getSlaveNames")
+def slave_names():
+    return slaveAPI.get_all_slave_names().to_json_str()
+
 
 @slave_bp.route("/getGuests")
 def get_slave_guests():

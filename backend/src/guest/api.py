@@ -218,6 +218,9 @@ class SlaveAPI():
     def slave_detail(self, slave_name: str) -> APIResponse:
         return slaveService.slave_detail(slave_name=slave_name)
     
+    def get_all_slave_names(self) -> APIResponse:
+        return slaveService.get_all_slave_names()
+    
     def get_slave_by_uuid(self, uuid: str) -> APIResponse:
         return slaveService.get_slave_by_uuid(uuid)
     

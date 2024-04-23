@@ -91,6 +91,10 @@ def get_slave_by_uuid(session, uuid: str):
     return slave
 
 @enginefacade.auto_session
+def get_all_slaves(session):
+    return db.condition_select(session, Slave)
+
+@enginefacade.auto_session
 def get_slave_by_name(session, name: str):
     slave: Slave = db.select_by_name(session, Slave, name)
     return slave
