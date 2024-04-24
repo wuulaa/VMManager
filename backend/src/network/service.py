@@ -512,8 +512,8 @@ class NetworkService:
             
             
             interfaces: list[Interface] = db.condition_select(session, Interface, values={"guest_uuid" : domain_uuid})
-            if len(interfaces) == 0:
-                return APIResponse.success()
+            # if len(interfaces) == 0:
+            #     return APIResponse.success()
             
             veth_names = [interface.veth_name for interface in interfaces]
             ips = [interface.ip_address for interface in interfaces]
@@ -525,6 +525,7 @@ class NetworkService:
                     consts.P_GATEWAYS: ",".join(gateways),
                     consts.P_INTERFACE_NAMES: ",".join(veth_names)
                     }
+            print(data)
             response: requests.Response = requests.post(url + "/initSetStaticIP/", data)
             apires: APIResponse = APIResponse().deserialize_response(content=response.json())
             if apires.get_code() != 0:
