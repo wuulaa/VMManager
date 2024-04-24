@@ -225,9 +225,10 @@ class NetworkService:
                 ip_address = generator.generate_unique_ip(network.address, ips)
             if mac is None:
                 mac = generator.generate_random_mac()
-                
             if gateway is None:
                 gateway = get_network_gateway(ip_address)
+            if gateway.find('/') != -1:
+                gateway = gateway.split('/')[0]
                 
             if not is_ip_in_network(ip_address, network.address):
                 return APIResponse.error(400, f'interface address is not within network')

@@ -121,19 +121,20 @@ def init_set_guest_ips_ubuntu(uuid: str,
     yaml_data = {}
     yaml_data["network"] = {}
     yaml_data["network"]["version"] = 2
-    yaml_data["network"]["ethernets"] = {}
     
-    for interface_name, ip_address, gateway in zip(interface_names, ip_addresses, gateways):
-        interface_data = {
-            'dhcp4': 'no',
-            'addresses': [ip_address],
-            'optional': "true",
-            'gateway4': gateway,
-            'nameservers': {
-                'addresses': [dns]
+    if len(interface_names) != 0:
+        yaml_data["network"]["ethernets"] = {}
+        for interface_name, ip_address, gateway in zip(interface_names, ip_addresses, gateways):
+            interface_data = {
+                'dhcp4': 'no',
+                'addresses': [ip_address],
+                'optional': "true",
+                'gateway4': gateway,
+                'nameservers': {
+                    'addresses': [dns]
+                    }
                 }
-            }
-        yaml_data["network"]["ethernets"][interface_name] = interface_data
+            yaml_data["network"]["ethernets"][interface_name] = interface_data
             
 
     # open in write mode, old content would be cleared
