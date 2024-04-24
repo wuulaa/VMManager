@@ -122,6 +122,15 @@ def virtual_del():
     return network_api.delete_network(network_name).to_json_str()
 
 
+@network_bp.route("/network/virtualReload", methods=["POST"])
+@jwt_set_user
+def virtual_add():
+    """
+    reload all virtual network
+    """
+    return network_api.reload_network().to_json_str()
+
+
 @network_bp.route("/network/createTop", methods=["POST"])
 @jwt_set_user
 def create_top():

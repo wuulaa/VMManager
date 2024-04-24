@@ -45,6 +45,9 @@ class NetworkAPI():
     def create_network(self, name, network_address) -> APIResponse:
         return network_service.create_network(name,
                                               network_address)
+        
+    def reload_network(self) -> APIResponse:
+        return network_service.reload_network()
     
     def delete_network(self, name) -> APIResponse:
         return network_service.delete_network(network_name=name)

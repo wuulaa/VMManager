@@ -144,6 +144,26 @@ class NetworkService:
         
         except Exception as e:
             return APIResponse.error(400, str(e))
+        
+    @enginefacade.transactional
+    def reload_network(self, session):
+        """
+        reload virtual network after system reboot
+        this only reads db 
+        and add the gateway address to master bridge
+        
+        this function should be called during system booting
+        """
+        try:
+            networks:list[Network] = db.get_network_list(session=session)
+            master_bridge_name = CONF.get("network", "bridge_prefix") + "_master"
+            for network in networks:
+                gateway = get_network_gateway_with_mask(network.address)
+                netapi.ip_link_add_addr(master_bridge_name, gateway)
+            return APIResponse.success()
+        
+        except Exception as e:
+            return APIResponse.error(400, str(e))
     
     
     @enginefacade.transactional
