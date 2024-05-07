@@ -677,7 +677,7 @@ class GuestService():
         Called after domain start.
         Currently only has static ip init
         """
-        time.sleep(5)
+        time.sleep(3)
         networkapi.init_set_domain_static_ip(domain_uuid)
 
     @enginefacade.transactional

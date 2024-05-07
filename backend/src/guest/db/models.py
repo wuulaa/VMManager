@@ -67,11 +67,11 @@ class Guest(Base):
     memory: Mapped[int] = mapped_column(Integer,
                                         default=0,
                                         nullable=True,
-                                        comment="Memory size(MB)")
+                                        comment="Memory size(KB)")
     max_memory: Mapped[int] = mapped_column(Integer,
                                         default=0,
                                         nullable=True,
-                                        comment="Max Memory size(MB)")
+                                        comment="Max Memory size(KB)")
     boot_option: Mapped[str] = mapped_column(String(64),
                                       unique=False,
                                       nullable=True,

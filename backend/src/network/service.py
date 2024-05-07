@@ -545,7 +545,6 @@ class NetworkService:
                     consts.P_GATEWAYS: ",".join(gateways),
                     consts.P_INTERFACE_NAMES: ",".join(veth_names)
                     }
-            print(data)
             response: requests.Response = requests.post(url + "/initSetStaticIP/", data)
             apires: APIResponse = APIResponse().deserialize_response(content=response.json())
             if apires.get_code() != 0:
