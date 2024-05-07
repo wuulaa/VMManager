@@ -33,3 +33,16 @@ P_PASSWD = "passwd"
 
 P_IP_ADDRESS = "ip_address"
 P_IP_ADDRESSES = "ip_addresses"
+
+P_CONTAINER_ID = "container_id"
+P_IMAGE = "image"
+P_PORTS = "ports"
+P_DETACH = "detach"
+P_CONTAINER_NAME = "container_name"
+P_NETWORK_NAME = "network_name"
+
+P_SWARM_WORKER_TOKEN = "swarm_worker_token"
+P_REMOTE_ADDRS = "remote_addrs"
+P_ADVERTISE_ADDR = "advertise_addr"
+P_LISTEN_ADDR = "listen_addr"
+P_FORCE = "force"
