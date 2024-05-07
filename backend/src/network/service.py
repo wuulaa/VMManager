@@ -47,7 +47,9 @@ class NetworkService:
             netapi.create_ovs_nat_network(network_address, master_bridge_name)
             netapi.init_iptables()
             
-            # 2. create slave bridges and add vxlan ports
+            # 2. create slave bridges and add gre ports
+            # old version uses vxlan ports, but it conflicts with docker swarm
+            # so we use gre instead
             i = 0
             for key, value in slaves.items():
                 
@@ -63,13 +65,15 @@ class NetworkService:
                 # master and slave cannot use the same remote ip
                 data = {
                     consts.P_BRIDGE_NAME: slave_bridge_name,
-                    consts.P_PORT_NAME: f"vxlan_slave_{i}",
+                    # consts.P_PORT_NAME: f"vxlan_slave_{i}",
+                    consts.P_PORT_NAME: f"gre_slave_{i}",
                     consts.P_REMOTE_IP: master_ip
                 }
-                response2 = APIResponse(requests.post(url + "/addVxlanPort/", data))
+                response2 = APIResponse(requests.post(url + "/addGrePort/", data))
                 i = i+1
                 # TODO: single machine cannot hava same vlan ports, uncomment this for real cluster
-                netapi.add_vxlan_port_to_bridge(master_bridge_name, f"vxlan_master_{i}", slave_ip)
+                # netapi.add_vxlan_port_to_bridge(master_bridge_name, f"vxlan_master_{i}", slave_ip)
+                netapi.add_gre_port_to_bridge(master_bridge_name, f"gre_master_{i}", slave_ip)
             
             # call ip link to set master up
             netapi.ip_link_set_up(bridge_prefix + "_master")

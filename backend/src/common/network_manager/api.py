@@ -49,6 +49,15 @@ def add_vxlan_port_to_bridge(bridge_name: str, port_name: str, remote_ip: str):
     return APIResponse.success()
 
 
+def add_gre_port_to_bridge(bridge_name: str, port_name: str, remote_ip: str):
+    if not base_ovs.bridge_exists(bridge_name):
+        return APIResponse.error(401)
+    
+    bridge = ovs_lib.OVSBridge(bridge_name, ovsdb_helper.ovsIdl)
+    bridge.add_tunnel_port(port_name, remote_ip, tunnel_type="gre")
+    return APIResponse.success()
+
+
 def delete_port_from_bridge(bridge_name: str, port_name: str):
     if not base_ovs.bridge_exists(bridge_name):
         return APIResponse.error(401)

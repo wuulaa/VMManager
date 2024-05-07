@@ -18,6 +18,8 @@ def add_port_to_bridge(bridge_name: str, port_name: str, *interface_attribute_tu
 def add_vxlan_port_to_bridge(bridge_name: str, port_name: str, remote_ip: str):
     return netapi.add_vxlan_port_to_bridge(bridge_name, port_name, remote_ip)
 
+def add_gre_port_to_bridge(bridge_name: str, port_name: str, remote_ip: str):
+    return netapi.add_gre_port_to_bridge(bridge_name, port_name, remote_ip)
 
 def delete_port_from_bridge(bridge_name: str, port_name: str):
     return netapi.delete_port_from_bridge(bridge_name, port_name)

@@ -163,9 +163,9 @@ class OVSBridge(BaseOVS):
                         dont_fragment=True,
                         tunnel_csum=False,
                         tos=None):
-        if tunnel_type == TYPE_GRE:
-            # tunnel_type = get_gre_tunnel_port_type(remote_ip, local_ip)
-            pass
+        # if tunnel_type == TYPE_GRE:
+        #     # tunnel_type = get_gre_tunnel_port_type(remote_ip, local_ip)
+        #     pass
         attrs = [('type', tunnel_type)]
 
         options = collections.OrderedDict()

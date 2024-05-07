@@ -53,6 +53,14 @@ def add_vxlan_port():
     res = service.add_vxlan_port_to_bridge(bridge_name, port_name, remote_ip)
     return res.to_json_str()
 
+@network_bp.post("/addGrePort/")
+def add_gre_port():
+    bridge_name = request.values.get(consts.P_BRIDGE_NAME)
+    port_name = request.values.get(consts.P_PORT_NAME)
+    remote_ip = request.values.get(consts.P_REMOTE_IP)
+    res = service.add_gre_port_to_bridge(bridge_name, port_name, remote_ip)
+    return res.to_json_str()
+
 
 @network_bp.post("/setTag/")
 def set_tag():
