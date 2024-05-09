@@ -22,6 +22,10 @@ class Network(Base):
                                         unique=True,
                                         comment="network address ,eg: 1.2.3.4/24")
     
+    network_type: Mapped[str] = mapped_column(Enum("vm_ovs", "docker_swarm"),
+                                        default="vm_ovs",
+                                        comment="type of a network, currently support vm ovs and docker swarm")
+    
     user_uuid: Mapped[str] = mapped_column(String(64),
                                             nullable=True,
                                             comment="UUID of the user this network belongs to")
@@ -30,10 +34,12 @@ class Network(Base):
     
     def __init__(self, name: str,
                  address: str,
-                 user_uuid: str = None):
+                 user_uuid: str = None,
+                 network_type: str = "vm_ovs"):
         self.name = name
         self.address = address
         self.user_uuid = user_uuid
+        self.network_type = network_type
         self.uuid = self._gen_uuid()
    
 
@@ -52,7 +58,7 @@ class Interface(Base):
                                       unique=True,
                                       comment="interface UUID")
     
-    interface_type: Mapped[str] = mapped_column(Enum("direct", "network"),
+    interface_type: Mapped[str] = mapped_column(Enum("direct", "network", "docker_overlay"),
                                                 default="direct",
                                                 comment="interface type, currently we only support ovs direct port")
     
@@ -78,6 +84,10 @@ class Interface(Base):
     xml: Mapped[str] = mapped_column(String(1024),
                                      nullable=True,
                                      comment="xml string of a NIC/interface")
+    
+    network_type: Mapped[str] = mapped_column(Enum("vm_ovs", "docker_swarm"),
+                                        default="vm_ovs",
+                                        comment="type of a interface, should be the same as its network's type")
     
     network_uuid: Mapped[str] = mapped_column(String(64),
                                               ForeignKey('network.uuid'),
@@ -115,7 +125,8 @@ class Interface(Base):
                  gateway: str,
                  mac: str = None,
                  inerface_type: str = "direct",
-                 user_uuid: str = None):
+                 user_uuid: str = None,
+                 network_type: str= "vm_ovs"):
         if ip_address:
             self.name = name
             self.uuid = self._gen_uuid()
@@ -124,6 +135,7 @@ class Interface(Base):
             self.ip_address = ip_address
             self.gateway = gateway
             self.user_uuid = user_uuid
+            self.network_type = network_type
             if mac is not None:
                 self.mac = mac
     

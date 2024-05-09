@@ -1,6 +1,7 @@
 from flask import Flask
 from src.blueprints.slave_guest_bp import guest_bp
 from src.blueprints.slave_network_bp import network_bp
+from src.blueprints.slave_docker_bp import docker_bp
 from src.utils.config import CONF
 # from waitress import serve
 # import logging
@@ -11,7 +12,7 @@ from src.utils.config import CONF
 app = Flask(__name__)
 app.register_blueprint(guest_bp)
 app.register_blueprint(network_bp)
-
+app.register_blueprint(docker_bp)
 
 @app.route("/")
 def root():

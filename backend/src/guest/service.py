@@ -700,13 +700,20 @@ class GuestService():
         """
         determine whether a ip:port has been used by other vnc/spice
         """
+        from src.docker.db.models import DockerGuest
+        from src.docker.db import db as dockerdb
         guests: list[GuestModel] = guestDB.get_domain_list(session)
+        containers: list[DockerGuest] = dockerdb.get_docker_guest_list(session)
         address_list: list[str] = []
         for guest in guests:
             if guest.vnc_address is not None:
                 address_list.append(guest.vnc_address)
             if guest.spice_address is not None:
                 address_list.append(guest.spice_address)
+        
+        for container in containers:
+            if container.vnc_address is not None:
+                address_list.append(container.vnc_address)
         
         ip_ports: list[str] = []
         for s in address_list:
@@ -721,13 +728,20 @@ class GuestService():
         """
         find the first avaliable vnc/spice address 
         """
+        from src.docker.db.models import DockerGuest
+        from src.docker.db import db as dockerdb
         guests: list[GuestModel] = guestDB.get_domain_list(session)
+        containers: list[DockerGuest] = dockerdb.get_docker_guest_list(session)
         address_list: list[str] = []
         for guest in guests:
             if guest.vnc_address is not None:
                 address_list.append(guest.vnc_address)
             if guest.spice_address is not None:
                 address_list.append(guest.spice_address)
+        
+        for container in containers:
+            if container.vnc_address is not None:
+                address_list.append(container.vnc_address)
         
         ip_ports: list[str] = []
         for s in address_list:

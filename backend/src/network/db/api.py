@@ -15,11 +15,12 @@ def create_interface(session,
                     gateway: str,
                     mac: str = None,
                     inerface_type: str = "direct",
-                    user_uuid = None
+                    user_uuid = None,
+                    network_type: str = "vm_ovs"
                    ):
     network_uuid = select_by_name(session, Network, network_name).uuid
     interface = Interface(name, network_uuid, ip_address, gateway,
-                          mac, inerface_type, user_uuid)
+                          mac, inerface_type, user_uuid, network_type)
     insert(session, interface)
     return interface 
 
@@ -132,7 +133,8 @@ def get_user_interface_list(session, user_uuid):
 def create_network(session,
                    name: str,
                    ip_address: str,
-                   user_uuid: str):
+                   user_uuid: str,
+                   network_type: str="vm_ovs"):
     network = Network(name, ip_address, user_uuid)
     insert(session, network)
     return network

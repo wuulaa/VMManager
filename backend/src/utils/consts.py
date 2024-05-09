@@ -60,8 +60,26 @@ P_SNAP_UUID = "snap_uuid"
 # Graphic
 P_VNC = "vnc"
 P_SPICE = "spice"
+P_VNC_IP_PORT = "vnc_ip_port"
+P_VNC_PASSWD = "vnc_passwd"
 
 # User
 P_IS_ADMIN = "is_admin"
 P_NEW_PASSWORD = "new_password"
 P_OLD_PASSWORD = "old_password"
+
+# docker
+P_CONTAINER_UUID = "container_uuid"
+P_CONTAINER_ID = "container_id"
+P_IMAGE = "image"
+P_PORTS = "ports"
+P_DETACH = "detach"
+P_CONTAINER_NAME = "container_name"
+P_CPU_SHARES = "cpu_shares"
+
+P_SWARM_MANAGER_TOKEN = "swarm_manager_token"
+P_SWARM_WORKER_TOKEN = "swarm_worker_token"
+P_REMOTE_ADDRS = "remote_addrs"
+P_ADVERTISE_ADDR = "advertise_addr"
+P_LISTEN_ADDR = "listen_addr"
+P_FORCE = "force"
