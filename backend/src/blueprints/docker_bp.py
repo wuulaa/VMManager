@@ -9,18 +9,20 @@ docker_bp = Blueprint("docker-bp", __name__, url_prefix="/docker")
 
 docker_api = DockerAPI()
 
-@docker_bp.route("/detail", methods=["GET"])
+@docker_bp.route("/detail", methods=["POST"])
 @jwt_set_user
 def get_domain_detail():
     container_uuid = request.values.get(consts.P_CONTAINER_UUID)
     return docker_api.docker_guests_detail(container_uuid).to_json_str()
 
 @docker_bp.post("/listGuest")
-def unpause_container():
+@jwt_set_user
+def list_container():
     return docker_api.list_docker_guests().to_json_str()
 
 
 @docker_bp.post("/createGuest")
+@jwt_set_user
 def create_container():
     guest_name = request.values.get(consts.P_CONTAINER_NAME)
     slave_name = request.values.get(consts.P_SLAVE_NAME)
@@ -34,6 +36,7 @@ def create_container():
     
     
 @docker_bp.post("/deleteGuest")
+@jwt_set_user
 def delete_container():
     container_uuid = request.values.get(consts.P_CONTAINER_UUID)
     return docker_api.delete_docker_guest(container_uuid).to_json_str()
@@ -41,36 +44,42 @@ def delete_container():
 
 
 @docker_bp.post("/startGuest")
+@jwt_set_user
 def start_container():
     container_uuid = request.values.get(consts.P_CONTAINER_UUID)
     return docker_api.start_docker_guest(container_uuid).to_json_str()
 
 
 @docker_bp.post("/stopGuest")
+@jwt_set_user
 def stop_container():
     container_uuid = request.values.get(consts.P_CONTAINER_UUID)
     return docker_api.stop_docker_guest(container_uuid).to_json_str()
 
 
 @docker_bp.post("/restartGuest")
+@jwt_set_user
 def restart_container():
     container_uuid = request.values.get(consts.P_CONTAINER_UUID)
     return docker_api.restart_docker_guest(container_uuid).to_json_str()
 
 
 @docker_bp.post("/pauseGuest")
+@jwt_set_user
 def pause_container():
     container_uuid = request.values.get(consts.P_CONTAINER_UUID)
     return docker_api.pause_docker_guest(container_uuid).to_json_str()
 
 
 @docker_bp.post("/unpauseGuest")
+@jwt_set_user
 def unpause_container():
     container_uuid = request.values.get(consts.P_CONTAINER_UUID)
     return docker_api.unpause_docker_guest(container_uuid).to_json_str()
 
 
 @docker_bp.post("/renameGuest")
+@jwt_set_user
 def rename_container():
     container_uuid = request.values.get(consts.P_CONTAINER_UUID)
     new_name = request.values.get(consts.P_CONTAINER_NAME)
@@ -79,6 +88,7 @@ def rename_container():
 
 
 @docker_bp.post("/setGuestCPU")
+@jwt_set_user
 def set_cpu():
     container_uuid = request.values.get(consts.P_CONTAINER_UUID)
     cpu_shares = request.values.get(consts.P_CPU_SHARES)
@@ -87,7 +97,8 @@ def set_cpu():
 
 
 @docker_bp.post("/setGuestMemory")
-def set_mamory():
+@jwt_set_user
+def set_memory():
     container_uuid = request.values.get(consts.P_CONTAINER_UUID)
     mem_limit = request.values.get(consts.P_MEMORY_SIZE)
     res = docker_api.set_docker_guest_memory(container_uuid, memory_limit=mem_limit)
@@ -95,6 +106,7 @@ def set_mamory():
     
 
 @docker_bp.post("/attachNic")
+@jwt_set_user
 def attach_nic():
     container_uuid = request.values.get(consts.P_CONTAINER_UUID)
     interface_name = request.values.get(consts.P_INTERFACE_NAME)
@@ -103,6 +115,7 @@ def attach_nic():
 
 
 @docker_bp.post("/detachNic")
+@jwt_set_user
 def detach_nic():
     interface_name = request.values.get(consts.P_INTERFACE_NAME)
     res = docker_api.detach_docker_nic(interface_name)

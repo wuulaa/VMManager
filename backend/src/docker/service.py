@@ -79,10 +79,10 @@ class DockerGuestService:
             # 4. handle slave response
             if response.is_success():
                 container_id = response.get_data()
-                db.create_docker_guest(session, None, container_id, guest_name,
+                con = db.create_docker_guest(session, None, container_id, guest_name,
                                     user_uuid, slave_name, vnc_address=db_vnc_address_passwd, )
                 
-            return response
+            return APIResponse.success(con.uuid)
         except Exception as e:
             return APIResponse.error(400, str(e))
     
@@ -90,7 +90,7 @@ class DockerGuestService:
     @enginefacade.transactional
     def delete_docker_guest(self, session, container_uuid:str):
         try:
-            container_status = db.get_docker_guest_status()
+            container_status = db.get_docker_guest_status(session, container_uuid=container_uuid)
             if container_status != "shutoff":
                 return APIResponse.error(code=401, msg="wrong container status")
             container_id = db.get_docker_guest_by_uuid(session, container_uuid).container_id
@@ -112,7 +112,7 @@ class DockerGuestService:
     @enginefacade.transactional
     def start_docker_guest(self, session, container_uuid):
         try:
-            container_status = db.get_docker_guest_status()
+            container_status = db.get_docker_guest_status(session, container_uuid=container_uuid)
             if container_status != "shutoff":
                 return APIResponse.error(code=401, msg="wrong container status")
             container_id = db.get_docker_guest_by_uuid(session, container_uuid).container_id
@@ -132,7 +132,7 @@ class DockerGuestService:
     @enginefacade.transactional
     def stop_docker_guest(self, session, container_uuid):
         try:
-            container_status = db.get_docker_guest_status()
+            container_status = db.get_docker_guest_status(session, container_uuid=container_uuid)
             if container_status != "running":
                 return APIResponse.error(code=401, msg="wrong container status")
             container_id = db.get_docker_guest_by_uuid(session, container_uuid).container_id
@@ -152,7 +152,7 @@ class DockerGuestService:
     @enginefacade.transactional
     def restart_docker_guest(self, session, container_uuid):
         try:
-            container_status = db.get_docker_guest_status()
+            container_status = db.get_docker_guest_status(session, container_uuid=container_uuid)
             if container_status != "running":
                 return APIResponse.error(code=401, msg="wrong container status")
             container_id = db.get_docker_guest_by_uuid(session, container_uuid).container_id
@@ -172,7 +172,7 @@ class DockerGuestService:
     @enginefacade.transactional
     def pause_docker_guest(self, session, container_uuid):
         try:
-            container_status = db.get_docker_guest_status()
+            container_status = db.get_docker_guest_status(session, container_uuid=container_uuid)
             if container_status != "running":
                 return APIResponse.error(code=401, msg="wrong container status")
             container_id = db.get_docker_guest_by_uuid(session, container_uuid).container_id
@@ -192,7 +192,7 @@ class DockerGuestService:
     @enginefacade.transactional
     def unpause_docker_guest(self, session, container_uuid):
         try:
-            container_status = db.get_docker_guest_status()
+            container_status = db.get_docker_guest_status(session, container_uuid=container_uuid)
             if container_status != "paused":
                 return APIResponse.error(code=401, msg="wrong container status")
             container_id = db.get_docker_guest_by_uuid(session, container_uuid).container_id
@@ -241,7 +241,7 @@ class DockerGuestService:
     @enginefacade.transactional
     def rename_docker_guest(self, session, container_uuid, new_name):
         try:
-            container_status = db.get_docker_guest_status()
+            container_status = db.get_docker_guest_status(session, container_uuid=container_uuid)
             if container_status != "shutoff":
                 return APIResponse.error(code=401, msg="wrong container status")
             container_id = db.get_docker_guest_by_uuid(session, container_uuid).container_id
@@ -262,7 +262,7 @@ class DockerGuestService:
     @enginefacade.transactional
     def set_docker_guest_cpu_share(self, session, container_uuid, cpu_shares):
         try:
-            container_status = db.get_docker_guest_status()
+            container_status = db.get_docker_guest_status(session, container_uuid=container_uuid)
             if container_status != "shutoff":
                 return APIResponse.error(code=401, msg="wrong container status")
             container_id = db.get_docker_guest_by_uuid(session, container_uuid).container_id
@@ -283,7 +283,7 @@ class DockerGuestService:
     @enginefacade.transactional
     def set_docker_guest_memory(self, session, container_uuid, memory_limit):
         try:
-            container_status = db.get_docker_guest_status()
+            container_status = db.get_docker_guest_status(session, container_uuid=container_uuid)
             if container_status != "shutoff":
                 return APIResponse.error(code=401, msg="wrong container status")
             container_id = db.get_docker_guest_by_uuid(session, container_uuid).container_id

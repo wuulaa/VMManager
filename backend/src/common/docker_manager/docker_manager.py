@@ -192,8 +192,9 @@ class DockerManager:
                 if new_name is not None:
                     container.rename(new_name)
                 if mem_limit is not None:
-                    container.update(mem_limit=mem_limit)
+                    container.update(mem_limit=mem_limit, memswap_limit=mem_limit)
                 if cpu_shares is not None:
+                    cpu_shares = int(cpu_shares)
                     container.update(cpu_shares=cpu_shares)
                 return APIResponse.success(container.id)
             return APIResponse.error(code=404, msg="container not found")
@@ -208,7 +209,7 @@ class DockerManager:
                    listen_addr: str="0.0.0.0:2377",
                    default_addr_pool: list=None):
         try:
-            res = self.client.swarm.init(name=name,
+            res = self.client.swarm.init(
                                 advertise_addr=advertise_addr,
                                 listen_addr=listen_addr,
                                 default_addr_pool=default_addr_pool
@@ -304,6 +305,14 @@ class DockerManager:
         except Exception as e:
             raise e
         
+        
+    def _disconnect_none(self, container_identifier: str):
+        try:
+            none_net: Network = self._get_network('none')
+            none_net.disconnect(container_identifier)
+        except Exception as e:
+            print(e)
+        
     
     def connect_container_to_network(self, container_identifier:str, network_name:str, ipv4_address:str=None):
         """
@@ -312,6 +321,7 @@ class DockerManager:
         make sure to disconnect if it was connected to the none network
         """
         try:
+            self._disconnect_none(container_identifier)
             network: Network = self._get_network(network_name)
             container = self._get_container(container_identifier)
             if network is not None and container is not None:

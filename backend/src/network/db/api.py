@@ -135,7 +135,7 @@ def create_network(session,
                    ip_address: str,
                    user_uuid: str,
                    network_type: str="vm_ovs"):
-    network = Network(name, ip_address, user_uuid)
+    network = Network(name, ip_address, user_uuid, network_type=network_type)
     insert(session, network)
     return network
 
@@ -173,6 +173,14 @@ def get_network_uuid_by_name(session, name):
 @enginefacade.auto_session
 def get_network_list(session):
     return condition_select(session, Network)
+
+@enginefacade.auto_session
+def get_ovs_network_list(session):
+    return condition_select(session, Network, values={"network_type" : "vm_ovs"})
+
+@enginefacade.auto_session
+def get_docker_network_list(session):
+    return condition_select(session, Network, values={"network_type" : "docker_swarm"})
 
 
 @enginefacade.auto_session

@@ -9,6 +9,7 @@ from src.blueprints.guest_bp import guest_bp
 from src.blueprints.slave_bp import slave_bp
 from src.blueprints.storage_bp import storage_bp
 from src.blueprints.user_bp import user_bp
+from src.blueprints.docker_bp import docker_bp
 from flask import g
 from flask_jwt_extended import JWTManager
 from src.utils.jwt import jwt_set_user
@@ -25,14 +26,15 @@ app.register_blueprint(guest_bp)
 app.register_blueprint(slave_bp)
 app.register_blueprint(storage_bp)
 app.register_blueprint(user_bp)
+app.register_blueprint(docker_bp)
 
 # config jwt for user model
 app.config["JWT_SECRET_KEY"] = "super-secret"  # Change this!
 jwt = JWTManager(app)
 
 # start monitor 
-domainMonitor = DomainMonitor()
-domainMonitor.start_monitoring()
+# domainMonitor = DomainMonitor()
+# domainMonitor.start_monitoring()
 
 
 @app.route("/")

@@ -58,7 +58,7 @@ class DockerGuest(Base):
     #                                  default=0,
     #                                  nullable=True,
     #                                  comment="Max CPU count")
-    memory_limit: Mapped[str] = mapped_column(String,
+    memory_limit: Mapped[str] = mapped_column(String(64),
                                         default="512mb",
                                         nullable=True,
                                         comment="Memory size")

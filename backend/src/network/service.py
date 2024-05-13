@@ -99,11 +99,10 @@ class NetworkServiceBase:
         return APIResponse.success(interface.user_uuid)
 
 
-
-
+NetworkServiceBaseClass = NetworkServiceBase().__class__
 
 @singleton
-class NetworkService(NetworkServiceBase):
+class NetworkService(NetworkServiceBaseClass):
     
     @enginefacade.transactional
     def create_top_network(self, session,
@@ -244,7 +243,7 @@ class NetworkService(NetworkServiceBase):
         this function should be called during system booting
         """
         try:
-            networks:list[Network] = db.get_network_list(session=session)
+            networks:list[Network] = db.get_ovs_network_list(session=session)
             master_bridge_name = CONF.get("network", "bridge_prefix") + "_master"
             for network in networks:
                 gateway = get_network_gateway_with_mask(network.address)
@@ -757,7 +756,7 @@ class NetworkService(NetworkServiceBase):
     
     
     
-class DockerNetworkService(NetworkServiceBase):
+class DockerNetworkService(NetworkServiceBaseClass):
     
     @enginefacade.transactional
     def create_docker_top_network(self, session,
@@ -775,11 +774,13 @@ class DockerNetworkService(NetworkServiceBase):
         try:
             slaves = CONF['slaves']
             master_ip: str = CONF.get("master", "master").split(":")[0]
-            swarm_name = CONF.get("network", "bridge_prefix") + "_swarm"
+            # swarm_name = CONF.get("network", "bridge_prefix") + "_swarm"
             res_flag = True
             docker_manager = DockerManager()
+            address_lst = []
+            address_lst.append(network_address)
             # 1. swarm init
-            response = docker_manager.init_swarm(swarm_name, default_addr_pool=network_address)
+            response = docker_manager.init_swarm(default_addr_pool=address_lst)
             swarm_token = docker_manager.get_swarm_manager_token().get_data()
             if not response.is_success():
                 res_flag = False
@@ -865,7 +866,7 @@ class DockerNetworkService(NetworkServiceBase):
             
             # 1. create swarm subnet
             docker_manager = DockerManager()
-            resp = docker_manager.crate_network(name=name, subnet=ipaddress, gateway=gateway)
+            resp = docker_manager.crate_network(name=name, subnet=ip_address, gateway=gateway)
             #TODO: make use of this?
             network_id = resp.get_data()
                         
@@ -894,7 +895,7 @@ class DockerNetworkService(NetworkServiceBase):
             # 2. write db
             interfaces: list[Interface] = network.interfaces
             for interface in interfaces:
-                self.delete_interface(session, interface.uuid)
+                self.delete_docker_interface(session, interface.uuid)
             db.delete_network_by_name(session, network_name)
                  
             return APIResponse.success()
@@ -958,6 +959,7 @@ class DockerNetworkService(NetworkServiceBase):
         if not check_user(interface_name, Interface):
             return APIResponse.error(code=501, msg="wrong user")
         try:
+            interface = None
             if interface_uuid:
                 interface: Interface = db.get_interface_by_uuid(session, interface_uuid)
             elif interface_name:
@@ -1067,7 +1069,7 @@ class DockerNetworkService(NetworkServiceBase):
             
             # 2. write db    
             db.update_interface_guest_uuid(session, interface.uuid, None)
-            db.update_interface_status(session, interface.uuid, "un_bound")
+            db.update_interface_status(session, interface.uuid, "unbound")
             db.update_interface_slave_uuid(session, interface.uuid, None)
             
             return APIResponse.success()

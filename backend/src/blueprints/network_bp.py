@@ -171,7 +171,7 @@ def init_set_ips():
 def list_docker():
     """
     list all networks,
-    if user_name is given, list user's interfaces
+    if user_name is given, list user's networks
     """
     user_name = request.values.get(consts.P_USER_NAME)
     return docker_network_api.list_networks(user_name).to_json_str()

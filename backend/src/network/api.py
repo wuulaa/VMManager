@@ -123,13 +123,11 @@ class DockerNetworkAPI():
                          network_name: str,
                          ip_address: str,
                          gateway: str, 
-                         mac: str = None,
                          inerface_type: str = "docker_overlay") -> APIResponse:
         return docker_network_service.create_docker_interface(interface_name=name,
                                                 network_name=network_name,
                                                 ip_address=ip_address,
                                                 gateway=gateway,
-                                                mac=mac,
                                                 inerface_type=inerface_type)
     
     
