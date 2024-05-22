@@ -26,7 +26,10 @@ class IntervalScheduler:
     def stop_scheduler(self):
         self.scheduler.shutdown()
         
-        
+"""
+A universal monitor, monitors not only domains,
+but also slave machines and containers
+"""
 @singleton
 class DomainMonitor:
     def __init__(self):
@@ -35,6 +38,8 @@ class DomainMonitor:
         
         self.scheduler.add_interval_job(self.batch_store_domain_status)
         self.scheduler.add_interval_job(self.batch_store_slave_status)
+        # comment this line if bug
+        self.scheduler.add_interval_job(self.batch_store_container_status)
         
     def start_monitoring(self):
         self.scheduler.start_scheduler()
@@ -45,12 +50,22 @@ class DomainMonitor:
     def store_domain_status(self, domain_uuid: str, status_info):
         self.redis.add_value_to_list(domain_uuid, status_info)
         
+    def store_container_status(self, container_uuid: str, status_info):
+        self.redis.add_value_to_list(container_uuid, status_info)
+        
         
     def get_stored_domain_status(self, domain_uuid:str):
         """
         get domain status stored in redis
         """
         return self.redis.get_list(domain_uuid)
+    
+    
+    def get_stored_container_status(self, container_uuid:str):
+        """
+        get container status stored in redis
+        """
+        return self.redis.get_list(container_uuid)
     
     
     def get_stored_slave_status(self, slave_name:str):
@@ -83,6 +98,24 @@ class DomainMonitor:
         guest_api = GuestAPI()
         uuid_2_data = {}
         data_list = guest_api.monitor_all().get_data()
+        for data in data_list:
+            if data is not None:
+                uuid = data["uuid"]
+                data_str = json.dumps(data)
+                uuid_2_data[uuid] = data_str
+    
+        self.redis.add_values_to_list_transaction(uuid_2_data)
+        
+        
+    def batch_store_container_status(self):
+        """
+        store monitored data to redis,
+        this function should be called every one minute    
+        """
+        from src.docker.api import DockerAPI
+        docker_api = DockerAPI()
+        uuid_2_data = {}
+        data_list = docker_api.monitor_all().get_data()
         for data in data_list:
             if data is not None:
                 uuid = data["uuid"]

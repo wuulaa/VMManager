@@ -201,6 +201,23 @@ class DockerManager:
         except Exception as e:
             return APIResponse.error(code=400, msg=str(e))
         
+    def container_status(self, container_id):
+        try:
+            container = self._get_container(container_id)
+            if container is not None:
+                status = container.stats(decode=True).__next__()
+                cpu = status.get("cpu_stats")
+                memory = status.get("memory_stats")
+                network = status.get("networks")
+                res = {"cpu": cpu,
+                       "memory": memory,
+                       "network": network
+                       }
+                return APIResponse.success(res)
+            return APIResponse.error(code=404, msg="container not found")
+        except Exception as e:
+            return APIResponse.error(code=400, msg=str(e))
+        
     #############
     #   swarm   #
     #############

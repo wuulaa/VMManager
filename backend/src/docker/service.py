@@ -326,9 +326,34 @@ class DockerGuestService:
             return APIResponse.error(400, str(e))
     
     
-    @enginefacade.transactional
-    def monitor(self, session):
-        pass
+    @enginefacade.transactional    
+    def monitor(self, session, container_uuid: str) -> APIResponse:
+        container_status = db.get_docker_guest_status(session, container_uuid=container_uuid)
+        if container_status != "running":
+            return APIResponse.success(data=None, msg="Container is not running")
+        container_id = db.get_docker_guest_by_uuid(session, container_uuid).container_id
+        data = {
+            consts.P_CONTAINER_ID : container_id,
+        }
+        slave_name = db.get_docker_guest_slave_name(session, container_uuid)
+        url = CONF['slaves'][slave_name]
+        response: APIResponse = APIResponse().deserialize_response(requests.post(url="http://"+url+"/monitorContainer/", data=data).json())
+        if response.code != 0:
+            return APIResponse.error(code = 400, msg=response.msg)
+        return response
+    
+    @enginefacade.transactional    
+    def monitor_all(self, session) -> APIResponse:
+        containers: list[DockerGuest] = db.get_docker_guest_list(session)
+        res = []
+        for container in containers:
+            uuid = container.uuid
+            response = self.monitor(session, uuid)
+            if response.is_success():
+                data = response.get_data()
+                data["uuid"] = uuid
+                res.append(data)
+        return APIResponse.success(data=res)
     
     
     @enginefacade.transactional

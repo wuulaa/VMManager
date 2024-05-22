@@ -77,6 +77,13 @@ def update_container():
     return res.to_json_str()
 
 
+@docker_bp.post("/monitorContainer/")
+def update_container():
+    container_id = request.values.get(consts.P_CONTAINER_ID)
+    res = service.container_status(container_id)
+    return res.to_json_str()
+
+
 @docker_bp.post("/joinSwarm/")
 def joinSwarm():
     swarm_worker_token = request.values.get(consts.P_SWARM_WORKER_TOKEN)

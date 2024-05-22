@@ -120,3 +120,14 @@ def detach_nic():
     interface_name = request.values.get(consts.P_INTERFACE_NAME)
     res = docker_api.detach_docker_nic(interface_name)
     return res.to_json_str()
+
+
+@docker_bp.route("/getStoredMonitor", methods=["POST"])
+def get_stored_monitor_container():
+    """
+    get stored container monitor status, note that if container was not running
+    there would be no data.
+    store at most one hour's data in redis
+    """
+    domain_uuid = request.values.get(consts.P_DOMAIN_UUID)
+    return docker_api.get_stored_monitor_data(domain_uuid).to_json_str()

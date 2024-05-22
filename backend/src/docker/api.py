@@ -86,8 +86,12 @@ class DockerAPI:
         return docker_serice.detach_docker_nic(interface_name=interface_name)
     
     
-    def monitor(self):
-        pass
+    def monitor(self, cnotainer_uuid: str) -> APIResponse:
+        return docker_serice.monitor(container_uuid=cnotainer_uuid)
+    
+    
+    def monitor_all(self) -> APIResponse:
+        return docker_serice.monitor_all()
     
     
     def get_user_uuid(self, container_uuid) -> APIResponse:
