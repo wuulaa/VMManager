@@ -13,3 +13,4 @@ psutil
 redis
 sqlalchemy
 flask_jwt_extended
+docker
