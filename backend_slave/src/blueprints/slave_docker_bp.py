@@ -78,7 +78,7 @@ def update_container():
 
 
 @docker_bp.post("/monitorContainer/")
-def update_container():
+def monitor_container():
     container_id = request.values.get(consts.P_CONTAINER_ID)
     res = service.container_status(container_id)
     return res.to_json_str()
